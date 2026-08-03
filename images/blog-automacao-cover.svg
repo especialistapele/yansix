@@ -1,0 +1,18 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e3d3a"/>
+      <stop offset="100%" stop-color="#0f8f7f"/>
+    </linearGradient>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <g transform="translate(600,255)" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+    <circle cx="0" cy="0" r="55"/><path d="M0,-95 L0,-70 M0,70 L0,95 M-95,0 L-70,0 M70,0 L95,0 M-67,-67 L-49,-49 M49,49 L67,67 M67,-67 L49,-49 M-49,49 L-67,67"/>
+  </g>
+  <text x="600" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff" opacity="0.92" letter-spacing="1">TECNOLOGIA</text>
+  <text x="600" y="558" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#ffffff" opacity="0.65" letter-spacing="4">YANSIX</text>
+</svg>

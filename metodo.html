@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Método REFLEXO™: Metodologia de Estratégia Digital | YANSIX</title>
+<meta name="description" content="Conheça o Método REFLEXO™, a metodologia própria da YANSIX para branding, posicionamento digital e IA aplicados a empresas de todo o Brasil.">
+<style>
+  :root{
+    --purple-deep:#3414D5;
+    --purple:#4B34E0;
+    --purple-light:#8B7CF6;
+    --purple-pale:#EAE7FC;
+    --bg:#F5F3FC;
+    --card-bg:#FFFFFF;
+    --text-dark:#171533;
+    --text-muted:#5C5A78;
+    --border:#E4E1F5;
+    --purple-dark:#1a1533;
+    --ink:#0d0a1f;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text-dark);
+  }
+  section{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 40px;
+  }
+
+  /* Navbar (igual ao index.html) */
+  header.topbar{
+    background:var(--purple-dark);
+    padding:14px 24px;
+  }
+  .nav-wrap{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+  }
+  .logo-card{
+    background:var(--white);
+    border-radius:16px;
+    padding:10px 22px 10px 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .logo-card img{width:34px;height:34px;}
+  .logo-card .logo-wordmark{width:auto;height:20px;}
+  .logo-card span{
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:1px;
+    color:var(--ink);
+  }
+  nav.main-nav ul{
+    display:flex;
+    align-items:center;
+    gap:32px;
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  nav.main-nav a{
+    color:#cfcbe6;
+    font-size:15px;
+    font-weight:500;
+    transition:color .2s;
+    position:relative;
+    padding-bottom:6px;
+    text-decoration:none;
+  }
+  nav.main-nav a:hover{color:var(--white);}
+  nav.main-nav a.active{color:var(--white);}
+  nav.main-nav a.active::after{
+    content:"";
+    position:absolute;
+    bottom:0;left:50%;
+    transform:translateX(-50%);
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--purple);
+  }
+  .nav-search-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:.85;
+    transition:opacity .2s;
+  }
+  .nav-search-btn:hover{opacity:1;}
+  .nav-wrap .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+    font-size:15px;
+    border-radius:12px;
+    padding:12px 22px;
+    border:none;
+    cursor:pointer;
+    text-decoration:none;
+    transition:transform .15s ease, box-shadow .15s ease, background .2s;
+  }
+  .nav-wrap .btn:hover{transform:translateY(-2px);}
+  .nav-wrap .btn-primary{
+    background:var(--purple);
+    color:var(--white);
+    box-shadow:0 8px 20px rgba(91,61,245,.35);
+  }
+  .nav-wrap .btn-primary:hover{background:#4c2fe0;}
+  @media(max-width:900px){
+    nav.main-nav{display:none;}
+  }
+
+  /* Hero */
+  .hero{
+    text-align:center;
+    padding:56px 40px 10px;
+    background:linear-gradient(180deg,#EAE9FA,#F5F3FC 70%);
+  }
+  .hero-eyebrow{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:2px;
+    color:var(--purple);
+    margin-bottom:14px;
+  }
+  .hero-title{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:22px;
+    font-size:52px;
+    font-weight:800;
+    letter-spacing:6px;
+    margin:0 0 22px;
+    color:var(--text-dark);
+  }
+  .hero-title .line{
+    width:60px;
+    height:2px;
+    background:var(--purple-light);
+    opacity:0.6;
+  }
+  .hero-title sup{
+    font-size:16px;
+    font-weight:700;
+    color:var(--purple);
+  }
+  .hero-sub{
+    font-size:18px;
+    font-weight:600;
+    max-width:640px;
+    margin:0 auto 18px;
+    line-height:1.5;
+    color:var(--text-dark);
+  }
+  .hero-text{
+    font-size:14px;
+    color:var(--text-muted);
+    max-width:640px;
+    margin:0 auto;
+    line-height:1.7;
+  }
+  .hero-text b{
+    color:var(--text-dark);
+  }
+  .hero-image{
+    display:block;
+    margin:20px auto 0;
+    max-width:100%;
+    height:auto;
+  }
+
+  /* Steps */
+  .steps-wrap{
+    max-width:1320px;
+    padding:60px 24px 40px;
+  }
+  .steps-row{
+    display:flex;
+    gap:14px;
+    position:relative;
+    align-items:stretch;
+  }
+  .step{
+    flex:1;
+    min-width:0;
+    position:relative;
+    z-index:1;
+    height:400px;
+    perspective:1400px;
+    cursor:pointer;
+  }
+  .step-flip-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition:transform 0.6s cubic-bezier(0.4,0.2,0.2,1);
+    transform-style:preserve-3d;
+  }
+  .step.flipped .step-flip-inner{
+    transform:rotateY(180deg);
+  }
+  .step-face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    border-radius:16px;
+    border:1px solid var(--border);
+    background:var(--card-bg);
+    padding:26px 14px 20px;
+    display:flex;
+    flex-direction:column;
+    text-align:center;
+    transition:box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .step:hover .step-face{
+    box-shadow:0 18px 34px rgba(75,52,224,0.20);
+    border-color:var(--purple-light);
+  }
+  .step-back{
+    transform:rotateY(180deg);
+    background:linear-gradient(160deg, var(--purple-deep), var(--purple));
+    border-color:transparent;
+    color:#fff;
+    justify-content:center;
+    padding:28px 20px 24px;
+  }
+  .step-circle{
+    width:76px;
+    height:76px;
+    margin:0 auto 14px;
+    border-radius:50%;
+    border:3px solid var(--purple-deep);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+    font-size:28px;
+    font-weight:700;
+    color:var(--purple-deep);
+    transition:transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+  }
+  .step:hover .step-circle{
+    background:linear-gradient(135deg, var(--purple-light), var(--purple-deep));
+    color:#fff;
+    border-color:transparent;
+    transform:scale(1.1);
+  }
+  .step-num{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:var(--purple-light);
+    margin-bottom:2px;
+  }
+  .step-title{
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    margin-bottom:14px;
+    color:var(--text-dark);
+  }
+  .step-icon{
+    width:38px;
+    height:38px;
+    margin:0 auto 14px;
+    color:var(--purple);
+    transition:transform 0.3s ease, color 0.3s ease;
+  }
+  .step:hover .step-icon{
+    color:var(--purple-deep);
+    transform:scale(1.15);
+  }
+  .step-lead{
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:8px;
+    color:var(--text-dark);
+  }
+  .step-desc{
+    font-size:12px;
+    line-height:1.5;
+    color:var(--text-muted);
+  }
+  .step-hint{
+    margin-top:auto;
+    padding-top:14px;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--purple-light);
+  }
+  .step-back .step-hint{
+    color:rgba(255,255,255,0.75);
+  }
+  .step-back-num{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:rgba(255,255,255,0.7);
+    margin-bottom:10px;
+  }
+  .step-back-title{
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:14px;
+    color:#fff;
+  }
+  .step-back-list{
+    list-style:none;
+    margin:0 0 auto;
+    padding:0;
+    text-align:left;
+  }
+  .step-back-list li{
+    font-size:12px;
+    line-height:1.5;
+    padding-left:16px;
+    position:relative;
+    margin-bottom:10px;
+    color:rgba(255,255,255,0.92);
+  }
+  .step-back-list li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:6px;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#fff;
+  }
+
+  /* Why section */
+  .why-wrap{
+    padding:50px 40px 10px;
+  }
+  .why-eyebrow{
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:2px;
+    color:var(--purple);
+    margin-bottom:34px;
+  }
+  .why-eyebrow::before,
+  .why-eyebrow::after{
+    content:"—";
+    color:var(--purple-light);
+    margin:0 12px;
+  }
+  .why-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+  }
+  .why-card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:28px 22px;
+    text-align:center;
+    transition:transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    cursor:default;
+  }
+  .why-card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 18px 34px rgba(75,52,224,0.20);
+    border-color:var(--purple-light);
+  }
+  .why-icon{
+    width:34px;
+    height:34px;
+    margin:0 auto 16px;
+    color:var(--purple);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    transition:transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+  }
+  .why-card:hover .why-icon{
+    background:var(--purple-pale);
+    color:var(--purple-deep);
+    transform:scale(1.15);
+    box-shadow:0 0 0 8px var(--purple-pale);
+  }
+  .why-title{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:10px;
+    transition:color 0.3s ease;
+  }
+  .why-card:hover .why-title{
+    color:var(--purple-deep);
+  }
+  .why-desc{
+    font-size:13px;
+    line-height:1.6;
+    color:var(--text-muted);
+  }
+
+  /* CTA */
+  .cta-wrap{
+    padding:50px 40px 60px;
+  }
+  .cta-box{
+    background:var(--purple-pale);
+    border-radius:20px;
+    padding:36px 44px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:30px;
+    flex-wrap:wrap;
+  }
+  .cta-left{
+    display:flex;
+    align-items:center;
+    gap:20px;
+  }
+  .cta-icon{
+    width:56px;
+    height:56px;
+    flex-shrink:0;
+    border-radius:16px;
+    background:linear-gradient(135deg, var(--purple-light), var(--purple-deep));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .cta-icon svg{width:28px;height:28px;color:#fff;}
+  .cta-title{
+    font-size:22px;
+    font-weight:700;
+    margin:0;
+  }
+  .cta-text{
+    font-size:13px;
+    color:var(--text-muted);
+    max-width:360px;
+    line-height:1.6;
+  }
+  .btn{
+    background:linear-gradient(135deg, var(--purple), var(--purple-deep));
+    color:#fff;
+    border:none;
+    padding:13px 26px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+  }
+
+  /* Footer */
+  footer{
+    background:#FBFBFD;
+    border-top:1px solid var(--border);
+    padding:50px 40px 25px;
+  }
+  .footer-inner{
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .footer-brand{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-width:220px;
+  }
+  .footer-logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:800;
+    font-size:18px;
+    letter-spacing:1px;
+  }
+  .footer-logo-mark{
+    width:26px;height:26px;
+    border-radius:6px;
+    background:linear-gradient(135deg, var(--purple-light), var(--purple-deep));
+  }
+  .footer-social a{
+    display:inline-flex;
+    width:32px;height:32px;
+    border-radius:50%;
+    background:var(--purple-pale);
+    align-items:center;
+    justify-content:center;
+    margin-right:8px;
+    color:var(--purple-deep);
+    text-decoration:none;
+  }
+  .footer-col h4{
+    font-size:12px;
+    letter-spacing:1px;
+    color:var(--purple);
+    margin-bottom:14px;
+  }
+  .footer-col a{
+    display:block;
+    color:var(--text-muted);
+    text-decoration:none;
+    font-size:13px;
+    margin-bottom:10px;
+  }
+  .footer-col a:hover{color:var(--purple);}
+  .footer-bottom{
+    max-width:1100px;
+    margin:30px auto 0;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--text-muted);
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .footer-bottom a{
+    color:var(--text-muted);
+    text-decoration:none;
+    margin-left:18px;
+  }
+
+  @media (max-width:900px){
+    .steps-row{flex-wrap:wrap;}
+    .step{flex:0 0 33%;margin-bottom:30px;}
+    .steps-row::before{display:none;}
+    .why-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:600px){
+    .step{flex:0 0 50%;}
+    .why-grid{grid-template-columns:1fr;}
+    .cta-box{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+<link rel="canonical" href="https://www.yansix.tech/metodo.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="YANSIX">
+<meta property="og:title" content="Método REFLEXO™ | YANSIX">
+<meta property="og:description" content="Conheça o Método REFLEXO™, a metodologia própria da YANSIX para consultoria de branding, posicionamento digital e IA aplicada a empresas do Paraná, Santa Catarina, Rio Grande do Sul e de todo o Brasil.">
+<meta property="og:url" content="https://www.yansix.tech/metodo.html">
+<meta property="og:image" content="https://www.yansix.tech/image/logo.webp">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Método REFLEXO™ | YANSIX">
+<meta name="twitter:description" content="Conheça o Método REFLEXO™, a metodologia própria da YANSIX para consultoria de branding, posicionamento digital e IA aplicada a empresas do Paraná, Santa Catarina, Rio Grande do Sul e de todo o Brasil.">
+<meta name="twitter:image" content="https://www.yansix.tech/image/logo.webp">
+<meta name="twitter:site" content="@yansix.tech">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://www.yansix.tech/"},{"@type":"ListItem","position":2,"name":"Método","item":"https://www.yansix.tech/metodo.html"}]}
+</script>
+
+</head>
+<body>
+
+  <!-- NAVBAR (igual ao index.html) -->
+  <header class="topbar">
+    <div class="nav-wrap">
+      <a href="index.html" class="logo-card">
+        <img width="571" height="658" loading="eager" src="image/logo-topo.webp" alt="Logo YANSIX - topo">
+        <img width="1198" height="254" loading="lazy" src="image/logo-texto-topo.webp" alt="YANSIX" class="logo-wordmark">
+      </a>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="index.html">Início</a></li>
+          <li><a href="metodo.html" class="active">Método</a></li>
+          <li><a href="solucoes.html">Soluções</a></li>
+          <li><a href="cases.html">Cases</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contato2.html">Contato</a></li>
+        </ul>
+      </nav>
+      <a href="busca.html" class="nav-search-btn" aria-label="Buscar no site" title="Buscar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"></circle><line x1="14.5" y1="14.5" x2="20" y2="20"></line></svg>
+      </a>
+      <a href="diagnostico.html" class="btn btn-primary">Diagnóstico <span>&rarr;</span></a>
+    </div>
+  </header>
+
+  <!-- HERO (real, texto em HTML) -->
+  <section class="hero">
+    <div class="hero-eyebrow">O MÉTODO</div>
+    <h1 class="hero-title"><span class="line"></span>REFLEXO<sup>™</sup><span class="line"></span></h1>
+    <p class="hero-sub">A metodologia estratégica para transformar presença digital em uma estrutura de crescimento.</p>
+    <p class="hero-text">Mais do que desenvolver ativos digitais, o <b>Método REFLEXO™</b> organiza a transformação digital em etapas estratégicas, reduzindo decisões por tentativa e erro e criando uma base preparada para evolução.</p>
+    <img width="1024" height="297" loading="lazy" class="hero-image" src="images/hexagon.png" alt="Símbolo do Método REFLEXO">
+  </section>
+
+  <!-- ETAPAS DO MÉTODO -->
+  <section class="steps-wrap">
+    <div class="steps-row">
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">R</div>
+            <div class="step-num">01</div>
+            <div class="step-title">RECONHECER</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <div class="step-lead">Compreender antes de transformar.</div>
+            <div class="step-desc">Diagnóstico de empresa, objetivos, desafios, posicionamento e presença digital atual.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">01 · RECONHECER</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Reunião de diagnóstico com o time</li>
+              <li>Análise da presença digital atual</li>
+              <li>Mapeamento de objetivos e desafios</li>
+              <li>Benchmark rápido da concorrência</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">E</div>
+            <div class="step-num">02</div>
+            <div class="step-title">EXPLORAR</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 6-6 2 2-6 6-2z"/></svg>
+            <div class="step-lead">Identificar possibilidades.</div>
+            <div class="step-desc">Análise de mercado, concorrência, comunicação e oportunidades estratégicas.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">02 · EXPLORAR</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Pesquisa de mercado e público-alvo</li>
+              <li>Análise da concorrência direta e indireta</li>
+              <li>Auditoria da comunicação atual</li>
+              <li>Mapeamento de oportunidades estratégicas</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">F</div>
+            <div class="step-num">03</div>
+            <div class="step-title">FILTRAR</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16l-6 8v6l-4 2v-8L4 4z"/></svg>
+            <div class="step-lead">Transformar complexidade em clareza.</div>
+            <div class="step-desc">Priorização das ações de maior impacto para o negócio.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">03 · FILTRAR</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Priorização por impacto x esforço</li>
+              <li>Definição do que entra no escopo agora</li>
+              <li>Eliminação de ações de baixo retorno</li>
+              <li>Clareza sobre o caminho crítico</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">L</div>
+            <div class="step-num">04</div>
+            <div class="step-title">LOCALIZAR</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg>
+            <div class="step-lead">Encontrar oportunidades de evolução.</div>
+            <div class="step-desc">Identificação de falhas, oportunidades e pontos de crescimento.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">04 · LOCALIZAR</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Identificação de gargalos técnicos e de conversão</li>
+              <li>Pontos de melhoria em UX e performance</li>
+              <li>Oportunidades de crescimento não exploradas</li>
+              <li>Cruzamento de dados com as metas do negócio</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">E</div>
+            <div class="step-num">05</div>
+            <div class="step-title">ESTRUTURAR</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg>
+            <div class="step-lead">Construir o plano de evolução.</div>
+            <div class="step-desc">Definição de objetivos, estratégias, soluções, prioridades e cronograma.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">05 · ESTRUTURAR</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Definição de objetivos claros e mensuráveis</li>
+              <li>Escolha das soluções e tecnologias certas</li>
+              <li>Priorização das entregas</li>
+              <li>Cronograma com etapas e prazos</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">X</div>
+            <div class="step-num">06</div>
+            <div class="step-title">EXPANDIR</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+            <div class="step-lead">Desenvolver soluções.</div>
+            <div class="step-desc">Implementação da presença digital estratégica: sites, SEO, automações e soluções inteligentes.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">06 · EXPANDIR</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Desenvolvimento de sites e plataformas</li>
+              <li>Implementação de SEO técnico e de conteúdo</li>
+              <li>Automações de processos e atendimento</li>
+              <li>Soluções com IA aplicadas ao negócio</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="this.classList.toggle('flipped')">
+        <div class="step-flip-inner">
+          <div class="step-face step-front">
+            <div class="step-circle">O</div>
+            <div class="step-num">07</div>
+            <div class="step-title">OTIMIZAR</div>
+            <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0 1 14-5.3M4 6.7V12h5.3"/><path d="M20 12a8 8 0 0 1-14 5.3M20 17.3V12h-5.3"/></svg>
+            <div class="step-lead">Evolução contínua.</div>
+            <div class="step-desc">Acompanhamento dos resultados, melhorias e novas oportunidades.</div>
+            <div class="step-hint">Clique para ver mais</div>
+          </div>
+          <div class="step-face step-back">
+            <div class="step-back-num">07 · OTIMIZAR</div>
+            <div class="step-back-title">Como fazemos</div>
+            <ul class="step-back-list">
+              <li>Monitoramento contínuo de métricas</li>
+              <li>Testes e ajustes com base em dados reais</li>
+              <li>Identificação de novas oportunidades</li>
+              <li>Ciclo de evolução contínuo</li>
+            </ul>
+            <div class="step-hint">Clique para voltar</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- POR QUE FUNCIONA -->
+  <section class="why-wrap">
+    <div class="why-eyebrow">POR QUE O MÉTODO REFLEXO™ FUNCIONA?</div>
+    <div class="why-grid">
+
+      <div class="why-card">
+        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+        <div class="why-title">Estratégia com direção</div>
+        <div class="why-desc">Cada etapa elimina incertezas e traz foco para o que realmente gera resultado.</div>
+      </div>
+
+      <div class="why-card">
+        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h4V5a2 2 0 0 1 4 0v4h4v4h-4v4a2 2 0 0 1-4 0v-4H4V9z"/></svg>
+        <div class="why-title">Processo inteligente</div>
+        <div class="why-desc">Organização lógica que conecta diagnóstico, ação e evolução contínua.</div>
+      </div>
+
+      <div class="why-card">
+        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M6 13l3-3 2 2 5-5"/></svg>
+        <div class="why-title">Tecnologia a favor</div>
+        <div class="why-desc">Usamos tecnologia e IA para transformar dados em decisões estratégicas.</div>
+      </div>
+
+      <div class="why-card">
+        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18l5-6 4 3 5-7 4 5"/></svg>
+        <div class="why-title">Resultados mensuráveis</div>
+        <div class="why-desc">Acompanhamento contínuo para garantir crescimento sustentável e previsível.</div>
+      </div>
+
+      <div class="why-card">
+        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><path d="M3 20c0-3.5 3-5.5 6-5.5s6 2 6 5.5"/><path d="M13 14.5c2 .2 5 1.8 5 5.5"/></svg>
+        <div class="why-title">Soluções personalizadas</div>
+        <div class="why-desc">Cada negócio é único. Nossas soluções são criadas sob medida para sua realidade.</div>
+      </div>
+
+      <div class="why-card">
+        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 12c0-2.5 2-4 4-2s2 4.5 0 6.5-4-.5-4-2z"/><path d="M18 12c0-2.5-2-4-4-2s-2 4.5 0 6.5 4-.5 4-2z"/></svg>
+        <div class="why-title">Evolução contínua</div>
+        <div class="why-desc">Não entregamos só o projeto. Caminhamos junto com você para evoluir sempre.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-wrap">
+    <div class="cta-box">
+      <div class="cta-left">
+        <div class="cta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><path d="M3 20c0-3.5 3-5.5 6-5.5s6 2 6 5.5"/><path d="M13 14.5c2 .2 5 1.8 5 5.5"/></svg>
+        </div>
+        <div>
+          <p class="cta-title">Vamos construir juntos?</p>
+          <p class="cta-text">Conte com a YANSIX para transformar ideias em soluções que gerem impacto real e duradouro.</p>
+        </div>
+      </div>
+      <a class="btn" href="contato2.html">Fale Conosco →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="footer-logo-mark"></span>
+          YANSIX
+        </div>
+        <div class="footer-social">
+          <a href="#">◎</a>
+          <a href="#">✉</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>NAVEGAÇÃO</h4>
+        <a href="index.html">Início</a>
+        <a href="metodo.html">Método</a>
+        <a href="solucoes.html">Soluções</a>
+        <a href="cases.html">Cases</a>
+        <a href="blog.html">Blog</a>
+        <a href="contato2.html">Contato</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>SOLUÇÕES</h4>
+        <a href="solucoes-websites.html">Websites</a>
+        <a href="solucoes-ia.html">Inteligência Artificial</a>
+        <a href="solucoes-branding.html">Branding</a>
+        <a href="solucoes-sistemas.html">Sistemas e Plataformas</a>
+        <a href="solucoes-automacao.html">Automação</a>
+        <a href="solucoes-seo.html">SEO e Performance</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>CONTATO</h4>
+        <a href="tel:+5541933002107">+55 41 93300-2107</a>
+        <a href="https://www.instagram.com/yansix.tech" target="_blank" rel="noopener">@yansix.tech</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>ATUAÇÃO</h4>
+        <a href="atuacao.html">Áreas Atendidas</a>
+        <a href="atuacao-curitiba.html">Curitiba - PR</a>
+        <a href="atuacao-florianopolis.html">Florianópolis - SC</a>
+        <a href="atuacao-porto-alegre.html">Porto Alegre - RS</a>
+        <a href="atuacao-araruama.html">Araruama - RJ</a>
+        <a href="atuacao-cabo-frio.html">Cabo Frio - RJ</a>
+        <a href="atuacao-saquarema.html">Saquarema - RJ</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 YANSIX. Todos os direitos reservados.</span>
+      <span>
+        <a href="privacidade.html">Política de Privacidade</a>
+        <a href="termos.html">Termos de Uso</a>
+      </span>
+    </div>
+  </footer>
+
+
+</body>
+</html>

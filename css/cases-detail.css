@@ -1,0 +1,178 @@
+/* ==========================================================
+   YANSIX — CASES-DETAIL.CSS
+   Estilos exclusivos das páginas de estudo de caso completo
+   (case-fazendinha-turca.html, case-danny-queiroz.html, case-danny-queiroz-2.html)
+   Depende das variáveis e componentes já definidos em site.css
+   ========================================================== */
+
+/* ================= TAGS DO CASE (sob o breadcrumb) ================= */
+.case-tags-row{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:18px;
+}
+.case-tags-row .pill{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.22);
+  color:#e3e0f7;
+  font-size:11.5px;
+}
+
+/* ================= APRESENTAÇÃO DO CLIENTE ================= */
+.client-grid{
+  max-width:1180px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:44px;
+  align-items:center;
+}
+.client-photo{
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:0 16px 34px rgba(30,20,80,.12);
+}
+.client-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.client-info h3{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+.client-info p{font-size:14.5px;color:var(--text-muted);line-height:1.7;margin-bottom:18px;}
+.client-facts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.client-fact{
+  background:var(--white);
+  border-radius:999px;
+  padding:8px 16px;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--ink);
+  box-shadow:0 6px 16px rgba(30,20,80,.06);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.client-fact strong{color:var(--purple);font-weight:700;}
+
+/* ================= BLOCOS NARRATIVOS (Desafio / Diagnóstico / Solução) ================= */
+.narrative-grid{
+  max-width:920px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.narrative-grid .detail-intro{margin:0 auto;}
+
+/* ================= RESULTADOS OBTIDOS ================= */
+.results-grid{
+  max-width:1000px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+}
+.result-stat{
+  background:var(--white);
+  border-radius:var(--radius-md);
+  padding:26px 18px;
+  text-align:center;
+  box-shadow:0 8px 20px rgba(30,20,80,.05);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.result-stat:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(30,20,80,.09);}
+.result-stat strong{display:block;font-size:28px;font-weight:800;color:var(--purple);margin-bottom:6px;}
+.result-stat span{font-size:12.5px;color:var(--text-muted);line-height:1.4;}
+
+/* ================= MÉTRICAS / GRÁFICO ================= */
+.chart-card{
+  max-width:920px;
+  margin:0 auto;
+  background:var(--white);
+  border-radius:var(--radius-lg);
+  padding:32px 34px;
+  box-shadow:0 8px 20px rgba(30,20,80,.05);
+}
+.chart-card h4{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:22px;text-align:center;}
+.chart-svg{width:100%;height:auto;display:block;}
+.chart-legend{
+  display:flex;
+  justify-content:center;
+  gap:26px;
+  margin-top:18px;
+  flex-wrap:wrap;
+}
+.chart-legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12.5px;
+  color:var(--text-muted);
+  font-weight:600;
+}
+.chart-legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.chart-legend-dot.antes{background:#c9c5e4;}
+.chart-legend-dot.depois{background:var(--purple);}
+
+/* ================= DEPOIMENTO ÚNICO ================= */
+.testimonial-single-wrap{
+  max-width:720px;
+  margin:0 auto;
+}
+.testimonial-single{
+  background:var(--white);
+  border-radius:var(--radius-lg);
+  padding:38px 40px;
+  box-shadow:0 10px 26px rgba(30,20,80,.07);
+  text-align:center;
+}
+.testimonial-single .cta-quote{
+  font-size:44px;
+  color:var(--purple);
+  font-weight:800;
+  line-height:1;
+  display:block;
+  margin-bottom:6px;
+}
+.testimonial-single .testimonial-stars{
+  color:var(--purple);
+  font-size:15px;
+  letter-spacing:2px;
+  margin-bottom:14px;
+}
+.testimonial-single p.quote-text{
+  font-size:16.5px;
+  color:var(--ink);
+  line-height:1.7;
+  font-weight:500;
+  margin-bottom:22px;
+}
+.testimonial-single .testimonial-author{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+/* ================= OUTROS CASES ================= */
+.other-cases-grid{
+  max-width:1180px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:20px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width:900px){
+  .client-grid{grid-template-columns:1fr;}
+  .results-grid{grid-template-columns:1fr 1fr;}
+  .other-cases-grid{grid-template-columns:1fr;}
+  .chart-card{padding:26px 20px;}
+}
+@media(max-width:600px){
+  .results-grid{grid-template-columns:1fr;}
+  .testimonial-single{padding:30px 24px;}
+}

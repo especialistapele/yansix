@@ -1,0 +1,210 @@
+/* ==========================================================
+   blog-artigo.css
+   Estilos específicos das páginas individuais de artigo do
+   Blog YANSIX. Carregado após css/site.css — reaproveita as
+   variáveis e classes globais do site (topbar, footer, btn,
+   breadcrumb, cta-bar etc.) e adiciona apenas o necessário
+   para o layout de artigo.
+   ========================================================== */
+
+.article-hero {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+  text-align: left;
+}
+
+.article-hero .eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--primary, #1c4587);
+  background: var(--primary-tint, rgba(28, 69, 135, 0.08));
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+
+.article-hero h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.2;
+  margin: 0 0 18px;
+  font-weight: 800;
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  color: var(--text-muted, #6b7280);
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.article-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.article-meta svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.article-cover {
+  max-width: 1040px;
+  margin: 0 auto 48px;
+  padding: 0 24px;
+}
+
+.article-cover img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  display: block;
+}
+
+.article-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 20px;
+  font-size: 17px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.article-body p {
+  margin: 0 0 22px;
+}
+
+.article-body h2 {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 44px 0 18px;
+  line-height: 1.3;
+}
+
+.article-body h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 30px 0 14px;
+}
+
+.article-body ul {
+  margin: 0 0 22px;
+  padding-left: 22px;
+}
+
+.article-body li {
+  margin-bottom: 10px;
+}
+
+.article-lead {
+  font-size: 19px;
+  font-weight: 500;
+  color: #444;
+}
+
+.article-conclusion {
+  border-top: 1px solid rgba(0,0,0,0.08);
+  margin-top: 36px;
+  padding-top: 30px;
+}
+
+.article-tags {
+  max-width: 760px;
+  margin: 0 auto 60px;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.article-tags a {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #f2f4f8;
+  color: #333;
+  text-decoration: none;
+}
+
+.article-tags a:hover {
+  background: var(--primary, #1c4587);
+  color: #fff;
+}
+
+/* Artigos relacionados */
+.related-section {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 60px 24px 20px;
+}
+
+.related-section h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 28px;
+  text-align: center;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 26px;
+}
+
+.related-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.related-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.1);
+}
+
+.related-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.related-card-info {
+  padding: 16px 18px 20px;
+}
+
+.related-card-info .blog-category-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--primary, #1c4587);
+  margin-bottom: 8px;
+}
+
+.related-card-info h4 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .article-hero h1 { font-size: 26px; }
+  .article-body { font-size: 16px; }
+}

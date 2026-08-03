@@ -1,0 +1,525 @@
+/* =====================================
+   YANSIX
+   QUESTIONÁRIO INTELIGENTE
+   CSS VERSÃO 6.0.4
+===================================== */
+
+/* RESET */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+
+    min-height:100vh;
+
+    background:#f8fafc;
+
+    color:#0f172a;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:30px;
+
+    overflow-x:hidden;
+
+}
+
+/* =====================================
+   FUNDO
+===================================== */
+
+.background-glow{
+
+    position:fixed;
+
+    width:700px;
+
+    height:700px;
+
+    background:
+    radial-gradient(
+        circle,
+        rgba(37,99,235,.18),
+        transparent 65%
+    );
+
+    top:-250px;
+
+    right:-250px;
+
+    z-index:-1;
+
+}
+
+/* =====================================
+   CONTAINER
+===================================== */
+
+.container{
+
+    width:100%;
+
+    max-width:900px;
+
+}
+
+/* =====================================
+   CARD
+===================================== */
+
+.question-card{
+
+    background:white;
+
+    border-radius:30px;
+
+    padding:50px;
+
+    border:1px solid #e2e8f0;
+
+    box-shadow:
+
+    0 25px 70px rgba(15,23,42,.10);
+
+}
+
+/* =====================================
+   MARCA
+===================================== */
+
+.brand{
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+}
+
+.brand h1{
+
+    font-size:42px;
+
+    font-weight:800;
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #2563eb,
+        #06b6d4
+    );
+
+    -webkit-background-clip:text;
+
+    color:transparent;
+
+}
+
+.brand p{
+
+    margin-top:8px;
+
+    color:#64748b;
+
+}
+
+/* =====================================
+   INTRO
+===================================== */
+
+.intro{
+
+    text-align:center;
+
+    margin-bottom:40px;
+
+}
+
+.intro h2{
+
+    font-size:30px;
+
+    margin-bottom:15px;
+
+}
+
+.intro p{
+
+    color:#64748b;
+
+    line-height:1.7;
+
+    max-width:700px;
+
+    margin:auto;
+
+}
+
+/* =====================================
+   PROGRESSO
+===================================== */
+
+.progress-area{
+
+    margin-bottom:45px;
+
+}
+
+.progress-info{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:12px;
+
+}
+
+#contador{
+
+    font-size:14px;
+
+    color:#64748b;
+
+    font-weight:600;
+
+}
+
+#percentual{
+
+    font-size:14px;
+
+    color:#2563eb;
+
+    font-weight:700;
+
+}
+
+.progress-bar{
+
+    height:10px;
+
+    background:#e2e8f0;
+
+    border-radius:30px;
+
+    overflow:hidden;
+
+}
+
+#barra{
+
+    width:0%;
+
+    height:100%;
+
+    border-radius:30px;
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #2563eb,
+        #06b6d4
+    );
+
+    transition:.35s;
+
+}
+
+/* =====================================
+   PERGUNTA
+===================================== */
+
+.question-area{
+
+    text-align:center;
+
+}
+
+.question-area h2{
+
+    font-size:30px;
+
+    line-height:1.45;
+
+    margin-bottom:35px;
+
+}
+
+/* =====================================
+   OPÇÕES
+===================================== */
+
+#opcoes{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.option{
+
+    width:100%;
+
+    padding:22px 24px;
+
+    border-radius:18px;
+
+    border:1px solid #dbeafe;
+
+    background:white;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    font-weight:600;
+
+    color:#0f172a;
+
+    text-align:left;
+
+    transition:.25s;
+
+}
+
+.option:hover{
+
+    background:#eff6ff;
+
+    border-color:#2563eb;
+
+    transform:translateY(-3px);
+
+    box-shadow:
+
+    0 12px 30px rgba(37,99,235,.15);
+
+}
+
+/* resposta selecionada */
+
+.selected-option{
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #2563eb,
+        #1d4ed8
+    ) !important;
+
+    color:white;
+
+    border-color:#2563eb;
+
+    box-shadow:
+
+    0 15px 35px rgba(37,99,235,.25);
+
+}
+
+.option:active{
+
+    transform:scale(.98);
+
+}
+
+/* =====================================
+   RESPOSTA
+===================================== */
+
+.answer-preview{
+
+    min-height:90px;
+
+}
+
+#resposta{
+
+    margin-top:30px;
+
+}
+
+.selected{
+
+    background:#eff6ff;
+
+    border:1px solid #bfdbfe;
+
+    border-radius:18px;
+
+    padding:20px;
+
+    color:#1e3a8a;
+
+    text-align:center;
+
+    animation:fade .25s ease;
+
+}
+
+.selected strong{
+
+    display:block;
+
+    margin-top:10px;
+
+    font-size:17px;
+
+}
+
+/* =====================================
+   BOTÃO
+===================================== */
+
+.actions{
+
+    margin-top:35px;
+
+}
+
+.primary-button{
+
+    width:100%;
+
+    padding:18px;
+
+    border:none;
+
+    border-radius:50px;
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #2563eb,
+        #06b6d4
+    );
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.primary-button:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:
+
+    0 18px 35px rgba(37,99,235,.25);
+
+}
+
+/* =====================================
+   FOOTER
+===================================== */
+
+footer{
+
+    margin-top:45px;
+
+    text-align:center;
+
+}
+
+footer p{
+
+    color:#94a3b8;
+
+    font-size:13px;
+
+}
+
+/* =====================================
+   ANIMAÇÕES
+===================================== */
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* =====================================
+   RESPONSIVO
+===================================== */
+
+@media(max-width:700px){
+
+    body{
+
+        padding:15px;
+
+    }
+
+    .question-card{
+
+        padding:30px 22px;
+
+    }
+
+    .brand h1{
+
+        font-size:34px;
+
+    }
+
+    .intro h2{
+
+        font-size:24px;
+
+    }
+
+    .question-area h2{
+
+        font-size:22px;
+
+    }
+
+    .option{
+
+        padding:18px;
+
+        font-size:15px;
+
+    }
+
+}

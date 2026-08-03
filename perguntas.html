@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Perguntas Inteligentes: Diagnóstico Estratégico | YANSIX</title>
+<meta name="description" content="Responda perguntas estratégicas do diagnóstico inteligente YANSIX e receba recomendações personalizadas para sua empresa.">
+
+<link rel="stylesheet" href="css/style.css">
+
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://www.yansix.tech/perguntas.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="YANSIX">
+<meta property="og:title" content="Perguntas Inteligentes | YANSIX">
+<meta property="og:description" content="Responda perguntas estratégicas do diagnóstico inteligente YANSIX e receba recomendações personalizadas para sua empresa.">
+<meta property="og:url" content="https://www.yansix.tech/perguntas.html">
+<meta property="og:image" content="https://www.yansix.tech/image/logo.webp">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Perguntas Inteligentes | YANSIX">
+<meta name="twitter:description" content="Responda perguntas estratégicas do diagnóstico inteligente YANSIX e receba recomendações personalizadas para sua empresa.">
+<meta name="twitter:image" content="https://www.yansix.tech/image/logo.webp">
+<meta name="twitter:site" content="@yansix.tech">
+</head>
+
+
+<body>
+
+
+<div class="yansix-container">
+
+
+<!-- ÁREA DE CONVERSA -->
+
+<main class="conversation">
+
+
+<div class="brand">
+
+<h1>YANSIX</h1>
+
+<span>
+Diagnóstico Inteligente
+</span>
+
+</div>
+
+
+
+
+
+<section class="question-box">
+
+
+<div class="ai-message">
+
+<p id="mensagem">
+
+Agora vou entender melhor seu momento atual.
+
+</p>
+
+</div>
+
+
+
+
+
+<h2 id="pergunta">
+
+Qual sua idade?
+
+</h2>
+
+
+
+
+
+<div class="options" id="opcoes">
+
+
+<button 
+class="option"
+onclick="responder('18 a 25 anos')">
+
+18 a 25 anos
+
+</button>
+
+
+
+<button 
+class="option"
+onclick="responder('26 a 35 anos')">
+
+26 a 35 anos
+
+</button>
+
+
+
+<button 
+class="option"
+onclick="responder('36 a 50 anos')">
+
+36 a 50 anos
+
+</button>
+
+
+
+<button 
+class="option"
+onclick="responder('Acima de 50 anos')">
+
+Acima de 50 anos
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+<div id="respostaUsuario"
+class="user-response">
+
+</div>
+
+
+
+
+<button
+
+id="proximo"
+
+class="primary-button"
+
+style="display:none"
+
+onclick="proxima()">
+
+Próxima pergunta
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- PROGRESSO -->
+
+<footer class="progress">
+
+
+<span id="contador">
+
+Pergunta 1 de 5
+
+</span>
+
+
+
+<div class="progress-bar">
+
+<div 
+id="barra"
+class="progress-fill">
+
+</div>
+
+</div>
+
+
+</footer>
+
+
+
+
+</main>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<script src="js/yansix.js"></script>
+
+
+
+
+<script>
+
+
+const perguntas = [
+
+
+{
+
+texto:
+
+"Qual sua idade?",
+
+opcoes:[
+
+"18 a 25 anos",
+
+"26 a 35 anos",
+
+"36 a 50 anos",
+
+"Acima de 50 anos"
+
+]
+
+},
+
+
+
+{
+
+texto:
+
+"Qual seu principal objetivo?",
+
+opcoes:[
+
+"Melhorar aparência",
+
+"Mais saúde",
+
+"Performance",
+
+"Prevenção"
+
+]
+
+},
+
+
+
+
+{
+
+texto:
+
+"Como está sua rotina atualmente?",
+
+opcoes:[
+
+"Organizada",
+
+"Pouco equilibrada",
+
+"Muito corrida",
+
+"Estou buscando mudança"
+
+]
+
+},
+
+
+
+
+{
+
+texto:
+
+"Qual resultado você busca primeiro?",
+
+opcoes:[
+
+"Resultados rápidos",
+
+"Melhora gradual",
+
+"Transformação completa",
+
+"Manutenção"
+
+]
+
+},
+
+
+
+
+{
+
+texto:
+
+"Você já realizou algum tratamento antes?",
+
+opcoes:[
+
+"Sim",
+
+"Não",
+
+"Estou começando agora"
+
+]
+
+}
+
+
+];
+
+
+
+
+
+let atual = 0;
+
+
+
+
+
+function carregarPergunta(){
+
+
+
+document.getElementById("pergunta")
+.innerText =
+perguntas[atual].texto;
+
+
+
+
+let area =
+document.getElementById("opcoes");
+
+
+
+area.innerHTML="";
+
+
+
+
+
+perguntas[atual].opcoes.forEach(opcao=>{
+
+
+
+area.innerHTML +=
+
+`
+
+<button
+
+class="option"
+
+onclick="responder('${opcao}')">
+
+${opcao}
+
+</button>
+
+
+`;
+
+
+
+});
+
+
+
+
+document.getElementById("contador")
+.innerText =
+
+`
+Pergunta ${atual+1} de ${perguntas.length}
+`;
+
+
+
+
+document.getElementById("barra")
+.style.width =
+
+((atual)/perguntas.length)*100+"%";
+
+
+
+}
+
+
+
+
+
+
+function responder(resposta){
+
+
+
+document.getElementById("respostaUsuario")
+.innerHTML =
+
+`
+
+<div class="selected">
+
+Sua resposta:
+
+<strong>${resposta}</strong>
+
+</div>
+
+`;
+
+
+
+
+localStorage.setItem(
+
+"resposta_"+atual,
+
+resposta
+
+);
+
+
+
+
+
+document.getElementById("proximo")
+.style.display="block";
+
+
+
+}
+
+
+
+
+
+
+
+function proxima(){
+
+
+
+atual++;
+
+
+
+
+if(atual < perguntas.length){
+
+
+document.getElementById("proximo")
+.style.display="none";
+
+
+
+document.getElementById("respostaUsuario")
+.innerHTML="";
+
+
+
+carregarPergunta();
+
+
+
+}
+
+else{
+
+
+window.location.href="resultado.html";
+
+
+}
+
+
+
+}
+
+
+
+
+carregarPergunta();
+
+
+
+</script>
+
+
+
+</body>
+
+</html>

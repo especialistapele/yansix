@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onboarding do Cliente | YANSIX</title>
+<meta name="description" content="Formulário estratégico de onboarding para novos clientes YANSIX. Coleta de informações do projeto para iniciar o desenvolvimento com clareza e alinhamento.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  /* ===== Wizard (formulário em etapas) ===== */
+  .wizard-progress{max-width:760px;margin:0 auto 28px;padding:0 20px;}
+  .wizard-progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:12px;flex-wrap:wrap;}
+  .wizard-step-label{font-weight:700;font-size:15px;color:#241a3d;}
+  .wizard-step-count{font-size:12.5px;color:var(--text-muted,#7a7488);white-space:nowrap;}
+  .wizard-bar{height:6px;border-radius:999px;background:#ece5fb;overflow:hidden;}
+  .wizard-bar-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#b39ff5,#7c3aed);transition:width .35s ease;}
+  .wizard-dots{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+  .wizard-dot{width:7px;height:7px;border-radius:50%;background:#e2d9fa;transition:background .25s ease,transform .25s ease;}
+  .wizard-dot.is-active{background:#7c3aed;transform:scale(1.3);}
+  .wizard-dot.is-done{background:#b39ff5;}
+  section.block.wizard-step{animation:wizardFadeIn .35s ease;}
+  @keyframes wizardFadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .wizard-nav{display:flex;justify-content:space-between;align-items:center;margin-top:30px;padding-top:22px;border-top:1px solid #ece5fb;gap:12px;}
+  .wizard-nav-last{justify-content:flex-start;}
+  .wizard-nav button{cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;border-radius:999px;padding:11px 24px;transition:transform .15s ease,background .2s ease;}
+  .wizard-nav button:active{transform:scale(0.97);}
+  .wizard-next{border:none;color:#fff;background:linear-gradient(90deg,#8b5cf6,#7c3aed);}
+  .wizard-next:hover{filter:brightness(1.05);}
+  .wizard-prev{background:transparent;border:1.5px solid #d9cef8;color:#5b21b6;}
+  .wizard-prev:hover{background:#f6f2ff;}
+  @media (max-width:560px){
+    .wizard-nav{flex-direction:column-reverse;align-items:stretch;}
+    .wizard-nav button{width:100%;text-align:center;}
+  }
+</style>
+<link rel="canonical" href="https://www.yansix.tech/onboarding.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="YANSIX">
+<meta property="og:title" content="Onboarding do Cliente | YANSIX">
+<meta property="og:description" content="Formulário estratégico de onboarding para novos clientes YANSIX. Coleta de informações do projeto para iniciar o desenvolvimento com clareza e alinhamento.">
+<meta property="og:url" content="https://www.yansix.tech/onboarding.html">
+<meta property="og:image" content="https://www.yansix.tech/image/logo.webp">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Onboarding do Cliente | YANSIX">
+<meta name="twitter:description" content="Formulário estratégico de onboarding para novos clientes YANSIX. Coleta de informações do projeto para iniciar o desenvolvimento com clareza e alinhamento.">
+<meta name="twitter:image" content="https://www.yansix.tech/image/logo.webp">
+<meta name="twitter:site" content="@yansix.tech">
+<meta name="robots" content="noindex,follow">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://www.yansix.tech/"},{"@type":"ListItem","position":2,"name":"Onboarding do Cliente","item":"https://www.yansix.tech/onboarding.html"}]}
+</script>
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="topbar">
+  <div class="nav-wrap">
+    <a href="index.html" class="logo-card">
+      <img width="571" height="658" loading="eager" src="image/logo-topo.webp" alt="Logo YANSIX - topo">
+      <img width="1198" height="254" loading="lazy" src="image/logo-texto-topo.webp" alt="YANSIX" class="logo-wordmark">
+    </a>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="metodo.html">Método</a></li>
+        <li><a href="solucoes.html">Soluções</a></li>
+        <li><a href="cases.html">Cases</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contato2.html">Contato</a></li>
+      </ul>
+    </nav>
+    <a href="diagnostico.html" class="btn btn-primary">Diagnóstico <span>&rarr;</span></a>
+  </div>
+</header>
+
+<!-- ================= PAGE HERO ================= -->
+<section class="page-hero">
+  <div class="page-hero-wrap">
+    <p class="breadcrumb"><a href="index.html">Início</a> <span>/</span> <span>Onboarding do Cliente</span></p>
+    <p class="eyebrow">YANSIX · COLETA ESTRATÉGICA DE INFORMAÇÕES</p>
+    <h1>Documento de Onboarding do Cliente</h1>
+    <p class="lead">Bem-vindo(a) à YANSIX! Antes de iniciar o desenvolvimento, precisamos compreender profundamente seu negócio, seus objetivos, seu posicionamento e os recursos disponíveis. Quanto mais completas forem as respostas, melhor será o resultado final do projeto.</p>
+  </div>
+</section>
+
+<form id="formOnboarding" novalidate>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 1</p>
+    <h2 class="form-section-heading">Dados da Empresa</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="f_Razão_Social">Razão Social</label>
+        <input type="text" id="f_Razão_Social" data-field="Razão Social" required placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Nome_Fantasia">Nome Fantasia</label>
+        <input type="text" id="f_Nome_Fantasia" data-field="Nome Fantasia" required placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_CNPJ">CNPJ</label>
+        <input type="text" id="f_CNPJ" data-field="CNPJ" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Segmento_de_Atuação">Segmento de atuação</label>
+        <input type="text" id="f_Segmento_de_Atuação" data-field="Segmento de Atuação" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Ano_de_Fundação">Ano de fundação</label>
+        <input type="text" id="f_Ano_de_Fundação" data-field="Ano de Fundação" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Número_de_Colaboradores">Número de colaboradores</label>
+        <input type="text" id="f_Número_de_Colaboradores" data-field="Número de Colaboradores" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Cidade_Estado">Cidade/Estado</label>
+        <input type="text" id="f_Cidade_Estado" data-field="Cidade Estado" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Site_Atual">Site atual (caso exista)</label>
+        <input type="text" id="f_Site_Atual" data-field="Site Atual" placeholder="https://">
+      </div>
+      <div class="form-field">
+        <label for="f_Instagram_Empresa">Instagram</label>
+        <input type="text" id="f_Instagram_Empresa" data-field="Instagram Empresa" placeholder="@usuario">
+      </div>
+      <div class="form-field">
+        <label for="f_Facebook_Empresa">Facebook</label>
+        <input type="text" id="f_Facebook_Empresa" data-field="Facebook Empresa" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_LinkedIn_Empresa">LinkedIn</label>
+        <input type="text" id="f_LinkedIn_Empresa" data-field="LinkedIn Empresa" placeholder="">
+      </div>
+      <div class="form-field full">
+        <label for="f_Outras_Redes_Sociais">Outras redes sociais</label>
+        <input type="text" id="f_Outras_Redes_Sociais" data-field="Outras Redes Sociais" placeholder="">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 2</p>
+    <h2 class="form-section-heading">Responsável pelo Projeto</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="f_Nome_do_Responsável">Nome</label>
+        <input type="text" id="f_Nome_do_Responsável" data-field="Nome do Responsável" required placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Cargo_do_Responsável">Cargo</label>
+        <input type="text" id="f_Cargo_do_Responsável" data-field="Cargo do Responsável" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Telefone_do_Responsável">Telefone</label>
+        <input type="text" id="f_Telefone_do_Responsável" data-field="Telefone do Responsável" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_E-mail_do_Responsável">E-mail</label>
+        <input type="email" id="f_E-mail_do_Responsável" data-field="E-mail do Responsável" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_WhatsApp_do_Responsável">WhatsApp</label>
+        <input type="text" id="f_WhatsApp_do_Responsável" data-field="WhatsApp do Responsável" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Melhor_Horário_para_Contato">Melhor horário para contato</label>
+        <input type="text" id="f_Melhor_Horário_para_Contato" data-field="Melhor Horário para Contato" placeholder="">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 3</p>
+    <h2 class="form-section-heading">Objetivo do Projeto</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Qual é o principal objetivo deste projeto?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Gerar mais vendas">
+          Gerar mais vendas
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Captar novos clientes">
+          Captar novos clientes
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Fortalecer a marca">
+          Fortalecer a marca
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Melhorar autoridade">
+          Melhorar autoridade
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Modernizar presença digital">
+          Modernizar presença digital
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Automatizar processos">
+          Automatizar processos
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Objetivo_Principal_do_Projeto" data-field-radio="Objetivo Principal do Projeto" value="Outro">
+          Outro
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label for="f_Descrição_do_Objetivo">Descreva</label>
+        <input type="text" id="f_Descrição_do_Objetivo" data-field="Descrição do Objetivo" placeholder="">
+      </div>
+      <div class="form-field full">
+        <label for="f_Resultados_Esperados">Quais resultados vocês esperam alcançar?</label>
+        <textarea id="f_Resultados_Esperados" data-field="Resultados Esperados" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Definição_de_Sucesso">Como vocês definirão que este projeto foi um sucesso?</label>
+        <textarea id="f_Definição_de_Sucesso" data-field="Definição de Sucesso" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 4</p>
+    <h2 class="form-section-heading">Sobre a Empresa</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label for="f_História_da_Empresa">Conte brevemente a história da empresa.</label>
+        <textarea id="f_História_da_Empresa" data-field="História da Empresa" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Principais_Produtos_ou_Serviços">Quais são seus principais produtos ou serviços?</label>
+        <textarea id="f_Principais_Produtos_ou_Serviços" data-field="Principais Produtos ou Serviços" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Diferenciais_da_Empresa">Quais são os maiores diferenciais da empresa?</label>
+        <textarea id="f_Diferenciais_da_Empresa" data-field="Diferenciais da Empresa" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 5</p>
+    <h2 class="form-section-heading">Público-Alvo</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label for="f_Cliente_Ideal">Quem é o cliente ideal?</label>
+        <textarea id="f_Cliente_Ideal" data-field="Cliente Ideal" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Problemas_do_Cliente">Quais problemas esse cliente normalmente enfrenta?</label>
+        <textarea id="f_Problemas_do_Cliente" data-field="Problemas do Cliente" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Como_a_Empresa_Resolve_os_Problemas">Como sua empresa resolve esses problemas?</label>
+        <textarea id="f_Como_a_Empresa_Resolve_os_Problemas" data-field="Como a Empresa Resolve os Problemas" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 6</p>
+    <h2 class="form-section-heading">Posicionamento da Marca</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Como deseja que sua empresa seja percebida?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Premium">
+          Premium
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Sofisticada">
+          Sofisticada
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Tecnológica">
+          Tecnológica
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Moderna">
+          Moderna
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Tradicional">
+          Tradicional
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Inovadora">
+          Inovadora
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Próxima">
+          Próxima
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Percepção_Desejada_da_Marca" data-field-radio="Percepção Desejada da Marca" value="Outro">
+          Outro
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label for="f_Mensagem_Central_da_Marca">Existe alguma mensagem que a empresa sempre deseja transmitir?</label>
+        <textarea id="f_Mensagem_Central_da_Marca" data-field="Mensagem Central da Marca" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Marcas_Admiradas">Quais marcas vocês admiram?</label>
+        <textarea id="f_Marcas_Admiradas" data-field="Marcas Admiradas" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 7</p>
+    <h2 class="form-section-heading">Identidade Visual</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Possui logotipo?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Possui_Logotipo" data-field-radio="Possui Logotipo" value="Sim">
+          Sim
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Possui_Logotipo" data-field-radio="Possui Logotipo" value="Não">
+          Não
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label>Possui manual da marca?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Possui_Manual_da_Marca" data-field-radio="Possui Manual da Marca" value="Sim">
+          Sim
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Possui_Manual_da_Marca" data-field-radio="Possui Manual da Marca" value="Não">
+          Não
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label>Possui arquivos em vetor?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="checkbox" name="check_Formatos_de_Arquivo_Vetor" data-field-checkbox="Formatos de Arquivo Vetor" value="AI">
+          AI
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Formatos_de_Arquivo_Vetor" data-field-checkbox="Formatos de Arquivo Vetor" value="SVG">
+          SVG
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Formatos_de_Arquivo_Vetor" data-field-checkbox="Formatos de Arquivo Vetor" value="EPS">
+          EPS
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Formatos_de_Arquivo_Vetor" data-field-checkbox="Formatos de Arquivo Vetor" value="PDF">
+          PDF
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label>Possui banco de imagens próprio?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Possui_Banco_de_Imagens_Próprio" data-field-radio="Possui Banco de Imagens Próprio" value="Sim">
+          Sim
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Possui_Banco_de_Imagens_Próprio" data-field-radio="Possui Banco de Imagens Próprio" value="Não">
+          Não
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label for="f_Restrições_Visuais">Existe alguma restrição visual?</label>
+        <textarea id="f_Restrições_Visuais" data-field="Restrições Visuais" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 8</p>
+    <h2 class="form-section-heading">Presença Digital</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Quais canais digitais utiliza atualmente?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="Site">
+          Site
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="Instagram">
+          Instagram
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="Facebook">
+          Facebook
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="LinkedIn">
+          LinkedIn
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="Google Perfil da Empresa">
+          Google Perfil da Empresa
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="YouTube">
+          YouTube
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="TikTok">
+          TikTok
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Canais_Digitais_Atuais" data-field-checkbox="Canais Digitais Atuais" value="Outros">
+          Outros
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label for="f_O_Que_Funciona_Bem_Atualmente">O que funciona bem atualmente?</label>
+        <textarea id="f_O_Que_Funciona_Bem_Atualmente" data-field="O Que Funciona Bem Atualmente" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_O_Que_Deseja_Melhorar">O que deseja melhorar?</label>
+        <textarea id="f_O_Que_Deseja_Melhorar" data-field="O Que Deseja Melhorar" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 9</p>
+    <h2 class="form-section-heading">Referências</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="f_Site_de_Referência_1">Site de referência 1</label>
+        <input type="text" id="f_Site_de_Referência_1" data-field="Site de Referência 1" placeholder="https://">
+      </div>
+      <div class="form-field">
+        <label for="f_Site_de_Referência_2">Site de referência 2</label>
+        <input type="text" id="f_Site_de_Referência_2" data-field="Site de Referência 2" placeholder="https://">
+      </div>
+      <div class="form-field">
+        <label for="f_Site_de_Referência_3">Site de referência 3</label>
+        <input type="text" id="f_Site_de_Referência_3" data-field="Site de Referência 3" placeholder="https://">
+      </div>
+      <div class="form-field full">
+        <label for="f_Empresas_que_Inspiram">Quais empresas inspiram vocês?</label>
+        <textarea id="f_Empresas_que_Inspiram" data-field="Empresas que Inspiram" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_O_Que_Não_Deseja_no_Projeto">Existe algo que NÃO gostariam que o projeto tivesse?</label>
+        <textarea id="f_O_Que_Não_Deseja_no_Projeto" data-field="O Que Não Deseja no Projeto" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 10</p>
+    <h2 class="form-section-heading">Funcionalidades</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Quais recursos espera que a solução possua?</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Formulários">
+          Formulários
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="WhatsApp">
+          WhatsApp
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Blog">
+          Blog
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Área do Cliente">
+          Área do Cliente
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Agendamento">
+          Agendamento
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Chat">
+          Chat
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="CRM">
+          CRM
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Integração ERP">
+          Integração ERP
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Automação">
+          Automação
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Inteligência Artificial">
+          Inteligência Artificial
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Dashboard">
+          Dashboard
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Pagamentos">
+          Pagamentos
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Funcionalidades_Esperadas" data-field-checkbox="Funcionalidades Esperadas" value="Outros">
+          Outros
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label for="f_Funcionalidades_Específicas">Descreva funcionalidades específicas.</label>
+        <textarea id="f_Funcionalidades_Específicas" data-field="Funcionalidades Específicas" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 11</p>
+    <h2 class="form-section-heading">Concorrência</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="f_Concorrente_1">Concorrente 1</label>
+        <input type="text" id="f_Concorrente_1" data-field="Concorrente 1" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Concorrente_2">Concorrente 2</label>
+        <input type="text" id="f_Concorrente_2" data-field="Concorrente 2" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Concorrente_3">Concorrente 3</label>
+        <input type="text" id="f_Concorrente_3" data-field="Concorrente 3" placeholder="">
+      </div>
+      <div class="form-field full">
+        <label for="f_O_Que_os_Concorrentes_Fazem_Bem">O que eles fazem bem?</label>
+        <textarea id="f_O_Que_os_Concorrentes_Fazem_Bem" data-field="O Que os Concorrentes Fazem Bem" rows="3" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Onde_a_Empresa_Pretende_se_Destacar">Onde sua empresa pretende se destacar?</label>
+        <textarea id="f_Onde_a_Empresa_Pretende_se_Destacar" data-field="Onde a Empresa Pretende se Destacar" rows="3" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 12</p>
+    <h2 class="form-section-heading">Materiais para Envio</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Favor indicar os materiais que serão encaminhados:</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Logotipo">
+          Logotipo
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Manual da marca">
+          Manual da marca
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Fotos da empresa">
+          Fotos da empresa
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Fotos dos produtos">
+          Fotos dos produtos
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Catálogo">
+          Catálogo
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Apresentação institucional">
+          Apresentação institucional
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Textos existentes">
+          Textos existentes
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Banco de imagens">
+          Banco de imagens
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Vídeos">
+          Vídeos
+        </label>
+        <label class="option-pill">
+          <input type="checkbox" name="check_Materiais_a_Enviar" data-field-checkbox="Materiais a Enviar" value="Outros">
+          Outros
+        </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 13</p>
+    <h2 class="form-section-heading">Acessos</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="f_Domínio">Domínio</label>
+        <input type="text" id="f_Domínio" data-field="Domínio" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Hospedagem">Hospedagem</label>
+        <input type="text" id="f_Hospedagem" data-field="Hospedagem" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Google_Analytics">Google Analytics</label>
+        <input type="text" id="f_Google_Analytics" data-field="Google Analytics" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Google_Tag_Manager">Google Tag Manager</label>
+        <input type="text" id="f_Google_Tag_Manager" data-field="Google Tag Manager" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Google_Search_Console">Google Search Console</label>
+        <input type="text" id="f_Google_Search_Console" data-field="Google Search Console" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Google_Perfil_da_Empresa_Acesso">Google Perfil da Empresa</label>
+        <input type="text" id="f_Google_Perfil_da_Empresa_Acesso" data-field="Google Perfil da Empresa Acesso" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Meta_Business">Meta Business</label>
+        <input type="text" id="f_Meta_Business" data-field="Meta Business" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Instagram_Acesso">Instagram (acesso)</label>
+        <input type="text" id="f_Instagram_Acesso" data-field="Instagram Acesso" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Facebook_Acesso">Facebook (acesso)</label>
+        <input type="text" id="f_Facebook_Acesso" data-field="Facebook Acesso" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_LinkedIn_Acesso">LinkedIn (acesso)</label>
+        <input type="text" id="f_LinkedIn_Acesso" data-field="LinkedIn Acesso" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_CRM_Acesso">CRM</label>
+        <input type="text" id="f_CRM_Acesso" data-field="CRM Acesso" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Outros_Sistemas_Acesso">Outros sistemas</label>
+        <input type="text" id="f_Outros_Sistemas_Acesso" data-field="Outros Sistemas Acesso" placeholder="">
+      </div>
+    </div>
+  </div>
+</section>
+<p style="max-width:760px;margin:-6px auto 0;font-size:12.5px;color:var(--text-muted);text-align:center;">Observação: as credenciais podem ser enviadas posteriormente por um canal seguro, caso prefira não preenchê-las aqui.</p>
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 14</p>
+    <h2 class="form-section-heading">Responsáveis pela Aprovação</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="f_Aprovação_de_Layout">Layout</label>
+        <input type="text" id="f_Aprovação_de_Layout" data-field="Aprovação de Layout" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Aprovação_de_Conteúdo">Conteúdo</label>
+        <input type="text" id="f_Aprovação_de_Conteúdo" data-field="Aprovação de Conteúdo" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Aprovação_de_Desenvolvimento">Desenvolvimento</label>
+        <input type="text" id="f_Aprovação_de_Desenvolvimento" data-field="Aprovação de Desenvolvimento" placeholder="">
+      </div>
+      <div class="form-field">
+        <label for="f_Aprovação_de_Entrega_Final">Entrega final</label>
+        <input type="text" id="f_Aprovação_de_Entrega_Final" data-field="Aprovação de Entrega Final" placeholder="">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 15</p>
+    <h2 class="form-section-heading">Comunicação</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Canal preferencial</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Canal_Preferencial_de_Comunicação" data-field-radio="Canal Preferencial de Comunicação" value="WhatsApp">
+          WhatsApp
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Canal_Preferencial_de_Comunicação" data-field-radio="Canal Preferencial de Comunicação" value="E-mail">
+          E-mail
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Canal_Preferencial_de_Comunicação" data-field-radio="Canal Preferencial de Comunicação" value="Microsoft Teams">
+          Microsoft Teams
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Canal_Preferencial_de_Comunicação" data-field-radio="Canal Preferencial de Comunicação" value="Google Meet">
+          Google Meet
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Canal_Preferencial_de_Comunicação" data-field-radio="Canal Preferencial de Comunicação" value="Telefone">
+          Telefone
+        </label>
+        </div>
+      </div>
+      <div class="form-field full">
+        <label>Periodicidade desejada dos acompanhamentos</label>
+        <div class="option-group">
+        <label class="option-pill">
+          <input type="radio" name="radio_Periodicidade_de_Acompanhamento" data-field-radio="Periodicidade de Acompanhamento" value="Semanal">
+          Semanal
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Periodicidade_de_Acompanhamento" data-field-radio="Periodicidade de Acompanhamento" value="Quinzenal">
+          Quinzenal
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="radio_Periodicidade_de_Acompanhamento" data-field-radio="Periodicidade de Acompanhamento" value="Mensal">
+          Mensal
+        </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="form-card">
+    <p class="section-title" style="text-align:left;margin-bottom:6px;">SEÇÃO 16</p>
+    <h2 class="form-section-heading">Observações Importantes e Declaração</h2>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label for="f_Observações_Importantes">Existe alguma informação que a equipe da YANSIX deve conhecer antes do início do projeto?</label>
+        <textarea id="f_Observações_Importantes" data-field="Observações Importantes" rows="4" placeholder=""></textarea>
+      </div>
+      <div class="form-field full">
+        <label for="f_Nome_do_Cliente_na_Declaração">Nome do cliente (declaração)</label>
+        <input type="text" id="f_Nome_do_Cliente_na_Declaração" data-field="Nome do Cliente na Declaração" required placeholder="">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================= ENVIO ================= -->
+<section class="block">
+  <div class="form-card" style="text-align:center;">
+    <p style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:560px;margin:0 auto 24px;">
+      Ao enviar este formulário, você declara que as informações fornecidas representam, da melhor forma possível, a realidade da empresa neste momento, servindo como base para o planejamento e desenvolvimento do projeto contratado.
+    </p>
+    <div class="form-submit-row" style="justify-content:center;">
+      <button class="btn btn-primary" type="submit" id="obSubmitBtn">Enviar Onboarding <span>&rarr;</span></button>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-muted);margin-top:14px;">🔒 Seus dados são usados exclusivamente para o planejamento do seu projeto com a YANSIX.</p>
+    <div class="form-wait-msg" id="obWaitMsg">
+      ⏳ Enviando suas respostas, aguarde um instante... Não feche esta página até a confirmação.
+    </div>
+    <div id="obMensagem" role="alert" aria-live="polite"></div>
+  </div>
+</section>
+
+</form>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="footer-wrap">
+    <div>
+      <a href="index.html" class="footer-logo">
+        <img width="1254" height="1254" loading="lazy" src="image/logo-rodape.webp" alt="Logo YANSIX - rodapé">
+        <span>YANSIX</span>
+      </a>
+    </div>
+
+    <div>
+      <h4>NAVEGAÇÃO</h4>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="metodo.html">Método</a></li>
+        <li><a href="solucoes.html">Soluções</a></li>
+        <li><a href="cases.html">Cases</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contato2.html">Contato</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>SOLUÇÕES</h4>
+      <ul>
+        <li><a href="solucoes-websites.html">Websites</a></li>
+        <li><a href="solucoes-ia.html">Inteligência Artificial</a></li>
+        <li><a href="solucoes-branding.html">Branding</a></li>
+        <li><a href="solucoes-sistemas.html">Sistemas e Plataformas</a></li>
+        <li><a href="solucoes-automacao.html">Automação</a></li>
+        <li><a href="solucoes-seo.html">SEO e Performance</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>CONTATO</h4>
+      <ul class="footer-contact">
+        <li>📞 41 93300-2107</li>
+        <li>✉️ contato@yansix.com.br</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4>ATUAÇÃO</h4>
+      <ul>
+        <li><a href="atuacao.html">Áreas Atendidas</a></li>
+        <li><a href="atuacao-curitiba.html">Curitiba - PR</a></li>
+        <li><a href="atuacao-florianopolis.html">Florianópolis - SC</a></li>
+        <li><a href="atuacao-porto-alegre.html">Porto Alegre - RS</a></li>
+        <li><a href="atuacao-araruama.html">Araruama - RJ</a></li>
+        <li><a href="atuacao-cabo-frio.html">Cabo Frio - RJ</a></li>
+        <li><a href="atuacao-saquarema.html">Saquarema - RJ</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="footer-bottom">© 2026 YANSIX. Todos os direitos reservados.</p>
+</footer>
+
+<script src="js/onboarding.js"></script>
+
+<script>
+/* ===== Wizard: exibe uma seção do formulário por vez ===== */
+document.addEventListener('DOMContentLoaded', function () {
+  var form = document.getElementById('formOnboarding');
+  if (!form) return;
+
+  var steps = Array.prototype.slice.call(form.querySelectorAll(':scope > section.block'));
+  if (steps.length < 2) return; // nada a fazer se só existir uma seção
+
+  var current = 0;
+
+  // Barra de progresso, inserida no topo do formulário
+  var progress = document.createElement('div');
+  progress.className = 'wizard-progress';
+  progress.innerHTML =
+    '<div class="wizard-progress-top">' +
+      '<span class="wizard-step-label" id="wizardStepLabel"></span>' +
+      '<span class="wizard-step-count" id="wizardStepCount"></span>' +
+    '</div>' +
+    '<div class="wizard-bar"><div class="wizard-bar-fill" id="wizardBarFill"></div></div>' +
+    '<div class="wizard-dots" id="wizardDots"></div>';
+  form.insertBefore(progress, form.firstChild);
+
+  var dotsWrap = progress.querySelector('#wizardDots');
+  steps.forEach(function (_, i) {
+    var dot = document.createElement('span');
+    dot.className = 'wizard-dot';
+    dot.dataset.dotIndex = i;
+    dotsWrap.appendChild(dot);
+  });
+
+  // Botões de navegação em cada etapa
+  steps.forEach(function (step, i) {
+    step.classList.add('wizard-step');
+    step.dataset.stepIndex = i;
+
+    var card = step.querySelector('.form-card');
+    var nav = document.createElement('div');
+
+    if (i < steps.length - 1) {
+      nav.className = 'wizard-nav';
+      nav.innerHTML =
+        (i > 0 ? '<button type="button" class="wizard-prev">&larr; Voltar</button>' : '<span></span>') +
+        '<button type="button" class="wizard-next">Próximo &rarr;</button>';
+      card.appendChild(nav);
+    } else {
+      // Última etapa (envio): mantém o botão de enviar já existente, só adiciona "Voltar" antes dele
+      nav.className = 'wizard-nav wizard-nav-last';
+      nav.innerHTML = '<button type="button" class="wizard-prev">&larr; Voltar</button>';
+      var submitRow = card.querySelector('.form-submit-row');
+      if (submitRow) card.insertBefore(nav, submitRow);
+      else card.appendChild(nav);
+    }
+  });
+
+  function stepTitle(idx) {
+    var h = steps[idx].querySelector('.form-section-heading');
+    return h ? h.textContent : '';
+  }
+
+  function updateDots(idx) {
+    dotsWrap.querySelectorAll('.wizard-dot').forEach(function (dot, i) {
+      dot.classList.toggle('is-active', i === idx);
+      dot.classList.toggle('is-done', i < idx);
+    });
+  }
+
+  function showStep(idx) {
+    steps.forEach(function (s, i) {
+      s.style.display = (i === idx) ? '' : 'none';
+    });
+    current = idx;
+    document.getElementById('wizardStepLabel').textContent = stepTitle(idx);
+    document.getElementById('wizardStepCount').textContent = 'Etapa ' + (idx + 1) + ' de ' + steps.length;
+    document.getElementById('wizardBarFill').style.width = (((idx + 1) / steps.length) * 100) + '%';
+    updateDots(idx);
+    var top = form.getBoundingClientRect().top + window.scrollY - 90;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
+  // Valida apenas os campos obrigatórios visíveis na etapa atual
+  function validateStep(idx) {
+    var invalid = steps[idx].querySelector(':invalid');
+    if (invalid) {
+      invalid.reportValidity();
+      invalid.focus();
+      return false;
+    }
+    return true;
+  }
+
+  form.addEventListener('click', function (e) {
+    if (e.target.classList.contains('wizard-next')) {
+      if (validateStep(current)) {
+        showStep(Math.min(current + 1, steps.length - 1));
+      }
+    } else if (e.target.classList.contains('wizard-prev')) {
+      showStep(Math.max(current - 1, 0));
+    }
+  });
+
+  // Impede que a tecla Enter em um campo de texto envie o formulário antes da última etapa
+  form.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && current < steps.length - 1) {
+      e.preventDefault();
+      if (validateStep(current)) {
+        showStep(Math.min(current + 1, steps.length - 1));
+      }
+    }
+  });
+
+  // Permite clicar em um "dot" já concluído para voltar diretamente
+  dotsWrap.addEventListener('click', function (e) {
+    var dot = e.target.closest('.wizard-dot');
+    if (!dot) return;
+    var idx = parseInt(dot.dataset.dotIndex, 10);
+    if (idx < current) showStep(idx);
+  });
+
+  showStep(0);
+});
+</script>
+
+</body>
+</html>
