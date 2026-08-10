@@ -332,6 +332,14 @@ document
 .getElementById("btnStart")
 .addEventListener("click", function(){
 
+    if (typeof window.gtag === "function") {
+        window.gtag("event", "diagnostico_inicio", {
+      origem_pagina: sessionStorage.getItem("yansix_diagnostico_origem") || document.referrer || "",
+      texto_link: sessionStorage.getItem("yansix_diagnostico_texto") || ""
+    });
+    }
+
+
 
 
     // registra início da jornada
@@ -373,6 +381,26 @@ document
 
 
 
+
+
+<script>
+(function () {
+  function trackContactStart() {
+    if (window.yansixDiagnosticoTrack &&
+        typeof window.yansixDiagnosticoTrack.contactStart === "function") {
+      window.yansixDiagnosticoTrack.contactStart();
+    } else if (typeof window.gtag === "function") {
+      window.gtag("event", "diagnostico_contato_inicio");
+    }
+  }
+  document.addEventListener("focusin", function (event) {
+    if (event.target && event.target.closest &&
+        event.target.closest("form")) {
+      trackContactStart();
+    }
+  }, { once: true });
+})();
+</script>
 
 </body>
 
