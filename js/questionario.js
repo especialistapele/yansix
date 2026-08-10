@@ -1,3 +1,55 @@
+
+/* YANSIX GA4 — rastreamento complementar do progresso do diagnóstico */
+(function () {
+  const tracker = window.yansixDiagnosticoTrack;
+  if (!tracker) return;
+
+  function getQuestionElements() {
+    return Array.from(document.querySelectorAll(
+      '[data-question], [data-pergunta], .question, .pergunta, .question-container, .pergunta-container'
+    ));
+  }
+
+  function getVisibleQuestionNumber() {
+    const elements = getQuestionElements();
+    const visible = elements.findIndex(el => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden' &&
+             el.getAttribute('aria-hidden') !== 'true';
+    });
+    return visible >= 0 ? visible + 1 : 0;
+  }
+
+  function totalQuestions() {
+    const elements = getQuestionElements();
+    return elements.length || 0;
+  }
+
+  function trackVisibleQuestion() {
+    const n = getVisibleQuestionNumber();
+    const total = totalQuestions();
+    if (n && total) tracker.questionView(n, total);
+  }
+
+  window.addEventListener('load', function () {
+    setTimeout(trackVisibleQuestion, 150);
+  });
+
+  // Observe class/style/DOM changes so SPA-like question transitions are captured
+  // without interfering with the existing questionnaire handlers.
+  const observer = new MutationObserver(function () {
+    clearTimeout(window.__yansixQuestionTrackTimer);
+    window.__yansixQuestionTrackTimer = setTimeout(trackVisibleQuestion, 100);
+  });
+
+  observer.observe(document.body, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['class', 'style', 'aria-hidden']
+  });
+})();
+
 // ==========================================================
 // YANSIX
 // CONTROLE DO QUESTIONÁRIO INTELIGENTE
@@ -925,6 +977,11 @@ function finalizarQuestionario(){
 
 
     Yansix.gerarDiagnostico();
+
+    if (typeof window.gtag === "function") {
+        window.gtag("event", "diagnostico_resultado");
+    }
+
 
 
 
