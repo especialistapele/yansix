@@ -1,8 +1,7 @@
-```javascript
 // ==========================================================
 // YANSIX
 // CONTATO / ENVIO GOOGLE SHEETS
-// VERSÃO 7.2.0
+// VERSÃO 7.2.1
 // ==========================================================
 
 
@@ -145,33 +144,29 @@ function enviarDados() {
     if (mensagem) {
 
         mensagem.innerHTML = `
-
             ⏳ Estamos preparando sua análise estratégica.
-
             <br><br>
-
             Aguarde alguns segundos enquanto enviamos
             suas informações com segurança.
-
         `;
 
     }
 
 
     // ======================================================
-    // TRACKING — ENVIO DO FORMULÁRIO
+    // TRACKING — INÍCIO DO ENVIO
     // ======================================================
 
     if (typeof gtag === "function") {
 
-        gtag("event", "form_submit", {
-
-            form_id: "formContato",
-
-            form_destination:
-                window.location.href
-
-        });
+        gtag(
+            "event",
+            "form_submit",
+            {
+                form_id: "formContato",
+                form_destination: window.location.href
+            }
+        );
 
     }
 
@@ -207,7 +202,7 @@ function enviarDados() {
         // IDENTIFICAÇÃO
 
         versao:
-            "7.2.0",
+            "7.2.1",
 
         origem:
             "Diagnóstico Inteligente YANSIX",
@@ -337,19 +332,15 @@ function enviarDados() {
     fetch(
         GOOGLE_SHEETS_URL,
         {
-
             method: "POST",
 
             headers: {
-
                 "Content-Type":
                     "text/plain;charset=utf-8"
-
             },
 
             body:
                 JSON.stringify(lead)
-
         }
     )
 
@@ -359,8 +350,17 @@ function enviarDados() {
     // ======================================================
 
     .then(
-        response =>
-            response.json()
+        response => {
+
+            if (!response.ok) {
+                throw new Error(
+                    "Erro HTTP: " + response.status
+                );
+            }
+
+            return response.json();
+
+        }
     )
 
 
@@ -470,13 +470,9 @@ function sucessoEnvio() {
     if (mensagem) {
 
         mensagem.innerHTML = `
-
             ✅ Estratégia enviada com sucesso.
-
             <br><br>
-
             Um especialista YANSIX entrará em contato em breve.
-
         `;
 
     }
@@ -497,13 +493,9 @@ function erroEnvio() {
     if (mensagem) {
 
         mensagem.innerHTML = `
-
             ❌ Não foi possível enviar sua solicitação.
-
             <br><br>
-
             Tente novamente.
-
         `;
 
     }
@@ -525,4 +517,6 @@ function erroEnvio() {
     }
 
 }
-```
+
+
+
