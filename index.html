@@ -7,8 +7,11 @@
 <link rel="icon" type="image/png" sizes="32x32" href="image/favicon.png">
 <link rel="shortcut icon" href="image/favicon.png">
 
-<!-- Pré-carrega a imagem principal do Hero para melhorar o LCP -->
-<link rel="preload" as="image" href="image/hero-bg-v2.webp">
+<!-- Pré-carrega a imagem principal do Hero (LCP) -->
+<link rel="preload"
+      as="image"
+      href="image/hero-bg-v2.webp"
+      fetchpriority="high">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7DQJ6C4J1H"></script>
@@ -101,11 +104,13 @@
   .logo-card img{
     width:34px;
     height:34px;
+    object-fit:contain;
   }
 
   .logo-card .logo-wordmark{
     width:auto;
     height:20px;
+    object-fit:contain;
   }
 
   .logo-card span{
@@ -392,7 +397,7 @@
     font-size:16px;
   }
 
-  /* ================= FLIP CARD (VERSO) ================= */
+  /* ================= FLIP CARD ================= */
 
   .flip-card-back{
     transform:rotateY(180deg);
@@ -635,6 +640,7 @@
   .footer-logo img{
     width:32px;
     height:32px;
+    object-fit:contain;
   }
 
   .footer-logo span{
@@ -869,20 +875,22 @@
     <a href="index.html" class="logo-card">
 
       <img
-        width="571"
-        height="658"
+        width="34"
+        height="34"
         loading="eager"
+        fetchpriority="high"
+        decoding="async"
         src="image/logo-topo.webp"
-        alt="Logo YANSIX - topo"
-      >
+        alt="Logo YANSIX - topo">
 
       <img
-        width="1198"
-        height="254"
+        width="165"
+        height="35"
+        loading="eager"
+        decoding="async"
         src="image/logo-texto-topo.webp"
         alt="YANSIX"
-        class="logo-wordmark"
-      >
+        class="logo-wordmark">
 
     </a>
 
@@ -901,8 +909,8 @@
       href="busca.html"
       class="nav-search-btn"
       aria-label="Buscar no site"
-      title="Buscar"
-    >
+      title="Buscar">
+
       <svg
         viewBox="0 0 24 24"
         width="20"
@@ -911,11 +919,13 @@
         stroke="#ffffff"
         stroke-width="1.8"
         stroke-linecap="round"
-        stroke-linejoin="round"
-      >
+        stroke-linejoin="round">
+
         <circle cx="10" cy="10" r="6"></circle>
         <line x1="14.5" y1="14.5" x2="20" y2="20"></line>
+
       </svg>
+
     </a>
 
     <a href="diagnostico.html" class="btn btn-primary">
@@ -949,7 +959,7 @@
         impulsionar resultados reais e sustentáveis.
       </p>
 
-      <p class="hero-location" style="margin-left:0;">
+      <p class="hero-location">
         Atendemos empresas no Paraná, em Santa Catarina e no Rio Grande do Sul,
         com atuação em todo o Brasil — incluindo
         <a href="atuacao-araruama.html">Araruama</a>,
@@ -987,6 +997,7 @@
       <div class="flip-card-inner">
 
         <div class="solution-card">
+
           <span class="flip-hint">&#8635;</span>
 
           <div class="icon-box">
@@ -1004,9 +1015,11 @@
           </p>
 
           <span class="card-arrow">&rarr;</span>
+
         </div>
 
         <div class="flip-card-back">
+
           <h4>Websites</h4>
 
           <p>
@@ -1018,6 +1031,7 @@
           <a href="solucoes-websites.html" class="back-link">
             Saiba mais &rarr;
           </a>
+
         </div>
 
       </div>
@@ -1027,6 +1041,7 @@
       <div class="flip-card-inner">
 
         <div class="solution-card">
+
           <span class="flip-hint">&#8635;</span>
 
           <div class="icon-box">
@@ -1045,9 +1060,11 @@
           </p>
 
           <span class="card-arrow">&rarr;</span>
+
         </div>
 
         <div class="flip-card-back">
+
           <h4>Inteligência Artificial</h4>
 
           <p>
@@ -1059,6 +1076,7 @@
           <a href="solucoes-ia.html" class="back-link">
             Saiba mais &rarr;
           </a>
+
         </div>
 
       </div>
@@ -1068,6 +1086,7 @@
       <div class="flip-card-inner">
 
         <div class="solution-card">
+
           <span class="flip-hint">&#8635;</span>
 
           <div class="icon-box">
@@ -1084,9 +1103,11 @@
           </p>
 
           <span class="card-arrow">&rarr;</span>
+
         </div>
 
         <div class="flip-card-back">
+
           <h4>Branding</h4>
 
           <p>
@@ -1097,6 +1118,7 @@
           <a href="solucoes-branding.html" class="back-link">
             Saiba mais &rarr;
           </a>
+
         </div>
 
       </div>
@@ -1106,6 +1128,7 @@
       <div class="flip-card-inner">
 
         <div class="solution-card">
+
           <span class="flip-hint">&#8635;</span>
 
           <div class="icon-box">
@@ -1124,9 +1147,11 @@
           </p>
 
           <span class="card-arrow">&rarr;</span>
+
         </div>
 
         <div class="flip-card-back">
+
           <h4>Sistemas e Plataformas</h4>
 
           <p>
@@ -1137,6 +1162,7 @@
           <a href="solucoes-sistemas.html" class="back-link">
             Saiba mais &rarr;
           </a>
+
         </div>
 
       </div>
@@ -1146,6 +1172,7 @@
       <div class="flip-card-inner">
 
         <div class="solution-card">
+
           <span class="flip-hint">&#8635;</span>
 
           <div class="icon-box">
@@ -1162,9 +1189,11 @@
           </p>
 
           <span class="card-arrow">&rarr;</span>
+
         </div>
 
         <div class="flip-card-back">
+
           <h4>Automação</h4>
 
           <p>
@@ -1175,6 +1204,7 @@
           <a href="solucoes-automacao.html" class="back-link">
             Saiba mais &rarr;
           </a>
+
         </div>
 
       </div>
@@ -1184,6 +1214,7 @@
       <div class="flip-card-inner">
 
         <div class="solution-card">
+
           <span class="flip-hint">&#8635;</span>
 
           <div class="icon-box">
@@ -1202,9 +1233,11 @@
           </p>
 
           <span class="card-arrow">&rarr;</span>
+
         </div>
 
         <div class="flip-card-back">
+
           <h4>SEO e Performance</h4>
 
           <p>
@@ -1215,6 +1248,7 @@
           <a href="solucoes-seo.html" class="back-link">
             Saiba mais &rarr;
           </a>
+
         </div>
 
       </div>
@@ -1237,9 +1271,9 @@
         width="1254"
         height="1254"
         loading="lazy"
+        decoding="async"
         src="image/case-turco.webp"
-        alt="Case Fazendinha Turca"
-      >
+        alt="Case Fazendinha Turca">
 
       <div class="case-info">
 
@@ -1264,9 +1298,9 @@
         width="1536"
         height="1024"
         loading="lazy"
+        decoding="async"
         src="image/case-danny1.webp"
-        alt="Case Danny Queiroz — Estética Regenerativa"
-      >
+        alt="Case Danny Queiroz — Estética Regenerativa">
 
       <div class="case-info">
 
@@ -1291,9 +1325,9 @@
         width="1536"
         height="1024"
         loading="lazy"
+        decoding="async"
         src="image/case-danny2.webp"
-        alt="Case Daniel Queiroz — Landing Page"
-      >
+        alt="Case Daniel Queiroz — Landing Page">
 
       <div class="case-info">
 
@@ -1329,9 +1363,9 @@
         width="1254"
         height="1254"
         loading="lazy"
+        decoding="async"
         src="image/blog-ia.webp"
-        alt="Como a IA está transformando negócios em 2026"
-      >
+        alt="Como a IA está transformando negócios em 2026">
 
       <div class="blog-info">
 
@@ -1355,9 +1389,9 @@
         width="1254"
         height="1254"
         loading="lazy"
+        decoding="async"
         src="image/blog-branding.webp"
-        alt="Branding estratégico: mais que um logo, uma experiência"
-      >
+        alt="Branding estratégico: mais que um logo, uma experiência">
 
       <div class="blog-info">
 
@@ -1381,9 +1415,9 @@
         width="1254"
         height="1254"
         loading="lazy"
+        decoding="async"
         src="image/blog-automacao.webp"
-        alt="Automação inteligente: o futuro da produtividade"
-      >
+        alt="Automação inteligente: o futuro da produtividade">
 
       <div class="blog-info">
 
@@ -1448,12 +1482,12 @@
       <a href="index.html" class="footer-logo">
 
         <img
-          width="1254"
-          height="1254"
+          width="32"
+          height="32"
           loading="lazy"
+          decoding="async"
           src="image/logo-rodape.webp"
-          alt="Logo YANSIX - rodapé"
-        >
+          alt="Logo YANSIX - rodapé">
 
         <span>YANSIX</span>
 
@@ -1496,6 +1530,7 @@
       <h4>CONTATO</h4>
 
       <ul class="footer-contact">
+
         <li>📞 41 93300-2107</li>
 
         <li>
@@ -1504,11 +1539,11 @@
             href="https://www.instagram.com/yansix.tech"
             target="_blank"
             rel="noopener"
-            style="color:inherit;"
-          >
+            style="color:inherit;">
             @yansix.tech
           </a>
         </li>
+
       </ul>
 
     </div>
@@ -1532,15 +1567,20 @@
   </div>
 
   <p class="footer-bottom">
+
     © 2026 YANSIX. Todos os direitos reservados.
     &nbsp;|&nbsp;
+
     <a href="privacidade.html" style="color:inherit;">
       Política de Privacidade
     </a>
+
     &nbsp;|&nbsp;
+
     <a href="termos.html" style="color:inherit;">
       Termos de Uso
     </a>
+
   </p>
 
 </footer>
