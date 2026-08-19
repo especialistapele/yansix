@@ -5,8 +5,10 @@
 
    PERFORMANCE:
    - Sem dependência de Google Fonts
-   - Fonte do sistema para eliminar bloqueio de renderização
-   - Mantém aparência próxima à Inter
+   - Fonte do sistema
+   - Contraste AA reforçado
+   - Acessibilidade aprimorada
+   - Mantém identidade YANSIX
    ========================================================== */
 
 :root{
@@ -16,8 +18,14 @@
   --bg-soft:#eef0fb;
   --bg-soft-2:#f6f7fc;
   --text:#171326;
-  --text-muted:#6b6880;
+  --text-muted:#5f5b73;
   --white:#ffffff;
+
+  /* Cores de acessibilidade no rodapé */
+  --footer-text:#d4d1e5;
+  --footer-muted:#b9b5d0;
+  --footer-heading:#aaa5c5;
+
   --radius-lg:20px;
   --radius-md:14px;
 }
@@ -138,7 +146,7 @@ nav.main-nav ul{
 }
 
 nav.main-nav a{
-  color:#cfcbe6;
+  color:#d8d5e8;
   font-size:15px;
   font-weight:500;
 
@@ -161,7 +169,7 @@ nav.main-nav a.active{
   align-items:center;
   justify-content:center;
 
-  opacity:.85;
+  opacity:.9;
 
   transition:opacity .2s;
 }
@@ -341,7 +349,7 @@ section.page-hero::after{
 
   letter-spacing:1.5px;
 
-  color:#a89bf7;
+  color:#b8afff;
 
   margin-bottom:16px;
 }
@@ -362,7 +370,7 @@ section.page-hero::after{
 .page-hero p.lead{
   font-size:16px;
 
-  color:#c3bfe0;
+  color:#d1cde5;
 
   line-height:1.6;
 
@@ -380,7 +388,7 @@ section.page-hero::after{
 
   font-size:13px;
 
-  color:#9d97c4;
+  color:#b8b3d1;
 
   margin-bottom:18px;
 }
@@ -388,7 +396,7 @@ section.page-hero::after{
 .hero-location{
   font-size:13px;
 
-  color:#a9a2d6;
+  color:#c2bdd9;
 
   max-width:600px;
 
@@ -398,7 +406,7 @@ section.page-hero::after{
 }
 
 .hero-location a{
-  color:#c9c3ee;
+  color:#dedaf0;
   text-decoration:underline;
 }
 
@@ -407,7 +415,7 @@ section.page-hero::after{
 }
 
 .breadcrumb a{
-  color:#c3bfe0;
+  color:#d1cde5;
 
   transition:color .2s;
 }
@@ -1420,7 +1428,7 @@ section.block.alt{
 }
 
 .blog-search input::placeholder{
-  color:#a6a2bd;
+  color:#77738b;
 }
 
 .blog-featured{
@@ -1772,7 +1780,7 @@ section.block.alt{
 
 .form-field input::placeholder,
 .form-field textarea::placeholder{
-  color:#a6a2bd;
+  color:#77738b;
 }
 
 .form-submit-row{
@@ -2171,7 +2179,7 @@ section.cta-bar{
 }
 
 .cta-mid p{
-  color:#b9b6d1;
+  color:#d0cce1;
 
   font-size:14px;
 
@@ -2183,6 +2191,7 @@ section.cta-bar{
 
 /* ==========================================================
    FOOTER
+   CONTRASTE AA REFORÇADO
    ========================================================== */
 
 footer{
@@ -2190,7 +2199,7 @@ footer{
 
   padding:60px 24px 24px;
 
-  color:#a9a6c2;
+  color:var(--footer-text);
 }
 
 .footer-wrap{
@@ -2212,7 +2221,7 @@ footer{
   padding-bottom:40px;
 
   border-bottom:
-    1px solid rgba(255,255,255,.08);
+    1px solid rgba(255,255,255,.14);
 }
 
 .footer-logo{
@@ -2247,7 +2256,7 @@ footer h4{
 
   letter-spacing:1.5px;
 
-  color:#7a76a0;
+  color:var(--footer-heading);
 
   margin-bottom:16px;
 }
@@ -2259,7 +2268,7 @@ footer ul li{
 footer ul li a{
   font-size:14px;
 
-  color:#c3c0da;
+  color:var(--footer-text);
 
   transition:color .2s;
 }
@@ -2277,10 +2286,24 @@ footer ul li a:hover{
 
   font-size:14px;
 
-  color:#c3c0da;
+  color:var(--footer-text);
 
   margin-bottom:12px;
 }
+
+.footer-contact a{
+  color:var(--footer-text);
+}
+
+.footer-contact a:hover{
+  color:var(--white);
+}
+
+
+/* ==========================================================
+   FOOTER BOTTOM
+   Corrige o contraste apontado pelo Lighthouse
+   ========================================================== */
 
 .footer-bottom{
   max-width:1180px;
@@ -2293,18 +2316,36 @@ footer ul li a:hover{
 
   font-size:13px;
 
-  color:#6f6c8f;
+  color:var(--footer-muted);
+
+  line-height:1.6;
+}
+
+.footer-bottom a{
+  color:var(--footer-text);
+
+  text-decoration:underline;
+
+  text-decoration-color:rgba(255,255,255,.45);
+
+  text-underline-offset:3px;
+}
+
+.footer-bottom a:hover{
+  color:var(--white);
 }
 
 
 /* ==========================================================
-   ACCESSIBILITY / PERFORMANCE
+   ACCESSIBILITY
    ========================================================== */
 
 :focus-visible{
-  outline:2px solid var(--purple);
+  outline:3px solid #9d8cff;
 
   outline-offset:3px;
+
+  border-radius:4px;
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -2474,4 +2515,5 @@ footer ul li a:hover{
   .timeline-item{
     gap:14px;
   }
+
 }
