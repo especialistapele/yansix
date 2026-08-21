@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#5B3DF5">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>YANSIX CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111111">
+</head>
+<body>
+<div id="toast-region" class="toast-region" aria-live="polite"></div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><img src="assets/yansix-logo.png" alt="YANSIX CRM"></div>
+    <nav class="nav">
+      <a href="#dashboard" class="nav-link active" data-view="dashboard"><span class="nav-icon">⌂</span><span>Dashboard</span></a>
+      <a href="#clientes" class="nav-link" data-view="clientes"><span class="nav-icon">♙</span><span>Clientes</span></a>
+      <a href="#funil" class="nav-link" data-view="funil"><span class="nav-icon">▥</span><span>Funil / Negociações</span></a>
+      <a href="#tarefas" class="nav-link" data-view="tarefas"><span class="nav-icon">□</span><span>Tarefas</span></a>
+      <a href="#interacoes" class="nav-link" data-view="interacoes"><span class="nav-icon">◌</span><span>Interações</span></a>
+      <a href="#calendario" class="nav-link" data-view="calendario"><span class="nav-icon">□</span><span>Calendário</span></a>
+      <a href="#propostas" class="nav-link" data-view="propostas"><span class="nav-icon">▤</span><span>Propostas</span></a>
+      <a href="#relatorios" class="nav-link" data-view="relatorios"><span class="nav-icon">◔</span><span>Relatórios</span></a>
+      <a href="#integracoes" class="nav-link" data-view="integracoes"><span class="nav-icon">↔</span><span>Integrações</span></a>
+      <a href="#configuracoes" class="nav-link" data-view="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></a>
+      <a href="#usuarios" class="nav-link admin-only" data-view="usuarios"><span class="nav-icon">♙</span><span>Usuários</span></a>
+    </nav>
+    <div class="plan-card"><div class="plan-logo"><img src="assets/yansix-logo.png" alt=""></div><div><small>Plano atual</small><strong>Professional</strong><a href="#configuracoes">Ver detalhes →</a></div></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="mobile-menu icon-button" id="mobile-menu" aria-label="Abrir menu">☰</button>
+      <div class="global-search"><span>⌕</span><input id="global-search" placeholder="Buscar clientes, negociações, tarefas..."><kbd>⌘ K</kbd></div>
+      <div class="topbar-right"><div id="session-user" class="session-user"></div>
+        <button class="notification icon-button" title="Notificações">♧<b id="notification-count">3</b></button>
+        
+      </div>
+    </header>
+
+    <main class="content">
+      <section id="view-dashboard" class="view active">
+        <div class="welcome-row">
+          <div><h1>Olá, Ariza! <span>👋</span></h1><p>Veja o desempenho do seu funil e acompanhe suas atividades.</p></div>
+          <button class="btn btn-primary" id="quick-new-client">＋ Novo registro <span>⌄</span></button>
+        </div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="metric-icon">♙</div><div><span>Total de Leads</span><strong id="stat-leads-mes">0</strong><small id="stat-leads-meta">—</small></div></article>
+          <article class="stat-card"><div class="metric-icon">▣</div><div><span>Oportunidades</span><strong id="stat-oportunidades">0</strong><small id="stat-oportunidades-meta">—</small></div></article>
+          <article class="stat-card"><div class="metric-icon">✓</div><div><span>Negócios Ganhos</span><strong id="stat-fechados">0</strong><small id="stat-fechados-meta">—</small></div></article>
+          <article class="stat-card"><div class="metric-icon">＄</div><div><span>Valor do Pipeline</span><strong id="stat-pipeline-total">R$ 0</strong><small id="stat-pipeline-meta">—</small></div></article>
+        </div>
+
+        <div class="dashboard-main-grid">
+          <section class="panel pipeline-panel">
+            <div class="panel-head"><div><h2>Funil de Negociações</h2><p>Visão rápida das oportunidades por etapa.</p></div><button class="text-btn" data-go-view="funil">Ver funil →</button></div>
+            <div id="dashboard-pipeline" class="dashboard-pipeline"></div>
+          </section>
+          <aside class="side-stack">
+            <section class="panel task-panel"><div class="panel-head"><h2>Tarefas Pendentes</h2><button class="text-btn" data-go-view="tarefas">Ver todas</button></div><div id="dashboard-tasks" class="compact-list"></div></section>
+            <section class="panel activity-panel"><div class="panel-head"><h2>Atividades Recentes</h2><button class="text-btn" data-go-view="interacoes">Ver todas</button></div><div id="dashboard-activities" class="compact-list"></div></section>
+          </aside>
+        </div>
+
+        <div class="dashboard-bottom-grid">
+          <section class="panel chart-card"><div class="panel-head"><div><h2>Leads por Origem</h2></div></div><div id="source-chart" class="source-chart"></div></section>
+          <section class="panel chart-card"><div class="panel-head"><div><h2>Negociações por Etapa</h2></div></div><div id="stage-chart" class="stage-chart"></div></section>
+          <section class="panel chart-card"><div class="panel-head"><div><h2>Pipeline <small>(Valor por Etapa)</small></h2></div></div><div id="stage-values" class="stage-values"></div></section>
+        </div>
+      </section>
+
+      <section id="view-clientes" class="view">
+        <div class="page-head"><div><h1>Clientes</h1><p>Gerencie sua base comercial e abra a ficha completa de cada cliente.</p></div><button class="btn btn-primary" id="new-client">＋ Novo cliente</button></div>
+        <div class="toolbar panel"><div class="search-wrap"><span>⌕</span><input id="client-search" type="search" placeholder="Buscar por nome, contato ou empresa..."></div><select id="filter-tag"><option value="">Todas as tags</option></select><select id="filter-origin"><option value="">Todas as origens</option></select><select id="filter-status"><option value="">Todos os status</option><option value="lead">Lead</option><option value="prospect">Prospect</option><option value="ativo">Ativo</option><option value="cliente">Cliente</option><option value="inativo">Inativo</option><option value="perdido">Perdido</option></select><button class="btn btn-ghost" id="clear-filters">Limpar</button></div>
+        <div class="panel table-panel"><div class="table-head"><strong id="client-count">0 registros</strong><span>Abra a ficha para editar, excluir ou consultar o histórico.</span></div><div class="table-scroll"><table><thead><tr><th>Cliente</th><th>Contato</th><th>Empresa</th><th>Origem</th><th>Tags</th><th>Status</th><th>Ações</th></tr></thead><tbody id="clients-table"></tbody></table></div></div>
+      </section>
+
+      <section id="view-funil" class="view">
+        <div class="page-head"><div><h1>Funil / Negociações</h1><p>Pipeline comercial avançado com cards detalhados e movimentação por etapa.</p></div><div class="page-head-actions"><button class="btn btn-ghost" id="configure-pipeline">⚙ Configurar etapas</button><button class="btn btn-primary" id="new-deal">＋ Nova negociação</button></div></div>
+        <div class="pipeline-summary" id="pipeline-summary"></div>
+        <div class="pipeline-toolbar panel"><div class="search-wrap"><span>⌕</span><input id="deal-search" type="search" placeholder="Buscar cliente, produto/serviço ou responsável..."></div><select id="deal-filter-priority"><option value="">Todas as prioridades</option><option value="baixa">Baixa</option><option value="média">Média</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select><select id="deal-filter-responsavel"><option value="">Todos os responsáveis</option></select><select id="deal-filter-origin"><option value="">Todas as origens</option></select><button class="btn btn-ghost" id="clear-deal-filters">Limpar</button></div>
+        <div id="kanban" class="kanban"></div>
+      </section>
+
+      <section id="view-tarefas" class="view">
+        <div class="page-head"><div><h1>Tarefas</h1><p>Acompanhe follow-ups e atividades pendentes.</p></div><button class="btn btn-primary" id="new-task">＋ Nova tarefa</button></div>
+        <div class="panel task-page"><div class="panel-head"><h2>Agenda de tarefas</h2><select id="task-filter"><option value="">Todas</option><option value="pendente">Pendentes</option><option value="concluida">Concluídas</option></select></div><div id="tasks-list" class="task-list"></div></div>
+      </section>
+
+      <section id="view-interacoes" class="view">
+        <div class="page-head"><div><h1>Atividades</h1><p>Registre contatos comerciais e mantenha o histórico de follow-up.</p></div><button class="btn btn-primary" id="new-interaction">＋ Nova atividade</button></div>
+        <div class="activity-summary" id="activity-summary"></div>
+        <div class="panel table-panel"><div class="table-head"><strong>Histórico de atividades</strong><span>Último contato e próximo contato ficam vinculados ao cliente.</span></div><div class="table-scroll"><table><thead><tr><th>Data</th><th>Cliente</th><th>Tipo</th><th>Resultado</th><th>Próximo contato</th><th>Ações</th></tr></thead><tbody id="interactions-table"></tbody></table></div></div>
+      </section>
+
+      <section id="view-calendario" class="view">
+        <div class="page-head"><div><h1>Agenda / Follow-up</h1><p>Veja tarefas atrasadas, de hoje, próximas e concluídas.</p></div><button class="btn btn-primary" id="calendar-new-task">＋ Nova tarefa</button></div>
+        <div class="agenda-tabs" id="agenda-tabs"><button class="active" data-agenda="atrasadas">Atrasadas</button><button data-agenda="hoje">Hoje</button><button data-agenda="proximas">Próximas</button><button data-agenda="concluidas">Concluídas</button></div>
+        <div class="agenda-grid" id="agenda-grid"></div>
+      </section>
+      <section id="view-propostas" class="view">
+        <div class="page-head"><div><h1>Propostas e Orçamentos</h1><p>Crie, acompanhe e converta propostas comerciais em negócios ganhos.</p></div><button class="btn btn-primary" id="new-proposal">＋ Nova proposta</button></div>
+        <div class="proposal-summary" id="proposal-summary"></div>
+        <div class="proposal-toolbar panel"><div class="search-wrap"><span>⌕</span><input id="proposal-search" type="search" placeholder="Buscar número, cliente ou serviço..."></div><select id="proposal-filter-status"><option value="">Todos os status</option></select><button class="btn btn-ghost" id="clear-proposal-filters">Limpar</button></div>
+        <div class="panel table-panel"><div class="table-head"><strong id="proposal-count">0 propostas</strong><span>Abra uma proposta para editar, enviar, imprimir ou aprovar.</span></div><div class="table-scroll"><table><thead><tr><th>Número</th><th>Cliente</th><th>Serviço</th><th>Total</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="proposals-table"></tbody></table></div></div>
+      </section>
+      <section id="view-relatorios" class="view">
+  <div class="page-head"><div><h1>Relatórios e Analytics</h1><p>Visão analítica do desempenho comercial, pipeline, conversão e vendas.</p></div><div class="report-actions"><select id="report-period"><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="180">Últimos 180 dias</option><option value="365" selected>Últimos 12 meses</option><option value="all">Todo o período</option></select><button class="btn btn-ghost" id="report-refresh">↻ Atualizar</button></div></div>
+  <div class="report-summary" id="report-summary"></div>
+  <div class="report-grid report-grid-main">
+    <div class="panel report-panel"><div class="panel-head"><div><h2>Leads por origem</h2><p>Distribuição dos leads no período selecionado.</p></div></div><div id="report-source-chart" class="report-bars"></div></div>
+    <div class="panel report-panel"><div class="panel-head"><div><h2>Funil por etapa</h2><p>Quantidade e valor das oportunidades.</p></div></div><div id="report-stage-chart" class="report-stage-chart"></div></div>
+  </div>
+  <div class="report-grid">
+    <div class="panel report-panel"><div class="panel-head"><div><h2>Faturamento por período</h2><p>Negócios ganhos agrupados por mês.</p></div></div><div id="report-revenue-chart" class="report-bars report-months"></div></div>
+    <div class="panel report-panel"><div class="panel-head"><div><h2>Desempenho comercial</h2><p>Melhores origens e serviços.</p></div></div><div id="report-performance" class="report-ranking"></div></div>
+    <div class="panel report-panel"><div class="panel-head"><div><h2>Indicadores históricos</h2><p>Baseados nos registros disponíveis no CRM.</p></div></div><div id="report-history" class="report-history"></div></div>
+  </div>
+</section>
+      <section id="view-usuarios" class="view admin-only-view">
+  <div class="page-head"><div><h1>Usuários e permissões</h1><p>Gerencie acessos, perfis e status dos usuários do CRM.</p></div><button class="btn btn-primary" id="new-user">+ Novo usuário</button></div>
+  <div class="panel users-panel"><div class="panel-head"><div><h2>Equipe do CRM</h2><p>Administrador, Gestor e Vendedor possuem níveis de acesso diferentes.</p></div></div><div id="users-table" class="users-table"></div></div>
+</section>
+
+<section id="view-integracoes" class="view">
+  <div class="page-head"><div><p class="eyebrow">FASE 13 · INTEGRAÇÕES</p><h2>Integrações</h2><p>Conecte os canais externos ao CRM sem quebrar a arquitetura atual.</p></div></div>
+  <div class="settings-grid">
+    <article class="panel"><div class="panel-head"><div><h3>E-mail</h3><p>Endereço padrão usado pelo CRM.</p></div><span class="status-pill">Configurável</span></div><label>E-mail de atendimento<input id="integration-email" type="email"></label><button id="test-email-link" class="btn btn-ghost" type="button">Abrir teste de e-mail</button></article>
+    <article class="panel"><div class="panel-head"><div><h3>WhatsApp</h3><p>Base para links e atendimento comercial.</p></div><span class="status-pill">Configurável</span></div><label>WhatsApp Business<input id="integration-whatsapp" placeholder="5521999999999"></label><button id="test-whatsapp-link" class="btn btn-ghost" type="button">Testar WhatsApp</button></article>
+    <article class="panel"><div class="panel-head"><div><h3>Google Calendar</h3><p>Preparação para eventos e agenda.</p></div><span class="status-pill">Preparado</span></div><label class="check-label"><input id="integration-calendar" type="checkbox"> Integração habilitada</label><p class="muted">A criação de eventos poderá usar a conta Google conectada na etapa de autenticação externa.</p></article>
+    <article class="panel"><div class="panel-head"><div><h3>Site → CRM</h3><p>Webhook para receber leads diretamente dos formulários.</p></div><span class="status-pill" id="webhook-status">Ativo</span></div><label class="check-label"><input id="integration-webhook" type="checkbox"> Receber leads via webhook</label><label>Segredo opcional<input id="integration-secret" type="text" placeholder="Use um segredo compartilhado no formulário"></label><button id="copy-webhook" class="btn btn-ghost" type="button">Copiar URL do Web App</button></article>
+    <article class="panel"><div class="panel-head"><div><h3>Instagram / Meta</h3><p>Estrutura preparada para credenciais oficiais.</p></div><span class="status-pill">Preparado</span></div><label class="check-label"><input id="integration-meta" type="checkbox"> Habilitar módulo Meta</label><p class="muted">A conexão OAuth e tokens oficiais devem ser adicionados quando as credenciais da Meta forem configuradas.</p></article>
+  </div>
+  <div class="modal-actions"><span></span><button id="save-integrations" class="btn btn-primary" type="button">Salvar integrações</button></div>
+</section>
+<section id="view-configuracoes" class="view">
+  <div class="page-head"><div><h1>Automação comercial</h1><p>Regras que reduzem tarefas manuais e mantêm o follow-up em dia.</p></div></div>
+  <div class="automation-grid">
+    <div class="panel automation-card"><div><span class="eyebrow">Regra geral</span><h2>Automação ativa</h2><p>Executa as regras automaticamente durante a sincronização do CRM.</p></div><label class="switch"><input id="automation-enabled" type="checkbox"><span></span></label></div>
+    <div class="panel automation-card"><div><span class="eyebrow">Propostas</span><h2>Follow-up pós-proposta</h2><p>Criar uma tarefa automaticamente após o envio de uma proposta.</p></div><label>Após <input id="automation-proposal-days" class="automation-number" type="number" min="1" max="30"> dias</label></div>
+    <div class="panel automation-card"><div><span class="eyebrow">Leads parados</span><h2>Alerta de oportunidade parada</h2><p>Criar follow-up quando uma oportunidade aberta ficar sem atividade.</p></div><label>Após <input id="automation-stalled-days" class="automation-number" type="number" min="1" max="90"> dias</label></div>
+    <div class="panel automation-card"><div><span class="eyebrow">Recuperação</span><h2>Oportunidades perdidas</h2><p>Criar uma tarefa de recuperação após o período definido.</p></div><label>Após <input id="automation-recovery-days" class="automation-number" type="number" min="7" max="180"> dias</label></div>
+  </div>
+  <div class="panel automation-rules"><div class="panel-head"><div><h2>Regras automáticas</h2><p>O CRM também atualiza status conforme o avanço do negócio.</p></div><button class="btn btn-primary" id="save-automation">Salvar regras</button></div><div class="rule-list"><div><strong>Proposta enviada</strong><span>Cria follow-up automaticamente.</span></div><div><strong>Lead sem atividade</strong><span>Cria alerta de follow-up.</span></div><div><strong>Negócio fechado</strong><span>Cliente passa para status cliente.</span></div><div><strong>Negócio perdido</strong><span>Cliente passa para status perdido e entra na recuperação.</span></div><div><strong>Negócio recuperado</strong><span>Ao voltar ao pipeline, o cliente retorna para acompanhamento ativo.</span></div></div></div>
+</section>
+
+<dialog id="pipeline-modal" class="modal modal-wide"><form id="pipeline-form" class="modal-card"><div class="modal-head"><div><p class="eyebrow">Configuração do pipeline · Fase 7</p><h3>Etapas do funil</h3></div><button type="button" class="icon-button" data-close-modal="pipeline-modal">×</button></div><p class="modal-help">Edite os nomes das etapas. A ordem segue o fluxo comercial e os IDs internos são preservados para não quebrar registros existentes.</p><div id="pipeline-stage-editor" class="stage-editor"></div><div class="modal-actions"><button type="button" class="btn btn-ghost" data-close-modal="pipeline-modal">Cancelar</button><span></span><button class="btn btn-primary" type="submit">Salvar etapas</button></div></form></dialog>
+    </main>
+    <footer>© 2026 YANSIX CRM. Todos os direitos reservados. <span>Fase 12 · Usuários, Login e Permissões</span><span>Desenvolvido com ♥ pela YANSIX</span></footer>
+  </div>
+</div>
+
+<dialog id="client-modal" class="modal modal-wide"><form id="client-form" class="modal-card">
+  <div class="modal-head"><div><p class="eyebrow">Cadastro completo · Fase 6</p><h3 id="client-modal-title">Novo cliente / lead</h3></div><button type="button" class="icon-button" data-close-modal="client-modal">×</button></div>
+  <input type="hidden" id="client-id">
+  <div id="client-form-sections"></div>
+  <div class="modal-actions"><button type="button" class="btn btn-ghost" data-close-modal="client-modal">Cancelar</button><button class="btn btn-primary" type="submit" id="client-save-btn">Salvar cliente</button></div>
+</form></dialog>
+
+<dialog id="detail-modal" class="modal modal-wide"><div class="modal-card">
+  <div class="modal-head"><div id="detail-heading"></div><button type="button" class="icon-button" data-close-modal="detail-modal">×</button></div>
+  <div id="client-detail"></div>
+</div></dialog>
+
+<dialog id="deal-modal" class="modal modal-wide"><form id="deal-form" class="modal-card">
+  <div class="modal-head"><div><p class="eyebrow">Pipeline comercial</p><h3 id="deal-modal-title">Nova negociação</h3></div><button type="button" class="icon-button" data-close-modal="deal-modal">×</button></div>
+  <input type="hidden" id="deal-id">
+  <div class="form-grid"><label>Cliente *<select id="deal-client" required></select></label><label>Produto / Serviço *<input id="deal-product" required placeholder="Ex.: Website estratégico"></label><label>Valor<input id="deal-value" type="number" min="0" step="0.01"></label><label>Etapa<select id="deal-stage"></select></label><label>Probabilidade (%)<input id="deal-probability" type="number" min="0" max="100" step="1"></label><label>Previsão de fechamento<input id="deal-date" type="date"></label><label>Responsável<input id="deal-owner" placeholder="Nome do responsável"></label><label>Origem<select id="deal-origin"></select></label><label>Prioridade<select id="deal-priority"></select></label></div>
+  <div class="modal-actions"><button type="button" class="btn btn-danger-outline hidden" id="deal-delete">Excluir</button><span></span><button type="button" class="btn btn-ghost" data-close-modal="deal-modal">Cancelar</button><button class="btn btn-primary" type="submit">Salvar negociação</button></div>
+</form></dialog>
+
+<dialog id="task-modal" class="modal"><form id="task-form" class="modal-card">
+  <div class="modal-head"><div><p class="eyebrow">Follow-up</p><h3 id="task-modal-title">Nova tarefa</h3></div><button type="button" class="icon-button" data-close-modal="task-modal">×</button></div>
+  <input type="hidden" id="task-id">
+  <div class="form-grid"><label>Tarefa *<input id="task-title" required></label><label>Cliente<select id="task-client"></select></label><label>Data *<input id="task-date" type="date" required></label><label>Hora<input id="task-time" type="time"></label><label>Tipo / canal<select id="task-channel"></select></label><label>Status<select id="task-status"><option value="pendente">Pendente</option><option value="concluida">Concluída</option></select></label></div>
+  <div class="modal-actions"><button type="button" class="btn btn-danger-outline hidden" id="task-delete">Excluir</button><span></span><button type="button" class="btn btn-ghost" data-close-modal="task-modal">Cancelar</button><button class="btn btn-primary" type="submit">Salvar tarefa</button></div>
+</form></dialog>
+
+<dialog id="proposal-modal" class="modal modal-wide"><form id="proposal-form" class="modal-card">
+  <div class="modal-head"><div><p class="eyebrow">Proposta comercial · Fase 9</p><h3 id="proposal-modal-title">Nova proposta</h3></div><button type="button" class="icon-button" data-close-modal="proposal-modal">×</button></div>
+  <input type="hidden" id="proposal-id">
+  <div class="form-grid"><label>Cliente *<select id="proposal-client" required></select></label><label>Negociação<select id="proposal-deal"></select></label><label>Número da proposta<input id="proposal-number" readonly></label><label>Serviço / item *<input id="proposal-service" required placeholder="Ex.: Website estratégico"></label><label>Quantidade<input id="proposal-qty" type="number" min="1" step="1" value="1"></label><label>Valor unitário<input id="proposal-unit" type="number" min="0" step="0.01"></label><label>Desconto<input id="proposal-discount" type="number" min="0" step="0.01" value="0"></label><label>Total<input id="proposal-total" type="number" readonly></label><label>Validade<input id="proposal-validity" type="date"></label><label>Status<select id="proposal-status"></select></label><label class="span-2">Observações<textarea id="proposal-notes" rows="4" placeholder="Condições, escopo, prazo, formas de pagamento..."></textarea></label></div>
+  <div class="proposal-live-total"><span>Total da proposta</span><strong id="proposal-total-display">R$ 0,00</strong></div>
+  <div class="modal-actions"><button type="button" class="btn btn-danger-outline hidden" id="proposal-delete">Excluir</button><button type="button" class="btn btn-ghost" id="proposal-print">Gerar PDF</button><span></span><button type="button" class="btn btn-ghost" data-close-modal="proposal-modal">Cancelar</button><button class="btn btn-primary" type="submit">Salvar proposta</button></div>
+</form></dialog>
+
+<dialog id="interaction-modal" class="modal modal-wide"><form id="interaction-form" class="modal-card">
+  <div class="modal-head"><div><p class="eyebrow">Atividade comercial · Fase 8</p><h3 id="interaction-modal-title">Nova atividade</h3></div><button type="button" class="icon-button" data-close-modal="interaction-modal">×</button></div>
+  <input type="hidden" id="interaction-id">
+  <div class="form-grid"><label>Cliente *<select id="interaction-client" required></select></label><label>Tipo *<select id="interaction-type" required></select></label><label>Data *<input id="interaction-date" type="date" required></label><label>Hora<input id="interaction-time" type="time"></label><label>Resultado / assunto<input id="interaction-result" placeholder="Ex.: proposta enviada"></label><label>Próximo contato<input id="interaction-next" type="date"></label><label class="span-2">Descrição<textarea id="interaction-description" rows="4" placeholder="Registre o que aconteceu, objeções, próximos passos..."></textarea></label></div>
+  <div class="modal-actions"><button type="button" class="btn btn-danger-outline hidden" id="interaction-delete">Excluir</button><span></span><button type="button" class="btn btn-ghost" data-close-modal="interaction-modal">Cancelar</button><button class="btn btn-primary" type="submit">Salvar atividade</button></div>
+</form></dialog>
+
+<script src="js/config.js"></script><script src="js/api.js"></script><script src="js/app.js"></script>
+
+<div id="login-overlay" class="login-overlay" hidden>
+  <div class="login-card">
+    <div class="login-brand"><img src="assets/yansix-logo.png" alt="YANSIX"><span>CRM</span></div>
+    <p class="eyebrow">Acesso seguro</p><h1>Entrar no CRM</h1><p class="login-help">Use seu usuário para acessar os módulos permitidos pelo seu perfil.</p>
+    <form id="login-form"><label>E-mail<input id="login-email" type="email" autocomplete="username" required></label><label>Senha<input id="login-password" type="password" autocomplete="current-password" required></label><button class="btn btn-primary login-submit" type="submit">Entrar</button><div id="login-error" class="login-error" role="alert"></div></form>
+    <small>Use suas credenciais cadastradas. Por segurança, a senha inicial não é exibida na tela.</small>
+  </div>
+</div>
+
+<dialog id="user-modal" class="modal"><form id="user-form" class="modal-card">
+  <div class="modal-head"><div><p class="eyebrow">Fase 12 · Usuários</p><h3 id="user-modal-title">Novo usuário</h3></div><button type="button" class="icon-button" data-close-modal="user-modal">×</button></div>
+  <input type="hidden" id="user-id"><div class="form-grid"><label>Nome *<input id="user-name" required></label><label>E-mail *<input id="user-email" type="email" required></label><label>Senha <input id="user-password" type="password" minlength="6" placeholder="Mínimo 6 caracteres"></label><label>Perfil *<select id="user-role"><option>Administrador</option><option>Gestor</option><option>Vendedor</option></select></label><label class="check-label"><input id="user-active" type="checkbox" checked> Usuário ativo</label></div>
+  <div class="modal-actions"><button type="button" class="btn btn-ghost" data-close-modal="user-modal">Cancelar</button><span></span><button class="btn btn-primary" type="submit">Salvar usuário</button></div>
+</form></dialog>
+  <script>if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js").catch(console.warn);</script>
+</body>
+</html>
