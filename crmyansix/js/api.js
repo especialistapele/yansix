@@ -47,13 +47,16 @@ const API={
       throw new Error("A criação de usuários exige o endpoint administrativo do Supabase. Configure ADMIN_USER_FUNCTION_URL após a etapa de adequação do Supabase.");
     }
     const prepared=sheet===CONFIG.SHEETS.CLIENTES?normalizeClient(data):sheet===CONFIG.SHEETS.NEGOCIACOES?normalizeDeal(data):cleanRecord(data);
+    if(sheet===CONFIG.SHEETS.NEGOCIACOES)delete prepared.atualizadoEm;
     if(!prepared.id)prepared.id=crypto.randomUUID();
     const {data:created,error}=await SUPABASE_CLIENT.from(tableName(sheet)).insert(prepared).select("*").single();
     if(error)throw new Error(error.message);
     return sheet===CONFIG.SHEETS.CLIENTES?normalizeClient(created):sheet===CONFIG.SHEETS.NEGOCIACOES?normalizeDeal(created):created;
   },
   async update(sheet,id,data){
-    const prepared=cleanRecord(data);delete prepared.id;
+    const prepared=cleanRecord(data);
+    if(sheet===CONFIG.SHEETS.NEGOCIACOES)delete prepared.atualizadoEm;
+    delete prepared.id;
     const {data:updated,error}=await SUPABASE_CLIENT.from(tableName(sheet)).update(prepared).eq("id",id).select("*").single();
     if(error)throw new Error(error.message);
     return sheet===CONFIG.SHEETS.CLIENTES?normalizeClient(updated):sheet===CONFIG.SHEETS.NEGOCIACOES?normalizeDeal(updated):updated;
