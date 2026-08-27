@@ -899,106 +899,167 @@ section.solutions{
 
 
 /* ================= CASES ================= */
-
 section.cases{
-
   background:var(--bg-soft-2);
-
   padding:70px 24px;
-
 }
 
-.cases-grid{
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
-  gap:24px;
-
+.cases-carousel{
   max-width:1180px;
-
   margin:0 auto;
-
+  position:relative;
 }
 
-.case-card{
-
-  background:var(--white);
-
-  border-radius:var(--radius-lg);
-
+.cases-carousel-viewport{
   overflow:hidden;
-
-  box-shadow:
-    0 10px 26px rgba(30,20,80,.06);
-
-  transition:
-    transform .2s ease;
-
+  border-radius:var(--radius-lg);
 }
 
-.case-card:hover{
-
-  transform:translateY(-4px);
-
+.cases-carousel-track{
+  display:flex;
+  gap:24px;
+  will-change:transform;
+  transition:transform .65s cubic-bezier(.22,.61,.36,1);
 }
 
-.case-card img{
+.cases-carousel .case-card{
+  flex:0 0 calc((100% - 48px) / 3);
+  min-width:0;
+  background:var(--white);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:0 10px 26px rgba(30,20,80,.06);
+  transition:transform .2s ease, box-shadow .2s ease;
+  text-decoration:none;
+  color:inherit;
+  display:flex;
+  flex-direction:column;
+}
 
+.cases-carousel .case-card:hover,
+.cases-carousel .case-card:focus-visible{
+  transform:translateY(-5px);
+  box-shadow:0 16px 32px rgba(30,20,80,.12);
+  outline:none;
+}
+
+.cases-carousel .case-card img{
   width:100%;
-
-  height:190px;
-
+  height:210px;
   object-fit:cover;
-
+  display:block;
 }
 
-.case-info{
-
+.cases-carousel .case-info{
   padding:20px 22px 24px;
-
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  flex:1;
 }
 
-.case-info h3{
-
-  font-size:16px;
-
-  font-weight:700;
-
-  margin-bottom:8px;
-
-}
-
-.case-info p{
-
-  font-size:13.5px;
-
-  color:var(--text-muted);
-
-  line-height:1.55;
-
-  margin-bottom:14px;
-
-}
-
-.case-link{
-
-  font-size:13.5px;
-
-  font-weight:700;
-
+.cases-carousel .case-tag{
+  display:inline-block;
+  width:max-content;
+  max-width:100%;
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.08em;
   color:var(--purple);
-
-  display:inline-flex;
-
-  align-items:center;
-
-  gap:6px;
-
 }
 
+.cases-carousel .case-info h3{
+  font-size:18px;
+  font-weight:800;
+  margin:0;
+}
+
+.cases-carousel .case-info p{
+  font-size:13.5px;
+  color:var(--text-muted);
+  line-height:1.55;
+  margin:0;
+}
+
+.cases-carousel .case-link{
+  margin-top:auto;
+  padding-top:8px;
+  font-size:13.5px;
+  font-weight:800;
+  color:var(--purple);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.cases-carousel-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-top:24px;
+}
+
+.cases-carousel-btn{
+  width:42px;
+  height:42px;
+  border:1px solid rgba(91,61,245,.2);
+  border-radius:50%;
+  background:var(--white);
+  color:var(--ink);
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  transition:background .2s ease, color .2s ease, transform .2s ease;
+}
+
+.cases-carousel-btn:hover,
+.cases-carousel-btn:focus-visible{
+  background:var(--purple);
+  color:#fff;
+  transform:translateY(-2px);
+  outline:none;
+}
+
+.cases-carousel-dots{
+  display:flex;
+  gap:7px;
+  align-items:center;
+  margin:0 4px;
+}
+
+.cases-carousel-dot{
+  width:7px;
+  height:7px;
+  border:0;
+  padding:0;
+  border-radius:999px;
+  background:rgba(91,61,245,.22);
+  cursor:pointer;
+  transition:width .25s ease, background .25s ease;
+}
+
+.cases-carousel-dot.is-active{
+  width:24px;
+  background:var(--purple);
+}
+
+.cases-carousel-hint{
+  margin:12px auto 0;
+  text-align:center;
+  font-size:11px;
+  color:var(--text-muted);
+}
+
+@media(max-width:900px){
+  .cases-carousel .case-card{flex-basis:calc((100% - 24px) / 2);}
+}
+
+@media(max-width:620px){
+  .cases-carousel .case-card{flex-basis:100%;}
+  .cases-carousel .case-card img{height:205px;}
+}
 
 /* ================= BLOG ================= */
 
@@ -2308,131 +2369,86 @@ footer ul li a:hover{
 
 
 <!-- ================= CASES ================= -->
+<section class="cases" aria-labelledby="cases-title">
+  <h2 id="cases-title" class="section-title">CASES DE SUCESSO</h2>
 
-<section
-  class="cases"
-  aria-labelledby="cases-title">
+  <div class="cases-carousel" data-cases-carousel aria-roledescription="carrossel" aria-label="Cases de clientes YANSIX">
+    <div class="cases-carousel-viewport">
+      <div class="cases-carousel-track">
 
-  <h2
-    id="cases-title"
-    class="section-title">
+        <!-- CASES ANTIGOS — MANTIDOS -->
+        <a class="case-card" href="case-fazendinha-turca.html" aria-label="Abrir case Fazendinha Turca">
+          <img width="1254" height="1254" loading="lazy" decoding="async" src="image/case-turco.webp" alt="Case Fazendinha Turca — mercadinho online de produtos naturais">
+          <div class="case-info">
+            <span class="case-tag">WEBSITE · MERCADINHO ONLINE · AUTOMAÇÃO · ESTOQUE</span>
+            <h3>Fazendinha Turca</h3>
+            <p>Loja de produtos naturais — mercadinho online para pedidos e entregas na região, com catálogo e processo comercial estruturado.</p>
+            <span class="case-link">Ver case <span aria-hidden="true">&rarr;</span></span>
+          </div>
+        </a>
 
-    CASES DE SUCESSO
+        <a class="case-card" href="case-danny-queiroz.html" aria-label="Abrir case Danny Queiroz">
+          <img width="1536" height="1024" loading="lazy" decoding="async" src="image/case-danny1.webp" alt="Case Danny Queiroz — Estética Regenerativa">
+          <div class="case-info">
+            <span class="case-tag">WEBSITE · BRANDING</span>
+            <h3>Danny Queiroz</h3>
+            <p>Especialista em Estética Regenerativa — Website Estratégico e Reposicionamento de Branding.</p>
+            <span class="case-link">Ver case <span aria-hidden="true">&rarr;</span></span>
+          </div>
+        </a>
 
-  </h2>
+        <a class="case-card" href="casedanielqueiroz.html" aria-label="Abrir case Daniel Queiroz">
+          <img width="1536" height="1024" loading="lazy" decoding="async" src="image/case-danny2.webp" alt="Case Daniel Queiroz — Consultoria Imobiliária">
+          <div class="case-info">
+            <span class="case-tag">WEBSITE · BRANDING</span>
+            <h3>Daniel Queiroz</h3>
+            <p>Consultor de imóveis de alto padrão — Website Estratégico e Reposicionamento de Branding.</p>
+            <span class="case-link">Ver case <span aria-hidden="true">&rarr;</span></span>
+          </div>
+        </a>
 
+        <!-- NOVOS CASES — ACRESCENTADOS -->
+        <a class="case-card" href="case-turkista.html" aria-label="Abrir case Turkista">
+          <img width="1747" height="796" loading="lazy" decoding="async" src="image/case-turkista.webp" alt="Site da Turkista — moda praia, surf e academia">
+          <div class="case-info">
+            <span class="case-tag">WEBSITE · BRANDING · AUTOMAÇÃO · ESTOQUE</span>
+            <h3>Turkista</h3>
+            <p>Moda praia, surf e academia — showroom digital com venda pelo WhatsApp, SEO local, catálogo completo e estoque local.</p>
+            <span class="case-link">Ver case <span aria-hidden="true">&rarr;</span></span>
+          </div>
+        </a>
 
-  <div class="cases-grid">
+        <a class="case-card" href="case-turkfitness.html" aria-label="Abrir case Turkfitness">
+          <img width="1900" height="850" loading="lazy" decoding="async" src="image/case-turkfitness.webp" alt="Site da Turkfitness — moda academia">
+          <div class="case-info">
+            <span class="case-tag">WEBSITE · SHOWROOM · BRANDING · ESTOQUE</span>
+            <h3>Turkfitness</h3>
+            <p>Moda academia com loja showroom, catálogo digital, venda pelo WhatsApp e sistema local de estoque e financeiro.</p>
+            <span class="case-link">Ver case <span aria-hidden="true">&rarr;</span></span>
+          </div>
+        </a>
 
-
-    <article class="case-card">
-
-      <img
-        width="1254"
-        height="1254"
-        loading="lazy"
-        decoding="async"
-        src="image/case-turco.webp"
-        alt="Case Fazendinha Turca">
-
-      <div class="case-info">
-
-        <h3>
-          Fazendinha Turca
-        </h3>
-
-        <p>
-          Venda de Produtos Naturais — Solução: Website Estratégico,
-          Reposicionamento de Branding e Automação.
-        </p>
-
-        <a
-          href="case-fazendinha-turca.html"
-          class="case-link">
-
-          Ver case
-          <span aria-hidden="true">&rarr;</span>
-
+        <a class="case-card" href="case-perolamares.html" aria-label="Abrir case Pérola Mares">
+          <img width="1600" height="900" loading="lazy" decoding="async" src="image/case-perola-mares.webp" alt="Case Pérola Mares — site institucional para influencer digital">
+          <div class="case-info">
+            <span class="case-tag">WEBSITE · BRANDING · AUTOMAÇÃO</span>
+            <h3>Pérola Mares</h3>
+            <p>Site institucional para influencer digital, identidade visual própria e automação para contatos com leads.</p>
+            <span class="case-link">Ver case <span aria-hidden="true">&rarr;</span></span>
+          </div>
         </a>
 
       </div>
+    </div>
 
-    </article>
-
-
-    <article class="case-card">
-
-      <img
-        width="1536"
-        height="1024"
-        loading="lazy"
-        decoding="async"
-        src="image/case-danny1.webp"
-        alt="Case Danny Queiroz — Estética Regenerativa">
-
-      <div class="case-info">
-
-        <h3>
-          Danny Queiroz
-        </h3>
-
-        <p>
-          Especialista em Estética Regenerativa — Solução: Website Estratégico
-          e Reposicionamento de Branding.
-        </p>
-
-        <a
-          href="case-danny-queiroz.html"
-          class="case-link">
-
-          Ver case
-          <span aria-hidden="true">&rarr;</span>
-
-        </a>
-
-      </div>
-
-    </article>
-
-
-    <article class="case-card">
-
-      <img
-        width="1536"
-        height="1024"
-        loading="lazy"
-        decoding="async"
-        src="image/case-danny2.webp"
-        alt="Case Daniel Queiroz — Consultoria Imobiliária">
-
-      <div class="case-info">
-
-        <h3>
-          Daniel Queiroz
-        </h3>
-
-        <p>
-          Consultor de imóveis de alto padrão — Solução: Website Estratégico
-          e Reposicionamento de Branding.
-        </p>
-
-        <a
-          href="casedanielqueiroz.html"
-          class="case-link">
-
-          Ver case
-          <span aria-hidden="true">&rarr;</span>
-
-        </a>
-
-      </div>
-
-    </article>
-
+    <div class="cases-carousel-controls" aria-label="Controles do carrossel">
+      <button type="button" class="cases-carousel-btn" data-case-prev aria-label="Case anterior">&larr;</button>
+      <div class="cases-carousel-dots" data-case-dots></div>
+      <button type="button" class="cases-carousel-btn" data-case-next aria-label="Próximo case">&rarr;</button>
+    </div>
+    <p class="cases-carousel-hint">O carrossel avança automaticamente. Passe o mouse ou toque nos controles para navegar.</p>
   </div>
-
 </section>
-
 
 <!-- ================= BLOG ================= -->
 
@@ -2870,18 +2886,106 @@ footer ul li a:hover{
 
 <script>
 
-document.querySelectorAll('.flip-card').forEach(function(card){
+/* ================= CASES CAROUSEL ================= */
+(function(){
+  const carousel = document.querySelector('[data-cases-carousel]');
+  if(!carousel) return;
 
-  card.addEventListener('click', function(e){
+  const viewport = carousel.querySelector('.cases-carousel-viewport');
+  const track = carousel.querySelector('.cases-carousel-track');
+  const cards = Array.from(track.querySelectorAll('.case-card'));
+  const prev = carousel.querySelector('[data-case-prev]');
+  const next = carousel.querySelector('[data-case-next]');
+  const dotsWrap = carousel.querySelector('[data-case-dots]');
 
-    if(e.target.closest('.back-link')){
-      return;
+  let index = 0;
+  let timer = null;
+  let visible = 3;
+  let step = 0;
+
+  function updateVisible(){
+    if(window.innerWidth <= 620) visible = 1;
+    else if(window.innerWidth <= 900) visible = 2;
+    else visible = 3;
+    step = cards[0].getBoundingClientRect().width + 24;
+    const maxIndex = Math.max(0, cards.length - visible);
+    if(index > maxIndex) index = 0;
+    renderDots();
+    move(false);
+  }
+
+  function maxIndex(){ return Math.max(0, cards.length - visible); }
+
+  function move(animate=true){
+    track.style.transition = animate ? 'transform .65s cubic-bezier(.22,.61,.36,1)' : 'none';
+    track.style.transform = 'translate3d(' + (-index * step) + 'px,0,0)';
+    const activeDot = Math.min(index, Math.max(0, maxIndex()));
+    carousel.querySelectorAll('.cases-carousel-dot').forEach(function(dot, i){
+      dot.classList.toggle('is-active', i === activeDot);
+      dot.setAttribute('aria-current', i === activeDot ? 'true' : 'false');
+    });
+  }
+
+  function renderDots(){
+    const total = maxIndex() + 1;
+    dotsWrap.innerHTML = '';
+    for(let i=0; i<total; i++){
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'cases-carousel-dot' + (i === Math.min(index,total-1) ? ' is-active' : '');
+      dot.setAttribute('aria-label','Ir para o grupo de cases ' + (i+1));
+      dot.addEventListener('click', function(){ index = i; move(); restart(); });
+      dotsWrap.appendChild(dot);
     }
+  }
 
-    card.classList.toggle('is-flipped');
+  function goNext(){
+    index = index >= maxIndex() ? 0 : index + 1;
+    move();
+  }
 
+  function goPrev(){
+    index = index <= 0 ? maxIndex() : index - 1;
+    move();
+  }
+
+  function start(){
+    stop();
+    if(cards.length > visible){
+      timer = setInterval(goNext, 4500);
+    }
+  }
+  function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+  function restart(){ start(); }
+
+  next.addEventListener('click', function(){ goNext(); restart(); });
+  prev.addEventListener('click', function(){ goPrev(); restart(); });
+  viewport.addEventListener('mouseenter', stop);
+  viewport.addEventListener('mouseleave', start);
+  viewport.addEventListener('focusin', stop);
+  viewport.addEventListener('focusout', function(e){
+    if(!viewport.contains(e.relatedTarget)) start();
   });
 
+  let touchStartX = 0;
+  viewport.addEventListener('touchstart', function(e){ touchStartX = e.changedTouches[0].clientX; stop(); }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 45){ dx < 0 ? goNext() : goPrev(); }
+    start();
+  }, {passive:true});
+
+  window.addEventListener('resize', function(){ updateVisible(); start(); });
+  updateVisible();
+  start();
+})();
+
+/* ================= EXISTING FLIP CARDS ================= */
+document.querySelectorAll('.flip-card').forEach(function(card){
+  card.addEventListener('click', function(e){
+    if(e.target.closest('.back-link')) return;
+    card.classList.toggle('is-flipped');
+  });
 });
 
 </script>
