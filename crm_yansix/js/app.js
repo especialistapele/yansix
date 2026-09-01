@@ -40,6 +40,46 @@ document.addEventListener("DOMContentLoaded",async()=>{
   loadLoginLock();
 });
 
+function nivelStorage(pct){const t=[95,85,70];if(pct>=t[0])return{key:"acao_necessaria",label:"Ação necessária",color:"var(--danger)"};if(pct>=t[1])return{key:"critico",label:"Crítico",color:"#E08A2B"};if(pct>=t[2])return{key:"atencao",label:"Atenção",color:"#C79A1E"};return{key:"ok",label:"Normal",color:"var(--success)"}}
+
+async function renderCrmStatus(){
+  const limites=CONFIG.PLAN_LIMITS||{administradores:2,gestores:5,vendedores:20,clientes:3000,storageMb:500};
+  const usuariosAtivos=(STATE.usuarios||[]).filter(u=>u.ativo!==false);
+  const totalAdmins=usuariosAtivos.filter(u=>u.perfil==="Administrador").length;
+  const totalGestores=usuariosAtivos.filter(u=>u.perfil==="Gestor").length;
+  const totalVendedores=usuariosAtivos.filter(u=>u.perfil==="Vendedor").length;
+  const totalClientes=(STATE.clientes||[]).length;
+
+  document.getElementById("status-admins").textContent=`${totalAdmins} / ${limites.administradores}`;
+  document.getElementById("status-gestores").textContent=`${totalGestores} / ${limites.gestores}`;
+  document.getElementById("status-vendedores").textContent=`${totalVendedores} / ${limites.vendedores}`;
+  document.getElementById("status-clientes").textContent=`${totalClientes} / ${limites.clientes.toLocaleString("pt-BR")}`;
+
+  const sistemaEl=document.getElementById("status-sistema");
+  const verificadoEl=document.getElementById("status-verificado");
+  const armazenamentoEl=document.getElementById("status-armazenamento");
+  const armazenamentoMetaEl=document.getElementById("status-armazenamento-meta");
+
+  try{
+    const{data,error}=await SUPABASE_CLIENT.rpc("obter_status_banco");
+    if(error)throw error;
+    const linha=Array.isArray(data)?data[0]:data;
+    const usadoMb=Number(linha?.tamanho_mb||0);
+    const pct=Math.min(100,Math.round((usadoMb/limites.storageMb)*100));
+    const nivel=nivelStorage(pct);
+
+    sistemaEl.innerHTML=`<span style="color:${nivel.color}">●</span> ${nivel.key==="ok"?"Operacional":nivel.label}`;
+    verificadoEl.textContent=`Verificado agora`;
+    armazenamentoEl.innerHTML=`<span style="color:${nivel.color}">${pct}%</span> utilizado`;
+    armazenamentoMetaEl.textContent=nivel.key==="ok"?"Dentro do esperado":nivel.label;
+  }catch(err){
+    sistemaEl.innerHTML=`<span style="color:var(--success)">●</span> Operacional`;
+    verificadoEl.textContent="Verificação de armazenamento indisponível";
+    armazenamentoEl.textContent="—";
+    armazenamentoMetaEl.textContent="Rode sql/status_banco.sql no Supabase deste CRM";
+  }
+}
+
 function initNav(){
   document.querySelectorAll(".nav-link").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showView(a.dataset.view);document.getElementById("sidebar").classList.remove("open")}));
   document.querySelectorAll("[data-go-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.goView)));
@@ -50,7 +90,7 @@ function showView(view){
   if(view!=="dashboard"&&!hasPermission(view)){toast("Seu perfil não possui acesso a este módulo.","error");view="dashboard"}
   currentView=view;document.querySelectorAll(".nav-link").forEach(x=>x.classList.toggle("active",x.dataset.view===view));
   document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===`view-${view}`));history.replaceState(null,"",`#${view}`);
-  if(view==="dashboard")renderDashboard();if(view==="clientes")renderClients();if(view==="funil")renderKanban();if(view==="tarefas")renderTasks();if(view==="interacoes")renderInteractions();if(view==="calendario")renderAgenda();if(view==="propostas")renderProposals();if(view==="relatorios")renderReports();if(view==="configuracoes")renderAutomationSettings();if(view==="integracoes")renderIntegrations();if(view==="usuarios")renderUsers();
+  if(view==="dashboard")renderDashboard();if(view==="clientes")renderClients();if(view==="funil")renderKanban();if(view==="tarefas")renderTasks();if(view==="interacoes")renderInteractions();if(view==="calendario")renderAgenda();if(view==="propostas")renderProposals();if(view==="relatorios")renderReports();if(view==="configuracoes"){renderAutomationSettings();renderCrmStatus();}if(view==="integracoes")renderIntegrations();if(view==="usuarios")renderUsers();
 }
 function applyPermissions(){
   document.querySelectorAll(".nav-link").forEach(el=>{el.classList.toggle("permission-hidden",!hasPermission(el.dataset.view));});
