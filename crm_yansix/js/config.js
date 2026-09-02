@@ -37,7 +37,6 @@ const CONFIG={
     Vendedor:{label:"Vendedor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","propostas"]}
   },
   USER_DEFAULTS:{nome:"Administrador",email:"yansix.tech@gmail.com",perfil:"Administrador",gestorId:"",ativo:true},
-  PLAN_LIMITS:{administradores:2,gestores:5,vendedores:20,clientes:3000,storageMb:500},
   AUTOMATION_DEFAULTS:{followupProposalDays:3,stalledLeadDays:7,recoveryDays:30,reminderDays:0,enabled:true},
   SECURITY:{sessionTimeoutMs:30*60*1000,inactivityWarningMs:5*60*1000,maxLoginAttempts:5,lockoutMs:15*60*1000,backupIntervalMs:24*60*60*1000},
   INTEGRATION_DEFAULTS:{email:"yansix.tech@gmail.com",whatsappBusiness:"",googleCalendarEnabled:true,siteWebhookEnabled:true,metaEnabled:false,siteWebhookSecret:""},
