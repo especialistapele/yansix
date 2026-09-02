@@ -1,4 +1,9 @@
 
+## 2026-09-02 — Status operacional exposto ao Painel Central
+- Nova função `public.obter_status_operacional()` (substitui `obter_status_banco()`): devolve tamanho do banco + contagem de clientes/administradores/gestores/vendedores — nunca dados individuais.
+- Liberada tanto para `authenticated` (tela de Configurações → Status do CRM, dentro do próprio CRM) quanto para `anon` (consulta somente-leitura feita pelo Painel Central usando a anon key já cadastrada, sem login e sem `service_role`).
+- Ver `sql/status_operacional.sql`.
+
 ## 2026-08-24 — Provisionamento seguro de usuários
 - Implantada a Edge Function `admin-create-user` no Supabase.
 - A criação de Administrador/Gestor/Vendedor agora usa Supabase Auth + perfil em `public.usuarios`.
