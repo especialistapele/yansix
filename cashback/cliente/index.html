@@ -6,7 +6,7 @@
 <title>Meus Pontos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer onerror="showLoadError()"></script>
 <style>
   :root{
     --wine:#141B3C; --wine-2:#1F2B63; --gold:#2F6FED; --gold-soft:#D9E6FF;
@@ -160,7 +160,16 @@
 <script>
 const SUPABASE_URL = "https://uaqbnwwjqhhnqzsavbkh.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_CtfOabxYTa17BqfZ-ap48A_T097PlEo";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let sb;
+
+function showLoadError(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='none';
+  const nf = document.getElementById('notfound');
+  nf.querySelector('h2').textContent = 'Não foi possível carregar';
+  nf.querySelector('p').textContent = 'Sua conexão bloqueou um recurso necessário. Tente abrir este link em outro navegador (fora do WhatsApp) ou verifique sua internet.';
+  nf.style.display='flex';
+}
 
 function getClienteId(){
   const url = new URL(window.location.href);
@@ -274,7 +283,20 @@ document.querySelectorAll('.tab').forEach(tab=>{
   });
 });
 
-init();
+// O script do Supabase carrega com "defer", então só criamos o cliente e chamamos
+// init() depois que a página termina de parsear — assim a tela de "Carregando..."
+// já aparece na hora, mesmo em conexões/navegadores mais lentos (ex: WhatsApp).
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof supabase === 'undefined'){ showLoadError(); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  init();
+});
+
+// Se o script do Supabase nem sequer disparar "load" nem "error" (conexão travada
+// silenciosamente), evita deixar o cliente preso na tela de carregamento pra sempre.
+setTimeout(function(){
+  if(typeof supabase === 'undefined'){ showLoadError(); }
+}, 10000);
 </script>
 </body>
 </html>
