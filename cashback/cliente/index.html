@@ -168,6 +168,7 @@ function showLoadError(){
   const nf = document.getElementById('notfound');
   nf.querySelector('h2').textContent = 'Não foi possível carregar';
   nf.querySelector('p').textContent = 'Sua conexão bloqueou um recurso necessário. Tente abrir este link em outro navegador (fora do WhatsApp) ou verifique sua internet.';
+  nf.classList.remove('hidden');
   nf.style.display='flex';
 }
 
@@ -192,6 +193,7 @@ async function init(){
   }
 
   document.getElementById('loading').style.display='none';
+  document.getElementById('app').classList.remove('hidden');
   document.getElementById('app').style.display='block';
   document.getElementById('estab-nome').textContent = data.estabelecimento_nome || 'Meus Pontos';
   document.getElementById('cliente-nome').textContent = data.nome;
@@ -234,6 +236,7 @@ async function loadCashback(){
 }
 function showNotFound(){
   document.getElementById('loading').style.display='none';
+  document.getElementById('notfound').classList.remove('hidden');
   document.getElementById('notfound').style.display='flex';
 }
 
