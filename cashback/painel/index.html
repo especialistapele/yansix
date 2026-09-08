@@ -1216,9 +1216,12 @@ async function enviarMensagemMarketing(id, telefoneDigits){
 }
 
 // URL base da página pública do cliente — ajuste para o domínio publicado do painel
+// Estrutura real: www.yansix.tech/cashback/painel/index.html e www.yansix.tech/cashback/cliente/index.html
+// (cada tela fica na sua própria pasta dentro de /cashback/), então a base troca só o
+// segmento "painel/" por "cliente/" — nunca aponta para um arquivo "cliente.html" solto.
 const CLIENTE_PAGE_BASE = (window.location.origin.includes('null') || window.location.protocol === 'file:')
-  ? 'https://SEU-DOMINIO-AQUI/cliente.html'
-  : window.location.origin + window.location.pathname.replace(/index\.html$/, '') + 'cliente.html';
+  ? 'https://www.yansix.tech/cashback/cliente/'
+  : window.location.origin + window.location.pathname.replace(/painel\/(index\.html)?$/, '') + 'cliente/';
 
 function enviarLinkWhatsapp(clienteId){
   const c = CLIENTES.find(x=>x.id===clienteId);
