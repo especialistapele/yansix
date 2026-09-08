@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Prêmios · Yansix Cashback{% endblock %}
+{% block page_title %}Prêmios{% endblock %}
+{% block page_subtitle %}<div class="topbar-sub">Catálogo de recompensas resgatáveis por pontos</div>{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-title">Prêmios cadastrados</div>
+    {% if premios %}
+      <table>
+        <thead><tr><th>Prêmio</th><th>Pontos</th><th>Estoque</th><th></th></tr></thead>
+        <tbody>
+          {% for p in premios %}
+          <tr>
+            <td>{{ p.nome }}</td>
+            <td><span class="badge badge-purple">{{ p.pontos_necessarios }} pts</span></td>
+            <td>{{ p.estoque if p.estoque is not none else "Ilimitado" }}</td>
+            <td style="text-align:right;">
+              <form method="post" action="{{ url_for('premio_excluir', premio_id=p.id) }}"
+                    onsubmit="return confirm('Remover este prêmio?');">
+                <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="hex-empty"></div>
+        Nenhum prêmio cadastrado ainda.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Novo prêmio</div>
+    <form method="post">
+      <div class="form-group">
+        <label>Nome do prêmio</label>
+        <input class="form-control" type="text" name="nome" required placeholder="Ex: Massagem relaxante">
+      </div>
+      <div class="form-group">
+        <label>Pontos necessários</label>
+        <input class="form-control" type="number" name="pontos_necessarios" required placeholder="Ex: 120">
+      </div>
+      <div class="form-group">
+        <label>Estoque (opcional — deixe em branco se ilimitado)</label>
+        <input class="form-control" type="number" name="estoque" placeholder="Ex: 10">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Cadastrar prêmio</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

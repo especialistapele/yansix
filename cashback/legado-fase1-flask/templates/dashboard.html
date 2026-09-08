@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Painel · Yansix Cashback{% endblock %}
+{% block page_title %}Painel{% endblock %}
+{% block page_subtitle %}<div class="topbar-sub">Visão geral do programa de fidelidade</div>{% endblock %}
+{% block topbar_action %}
+  <a href="{{ url_for('pontuar') }}" class="btn btn-primary">+ Registrar pontuação</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-4" style="margin-bottom: 20px;">
+  <div class="card stat-card">
+    <div class="stat-icon purple">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15.8 14c2.6.4 4.7 2.5 4.7 5"/></svg>
+    </div>
+    <div>
+      <div class="stat-value">{{ total_clientes }}</div>
+      <div class="stat-label">Clientes cadastrados</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon success">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
+    <div>
+      <div class="stat-value">{{ novos_hoje }} <span style="font-size:13px; color:var(--text-muted); font-weight:500;">hoje</span></div>
+      <div class="stat-label">{{ novos_mes }} novos este mês</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon silver">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.6 6.2L21 9l-5 4.5L17.5 21 12 17.3 6.5 21 8 13.5 3 9l6.4-.8z"/></svg>
+    </div>
+    <div>
+      <div class="stat-value">{{ total_pontos_distribuidos }}</div>
+      <div class="stat-label">Pontos distribuídos (total)</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon warning">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/></svg>
+    </div>
+    <div>
+      <div class="stat-value">{{ saldo_circulacao }}</div>
+      <div class="stat-label">Pontos em circulação</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <div class="section-header">
+      <div class="card-title" style="margin-bottom:0;">Últimas pontuações</div>
+    </div>
+    {% if ultimas_pontuacoes %}
+      <table>
+        <thead><tr><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Pontos</th><th>Data</th></tr></thead>
+        <tbody>
+          {% for p in ultimas_pontuacoes %}
+          <tr>
+            <td><a href="{{ url_for('cliente_detalhe', cliente_id=p.cliente.id) }}">{{ p.cliente.nome }}</a></td>
+            <td>{{ p.servico_nome }}</td>
+            <td>R$ {{ "%.2f"|format(p.valor) }}</td>
+            <td><span class="badge badge-purple">{{ p.pontos }} pts</span></td>
+            <td>{{ p.criado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="hex-empty"></div>
+        Nenhuma pontuação registrada ainda.<br>
+        <a href="{{ url_for('pontuar') }}" class="btn btn-primary" style="margin-top:14px;">Registrar a primeira</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Aniversariantes de hoje</div>
+    {% if aniversariantes_hoje %}
+      {% for c in aniversariantes_hoje %}
+        <div class="row-link" style="margin-bottom:12px;">
+          <div class="avatar-hex">{{ c.iniciais }}</div>
+          <div>
+            <div style="font-weight:600;">{{ c.nome }}</div>
+            <div style="font-size:12px; color:var(--text-muted);">{{ c.telefone }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state" style="padding: 30px 10px;">
+        <div class="hex-empty" style="width:38px;height:38px;"></div>
+        Nenhum aniversariante hoje.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

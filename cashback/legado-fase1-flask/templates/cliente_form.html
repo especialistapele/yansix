@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar cliente' if cliente else 'Novo cliente' }} · Yansix Cashback{% endblock %}
+{% block page_title %}{{ 'Editar cliente' if cliente else 'Novo cliente' }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 560px;">
+  <form method="post">
+    <div class="form-group">
+      <label>Gênero</label>
+      <div class="radio-pill-group">
+        <label class="radio-pill {{ 'checked' if cliente and cliente.genero == 'feminino' }}" onclick="selectPill(this)">
+          <input type="radio" name="genero" value="feminino" {{ 'checked' if cliente and cliente.genero == 'feminino' }}> Feminino
+        </label>
+        <label class="radio-pill {{ 'checked' if not cliente or cliente.genero == 'masculino' }}" onclick="selectPill(this)">
+          <input type="radio" name="genero" value="masculino" {{ 'checked' if not cliente or cliente.genero == 'masculino' }}> Masculino
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nome completo</label>
+      <input class="form-control" type="text" name="nome" required value="{{ cliente.nome if cliente else '' }}" placeholder="Ex: Danielle Souza">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Telefone (WhatsApp)</label>
+        <input class="form-control" type="text" name="telefone" required value="{{ cliente.telefone if cliente else '' }}" placeholder="(21) 99999-0000">
+      </div>
+      <div class="form-group">
+        <label>Data de nascimento</label>
+        <input class="form-control" type="date" name="data_nascimento" value="{{ cliente.data_nascimento.isoformat() if cliente and cliente.data_nascimento else '' }}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>E-mail</label>
+      <input class="form-control" type="email" name="email" value="{{ cliente.email if cliente else '' }}" placeholder="cliente@email.com">
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top: 22px;">
+      <button type="submit" class="btn btn-primary">Salvar cliente</button>
+      <a href="{{ url_for('clientes_lista') }}" class="btn btn-outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function selectPill(label) {
+  label.parentElement.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('checked'));
+  label.classList.add('checked');
+}
+</script>
+{% endblock %}

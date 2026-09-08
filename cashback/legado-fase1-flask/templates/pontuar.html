@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Registrar pontuação · Yansix Cashback{% endblock %}
+{% block page_title %}Registrar pontuação{% endblock %}
+{% block page_subtitle %}<div class="topbar-sub">Selecione o cliente e o serviço realizado</div>{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 560px;">
+  {% if not clientes %}
+    <div class="empty-state">
+      <div class="hex-empty"></div>
+      Cadastre um cliente antes de registrar uma pontuação.
+      <br><a href="{{ url_for('cliente_novo') }}" class="btn btn-primary" style="margin-top:14px;">Cadastrar cliente</a>
+    </div>
+  {% elif not servicos %}
+    <div class="empty-state">
+      <div class="hex-empty"></div>
+      Cadastre um serviço antes de registrar uma pontuação.
+      <br><a href="{{ url_for('servicos') }}" class="btn btn-primary" style="margin-top:14px;">Cadastrar serviço</a>
+    </div>
+  {% else %}
+    <form method="post" id="form-pontuar">
+      <div class="form-group">
+        <label>Cliente</label>
+        <select class="form-control" name="cliente_id" required>
+          <option value="">Selecione um cliente...</option>
+          {% for c in clientes %}
+            <option value="{{ c.id }}" {{ 'selected' if cliente_id_preselecionado == c.id }}>{{ c.nome }} — {{ c.telefone }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Serviço realizado</label>
+        <select class="form-control" name="servico_id" id="servico-select" required>
+          <option value="">Selecione um serviço...</option>
+          {% for s in servicos %}
+            <option value="{{ s.id }}" data-valor="{{ s.valor }}">{{ s.nome }} — R$ {{ "%.2f"|format(s.valor) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Valor cobrado (R$)</label>
+        <input class="form-control" type="text" name="valor" id="valor-input" placeholder="Preenchido automaticamente">
+      </div>
+
+      <div class="card" style="background:#F6F1FC; border:none; box-shadow:none; padding:14px 16px; margin-bottom:18px;">
+        <span style="font-size:13px; color:var(--text-muted);">Pontos que o cliente vai ganhar:</span>
+        <div style="font-family:'Sora',sans-serif; font-size:22px; font-weight:700; color:var(--purple-strong);" id="pontos-preview">0 pts</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Confirmar pontuação</button>
+    </form>
+  {% endif %}
+</div>
+
+<script>
+const servicoSelect = document.getElementById('servico-select');
+const valorInput = document.getElementById('valor-input');
+const pontosPreview = document.getElementById('pontos-preview');
+
+function atualizarPreview() {
+  let valor = parseFloat((valorInput.value || '0').replace(',', '.'));
+  if (isNaN(valor)) valor = 0;
+  pontosPreview.textContent = Math.floor(valor) + ' pts';
+}
+
+servicoSelect && servicoSelect.addEventListener('change', () => {
+  const opt = servicoSelect.selectedOptions[0];
+  if (opt && opt.dataset.valor) {
+    valorInput.value = parseFloat(opt.dataset.valor).toFixed(2).replace('.', ',');
+  }
+  atualizarPreview();
+});
+valorInput && valorInput.addEventListener('input', atualizarPreview);
+</script>
+{% endblock %}

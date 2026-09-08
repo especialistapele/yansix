@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yansix Cashback — Painel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --ink:#2B1B26;
+    --wine:#141B3C;
+    --wine-2:#1F2B63;
+    --gold:#2F6FED;
+    --gold-soft:#D9E6FF;
+    --cream:#FBF6F1;
+    --card:#FFFFFF;
+    --line:#EEE2D8;
+    --muted:#8A7A83;
+    --success:#3F7A5C;
+    --success-bg:#E7F2EC;
+    --danger:#B23A48;
+    --danger-bg:#FBE9EA;
+    --radius:14px;
+    --shadow: 0 1px 2px rgba(43,27,38,0.06), 0 8px 24px -12px rgba(43,27,38,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  ::selection{background:var(--gold-soft);}
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #56224a 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 10%, #2c1128 0%, transparent 55%),
+      var(--wine);
+    padding:24px;
+  }
+  .login-card{
+    width:100%;
+    max-width:400px;
+    background:var(--card);
+    border-radius:20px;
+    padding:44px 36px 36px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.45);
+    text-align:center;
+  }
+  .brand-mark{
+    width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,var(--wine),var(--wine-2));
+    color:var(--gold-soft);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 18px;
+    font-family:'Fraunces',serif;font-size:24px;font-weight:700;
+  }
+  .login-card h1{font-size:26px;margin:0 0 4px;color:var(--wine);}
+  .login-sub{color:var(--muted);font-size:14px;margin:0 0 28px;}
+  .field{text-align:left;margin-bottom:16px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
+    font-family:'Inter',sans-serif;font-size:14.5px;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,133,63,0.15);
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 20px;border-radius:10px;border:none;cursor:pointer;
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14.5px;
+    transition:transform .08s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--wine);color:#fff;width:100%;}
+  .btn-primary:hover{background:var(--wine-2);}
+  .btn-gold{background:var(--gold);color:#fff;}
+  .btn-gold:hover{opacity:.92;}
+  .btn-outline{background:transparent;border:1.5px solid var(--line);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--wine);}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);}
+  .btn-danger:hover{opacity:.85;}
+  .btn-sm{padding:7px 12px;font-size:13px;border-radius:8px;}
+  .btn-xs{padding:5px 10px;font-size:12px;border-radius:7px;}
+  #login-error{color:var(--danger);font-size:13px;margin-top:14px;display:none;}
+  .demo-hint{margin-top:22px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none;min-height:100vh;}
+  .shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}
+  .sidebar{
+    background:linear-gradient(180deg,var(--wine) 0%, #2c1128 100%);
+    color:#f3e9ef;padding:26px 18px;display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;overflow:hidden;
+  }
+  .side-brand{display:flex;align-items:center;gap:10px;padding:0 8px 26px;border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:18px;flex:0 0 auto;}
+  .side-brand .mark{width:34px;height:34px;border-radius:9px;background:var(--gold);color:var(--wine);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;}
+  .side-brand .txt{font-family:'Fraunces',serif;font-size:16px;font-weight:600;line-height:1.1;}
+  .side-brand .txt small{display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:#d8c3d1;margin-top:2px;}
+  nav.side-nav{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;min-height:0;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;
+    color:#e9dbe4;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;
+    border:1px solid transparent;
+  }
+  .nav-item:hover{background:rgba(255,255,255,0.06);}
+  .nav-item.active{background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.08);}
+  .nav-icon{width:18px;text-align:center;font-size:15px;}
+  .side-footer{border-top:1px solid rgba(255,255,255,0.12);padding-top:14px;margin-top:14px;font-size:12.5px;color:#cbb3c4;flex:0 0 auto;}
+  .side-footer button{margin-top:10px;width:100%;}
+
+  .main{padding:30px 38px 60px;overflow-x:hidden;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+  .topbar h2{margin:0;font-size:24px;color:var(--wine);}
+  .topbar .sub{color:var(--muted);font-size:13.5px;margin-top:2px;}
+  .badge-demo{
+    display:inline-flex;align-items:center;gap:6px;background:var(--gold-soft);color:#6b4d1f;
+    font-size:11.5px;font-weight:700;letter-spacing:.03em;padding:5px 11px;border-radius:100px;text-transform:uppercase;
+  }
+
+  .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;border:1px solid var(--line);}
+  .stat-card .label{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;margin-bottom:10px;}
+  .stat-card .value{font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--wine);}
+  .stat-card .value small{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);font-weight:500;}
+  .master-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:22px;}
+  .master-stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+  .master-stat span{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:8px;}
+  .master-stat strong{font-family:'Fraunces',serif;font-size:28px;color:var(--wine);}
+  .master-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:18px;}
+  .master-ranking td:first-child{font-weight:700;}
+  .master-rank{display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;background:var(--gold-soft);color:var(--wine);font-weight:800;margin-right:8px;}
+  .permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+  .permission-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;}
+  .permission-item input{width:17px;height:17px;}
+  @media(max-width:900px){.master-grid{grid-template-columns:1fr}.shell{grid-template-columns:1fr}.sidebar{position:relative}.main{padding:22px 16px 50px}}
+
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden;margin-bottom:24px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);}
+  .panel-head h3{margin:0;font-size:17px;color:var(--wine);}
+  .panel-body{padding:22px;}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;padding:0 16px 10px;border-bottom:1.5px solid var(--line);}
+  td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#FBF6F1;}
+  .pill{display:inline-flex;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;}
+  .pill-on{background:var(--success-bg);color:var(--success);}
+  .pill-off{background:var(--danger-bg);color:var(--danger);}
+  .row-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--wine);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;margin-right:10px;font-family:'Fraunces',serif;}
+  .cell-name{display:flex;align-items:center;}
+  .empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+  .quota-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;}
+  .quota-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .quota-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px;}
+  .quota-title{font-weight:700;color:var(--wine);font-size:13px;}
+  .quota-value{font-size:12px;color:var(--muted);font-weight:600;}
+  .quota-bar{height:10px;background:#eee;border-radius:99px;overflow:hidden;}
+  .quota-fill{height:100%;background:var(--gold);border-radius:99px;transition:width .25s ease;}
+  .quota-fill.warn{background:#D89B3C;} .quota-fill.danger{background:var(--danger);}
+  .quota-note{font-size:11.5px;color:var(--muted);margin-top:7px;}
+  .quota-alert{padding:12px 14px;border-radius:10px;background:#FFF5DF;border:1px solid #F1D69A;color:#7A5A16;font-size:13px;margin-bottom:16px;}
+
+  .empty-state .ico{font-size:34px;margin-bottom:10px;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .form-grid .full{grid-column:1/-1;}
+  .toast{
+    position:fixed;bottom:26px;right:26px;background:var(--wine);color:#fff;
+    padding:13px 20px;border-radius:10px;box-shadow:0 12px 30px -8px rgba(0,0,0,.4);
+    font-size:14px;font-weight:500;opacity:0;transform:translateY(10px);
+    transition:opacity .2s ease, transform .2s ease;pointer-events:none;z-index:200;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.err{background:var(--danger);}
+
+  .modal-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(43,27,38,0.45);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:460px;box-shadow:0 30px 60px -15px rgba(0,0,0,.4);max-height:90vh;overflow-y:auto;}
+  .modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h3{margin:0;font-size:18px;color:var(--wine);}
+  .modal-close{cursor:pointer;color:var(--muted);font-size:20px;background:none;border:none;}
+  .modal-body{padding:22px 24px;}
+  .modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;}
+
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto 18px;}
+  .keypad button{padding:16px 0;font-size:18px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:'Fraunces',serif;font-weight:600;color:var(--wine);}
+  .keypad button:hover{background:var(--cream);}
+  .phone-display{text-align:center;font-family:'Fraunces',serif;font-size:24px;padding:14px;border:1.5px dashed var(--line);border-radius:10px;margin-bottom:16px;letter-spacing:.03em;min-height:56px;}
+
+  .client-hit{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;margin-bottom:8px;}
+  .client-hit:hover{border-color:var(--gold);background:#FEFBF6;}
+  .search-box{position:relative;margin-bottom:16px;}
+  .search-box input{padding-left:36px;}
+  .search-box .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+
+  .tag-points{background:var(--wine);color:#fff;font-family:'Fraunces',serif;font-weight:600;padding:3px 12px;border-radius:100px;font-size:13px;}
+  .subtle{color:var(--muted);font-size:13px;}
+  .hidden{display:none !important;}
+  .loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media (max-width: 860px){
+    .shell{grid-template-columns:1fr;}
+    .sidebar{position:sticky;top:0;z-index:50;flex-direction:row;align-items:center;padding:12px 14px;height:auto;overflow:visible;}
+    .side-brand{border:none;padding:0 12px 0 0;margin:0;flex:0 0 auto;}
+    nav.side-nav{flex-direction:row;overflow-x:auto;overflow-y:visible;flex:1;min-width:0;}
+    .side-footer{display:flex;align-items:center;border:none;padding:0 0 0 10px;margin:0;flex:0 0 auto;}
+    .side-footer span{display:none;}
+    .main{padding:20px;}
+    .form-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="brand-mark">Y</div>
+    <h1>Yansix Cashback</h1>
+    <p class="login-sub">Painel administrativo — acesse com sua conta</p>
+    <form id="login-form">
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="login-email" required placeholder="seu@email.com" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary" id="login-btn">Entrar</button>
+      <div id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="mark">Y</div>
+        <div class="txt">Yansix Cashback<small id="estab-nome">Carregando…</small></div>
+      </div>
+      <nav class="side-nav">
+        <div class="nav-item active" data-view="dashboard"><span class="nav-icon">◆</span> Painel</div>
+        <div class="nav-item" data-view="clientes"><span class="nav-icon">◈</span> Clientes</div>
+        <div class="nav-item" data-view="servicos"><span class="nav-icon">✂</span> Serviços</div>
+        <div class="nav-item" data-view="pontuar"><span class="nav-icon">＋</span> Registrar Pontuação</div>
+        <div class="nav-item" data-view="premios"><span class="nav-icon">✦</span> Prêmios</div>
+        <div class="nav-item" data-view="niveis"><span class="nav-icon">♛</span> Níveis</div>
+        <div class="nav-item" data-view="liberar"><span class="nav-icon">✓</span> Liberar Prêmio</div>
+        <div class="nav-item" data-view="cupom"><span class="nav-icon">⌗</span> Validar Cupom</div>
+        <div class="nav-item" data-view="historico"><span class="nav-icon">↺</span> Histórico</div>
+        <div class="nav-item" data-view="marketing"><span class="nav-icon">✉</span> Marketing</div>
+        <div class="nav-item" data-view="configuracoes"><span class="nav-icon">⚙</span> Configurações</div>
+      </nav>
+      <div class="side-footer">
+        <span id="user-email"></span>
+        <button class="btn btn-outline btn-sm" id="logout-btn" style="color:#fff;border-color:rgba(255,255,255,.25);">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- ADMIN MASTER: NOVO ESTABELECIMENTO -->
+      <section id="view-novo-estabelecimento" class="view hidden">
+        <div class="topbar"><div><h2>Novo Estabelecimento</h2><div class="sub">Crie a unidade e o administrador dela em uma única operação</div></div></div>
+        <div class="panel" style="max-width:720px;"><div class="panel-body">
+          <div class="grid-2">
+            <div class="field"><label>Nome do estabelecimento *</label><input id="ne-nome" /></div>
+            <div class="field"><label>Área de atuação *</label><select id="ne-area"><option value="beleza">Beleza</option><option value="barbearia">Barbearia</option><option value="estetica">Estética</option><option value="saude">Saúde</option><option value="fitness">Fitness</option><option value="moda">Moda</option><option value="alimentacao">Alimentação</option><option value="servicos">Serviços</option><option value="outros">Outros</option></select></div>
+            <div class="field"><label>Documento</label><input id="ne-documento" placeholder="CNPJ/CPF" /></div>
+            <div class="field"><label>Telefone</label><input id="ne-telefone" /></div>
+            <div class="field"><label>E-mail do estabelecimento</label><input id="ne-email-estab" type="email" /></div>
+            <div class="field"><label>Endereço</label><input id="ne-endereco" /></div>
+            <div class="field"><label>Horário de funcionamento</label><input id="ne-horario" placeholder="Seg-Sex 09:00-18:00" /></div>
+            <div class="field"><label>Nome do administrador *</label><input id="ne-admin" /></div>
+            <div class="field"><label>E-mail de login do administrador *</label><input id="ne-email" type="email" /></div>
+            <div class="field"><label>Senha provisória *</label><input id="ne-senha" type="password" minlength="6" /></div>
+            <div class="field"><label>Cor principal</label><input id="ne-cor" type="color" value="#5B3DF5" style="height:42px;padding:4px;" /></div>
+          </div>
+          <button id="ne-btn" class="btn btn-primary" onclick="criarEstabelecimento()">Criar estabelecimento</button>
+          <div id="ne-resultado" style="margin-top:14px;"></div>
+        </div></div>
+      </section>
+
+      <!-- ADMIN (somente admin_master) -->
+      <section id="view-admin" class="view hidden"></section>
+      <section id="view-administradores" class="view hidden"></section>
+      <section id="view-equipe-local" class="view hidden"></section>
+      <section id="view-novo-profissional" class="view hidden">
+        <div class="topbar"><div><h2>Novo Profissional</h2><div class="sub">Crie um profissional vinculado automaticamente à unidade selecionada.</div></div></div>
+        <div class="panel" style="max-width:480px;">
+          <div class="panel-body">
+            <div class="field" id="np-estab-selector-box" style="display:none;"><label>Estabelecimento</label><select id="np-estab-selector" onchange="sincronizarEstabProfissional()"></select></div>
+            <div class="field"><label>Nome do profissional</label><input id="np-nome" /></div>
+            <div class="field"><label>E-mail de acesso</label><input type="email" id="np-email" /></div>
+            <div class="field"><label>Senha provisória</label><input type="password" id="np-senha" placeholder="mínimo 6 caracteres" /></div>
+            <button class="btn btn-primary" style="width:100%;" id="np-btn" onclick="criarProfissional()">Criar profissional</button>
+            <div id="np-resultado" style="margin-top:16px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MARKETING (Fase 5) -->
+      <section id="view-marketing" class="view hidden">
+        <div class="topbar">
+          <div><h2>Marketing automático</h2><div class="sub">Mensagens geradas a partir das regras configuradas</div></div>
+          <button class="btn btn-gold" onclick="gerarMensagensMarketing()">↻ Gerar mensagens agora</button>
+        </div>
+        <div class="panel">
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Cliente</th><th>Tipo</th><th>Mensagem</th><th>Status</th><th></th></tr></thead>
+              <tbody id="marketing-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONSUMO / LIMITES MASTER -->
+      <section id="view-consumo" class="view hidden"></section>
+
+      <!-- DASHBOARD -->
+      <section id="view-dashboard" class="view">
+        <div class="topbar">
+          <div><h2>Painel</h2><div class="sub">Visão geral do programa de fidelidade</div></div>
+        </div>
+        <div class="grid-cards" id="dash-stats"></div>
+        <div class="panel">
+          <div class="panel-head"><h3>Últimas visitas</h3></div>
+          <div class="panel-body" id="dash-ultimas"></div>
+        </div>
+      </section>
+
+      <!-- CLIENTES -->
+      <section id="view-clientes" class="view hidden">
+        <div class="topbar">
+          <div><h2>Clientes</h2><div class="sub">Cadastro e acompanhamento dos clientes</div></div>
+          <button class="btn btn-gold" id="btn-novo-cliente" onclick="openClienteModal()">＋ Novo cliente</button>
+        </div>
+        <div id="clientes-filtro-unidade" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="grid-2" style="align-items:end;">
+          <div class="field" style="margin:0"><label>Filtrar por unidade</label><select id="clientes-estab-filtro"><option value="">Todas as unidades (últimos cadastros)</option></select></div>
+          <button class="btn btn-primary" style="height:44px;" onclick="renderClientes()">Ver clientes</button>
+        </div></div></div>
+        <div class="panel">
+          <div class="panel-body" style="padding-bottom:0;">
+            <div class="search-box"><span class="ico">⚲</span><input id="cliente-search" placeholder="Buscar por nome ou telefone…" oninput="renderClientes()" /></div>
+          </div>
+          <div class="panel-body" style="padding-top:0;">
+            <table>
+              <thead><tr><th>Cliente</th><th>Telefone</th><th>CPF</th><th>Estabelecimento/Nível</th><th>Aniversário</th><th></th></tr></thead>
+              <tbody id="clientes-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVIÇOS -->
+      <section id="view-servicos" class="view hidden">
+        <div id="servicos-filtro-unidade" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="grid-2" style="align-items:end;">
+          <div class="field" style="margin:0"><label>Filtrar por unidade</label><select id="servicos-estab-filtro"><option value="">Todas as unidades</option></select></div>
+          <button class="btn btn-primary" style="height:44px;" onclick="renderServicos()">Ver serviços</button>
+        </div></div></div>
+        <div class="topbar">
+          <div><h2>Serviços</h2><div class="sub">R$1 = 1 ponto (arredondado para baixo)</div></div>
+          <button class="btn btn-gold" id="btn-novo-servico" onclick="openServicoModal()">＋ Novo serviço</button>
+        </div>
+        <div class="panel">
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Serviço</th><th>Valor</th><th>Pontos gerados</th><th>Cashback</th><th>Estabelecimento/Status</th><th></th></tr></thead>
+              <tbody id="servicos-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- REGISTRAR PONTUAÇÃO -->
+      <section id="view-pontuar" class="view hidden">
+        <div id="ctx-pontuar" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="field" style="margin:0"><label>Estabelecimento</label><select id="ctx-pontuar-estab" onchange="trocarContextoOperacional(this.value)"></select></div></div></div>
+        <div class="topbar"><div><h2>Registrar Pontuação</h2><div class="sub">Busque o cliente e lance o serviço realizado</div></div></div>
+        <div class="panel" style="max-width:520px;">
+          <div class="panel-body">
+            <div id="pontuar-step-busca">
+              <div class="field"><label>Cliente</label>
+                <div class="search-box"><span class="ico">⚲</span><input id="pontuar-busca" placeholder="Nome ou telefone…" oninput="buscaClientePontuar()" /></div>
+              </div>
+              <div id="pontuar-resultados"></div>
+            </div>
+            <div id="pontuar-step-form" class="hidden">
+              <div class="card" style="background:var(--cream);border:none;margin-bottom:16px;">
+                <div class="cell-name"><div class="avatar" id="pontuar-cliente-avatar"></div>
+                  <div><strong id="pontuar-cliente-nome"></strong><div class="subtle" id="pontuar-cliente-fone"></div></div>
+                </div>
+              </div>
+              <div class="field" id="pontuar-profissional-box" style="display:none;"><label>Profissional responsável pelo atendimento</label>
+                <select id="pontuar-profissional"></select>
+              </div>
+              <div class="field"><label>Serviço</label>
+                <select id="pontuar-servico" onchange="atualizaPontosPreview()"></select>
+              </div>
+              <div class="field"><label>Pontos a gerar</label>
+                <div class="tag-points" id="pontuar-preview">0 pontos</div>
+              </div>
+              <div class="field" id="pontuar-cashback-credito-box" style="display:none;">
+                <label>Cashback a creditar</label>
+                <div class="tag-points" id="pontuar-cashback-preview" style="background:var(--success);">R$ 0,00</div>
+              </div>
+              <div class="field" id="pontuar-cashback-usar-box" style="display:none;">
+                <label style="display:flex;align-items:center;gap:8px;">
+                  <input type="checkbox" id="pontuar-usar-cashback" style="width:16px;height:16px;" />
+                  Usar saldo de cashback disponível (<span id="pontuar-cashback-saldo">R$ 0,00</span>) como desconto
+                </label>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:20px;">
+                <button class="btn btn-outline" onclick="resetPontuar()">Voltar</button>
+                <button class="btn btn-primary" style="flex:1;" onclick="confirmarPontuacao()">Confirmar pontuação</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRÊMIOS -->
+      <section id="view-premios" class="view hidden">
+        <div id="ctx-premios" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="field" style="margin:0"><label>Estabelecimento</label><select id="ctx-premios-estab" onchange="trocarContextoOperacional(this.value)"></select></div></div></div>
+        <div class="topbar">
+          <div><h2>Prêmios</h2><div class="sub">Catálogo de prêmios resgatáveis</div></div>
+          <button class="btn btn-gold" onclick="openPremioModal()">＋ Novo prêmio</button>
+        </div>
+        <div class="panel">
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Prêmio</th><th>Pontos necessários</th><th>Estoque</th><th>Estabelecimento/Status</th><th></th></tr></thead>
+              <tbody id="premios-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- NÍVEIS (Fase 6) -->
+      <section id="view-niveis" class="view hidden">
+        <div id="ctx-niveis" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="field" style="margin:0"><label>Estabelecimento</label><select id="ctx-niveis-estab" onchange="trocarContextoOperacional(this.value)"></select></div></div></div>
+        <div class="topbar">
+          <div><h2>Níveis</h2><div class="sub">Jornada de fidelidade baseada em pontos acumulados na vida toda</div></div>
+          <button class="btn btn-gold" onclick="openNivelModal()">＋ Novo nível</button>
+        </div>
+        <div class="panel">
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Nível</th><th>Pontos necessários</th><th>Benefícios</th><th></th></tr></thead>
+              <tbody id="niveis-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIBERAR PRÊMIO -->
+      <section id="view-liberar" class="view hidden">
+        <div id="ctx-liberar" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="field" style="margin:0"><label>Estabelecimento</label><select id="ctx-liberar-estab" onchange="trocarContextoOperacional(this.value)"></select></div></div></div>
+        <div class="topbar"><div><h2>Liberar Prêmio</h2><div class="sub">Busque o cliente pelo telefone para ver prêmios disponíveis</div></div></div>
+        <div class="panel" style="max-width:480px;">
+          <div class="panel-body">
+            <div id="liberar-step-busca">
+              <div class="phone-display" id="liberar-phone-display">Celular com DDD</div>
+              <div class="keypad" id="liberar-keypad"></div>
+              <button class="btn btn-primary" style="width:100%;" onclick="buscarClienteLiberar()">Continuar</button>
+              <div id="liberar-resultado" style="margin-top:16px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HISTÓRICO -->
+      <section id="view-historico" class="view hidden">
+        <div class="topbar"><div><h2>Histórico</h2><div class="sub">Central de consumo, resgates e auditoria</div></div></div>
+        <div class="panel"><div class="panel-body">
+          <div class="grid-2">
+            <div class="field"><label>Estabelecimento</label><select id="hist-estab" onchange="carregarFiltroHistorico()"><option value="">Todos</option></select></div>
+            <div class="field"><label>Profissional</label><select id="hist-prof"><option value="">Todos</option></select></div>
+            <div class="field"><label>Cliente</label><input id="hist-cliente" placeholder="Nome ou telefone" /></div>
+            <div class="field"><label>Evento</label><select id="hist-evento"><option value="">Todos</option><option value="insert">Criação</option><option value="update">Alteração</option><option value="delete">Exclusão</option></select></div>
+            <div class="field"><label>De</label><input type="date" id="hist-data-inicio" /></div>
+            <div class="field"><label>Até</label><input type="date" id="hist-data-fim" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="filtrarHistoricoMaster()">Filtrar histórico</button> <button class="btn btn-outline" onclick="limparFiltrosHistorico()">Limpar</button>
+          <div id="historico-master-resultados" style="margin-top:16px;"></div>
+        </div></div>
+        <div id="historico-local" class="panel hidden" style="margin-top:16px;">
+          <div class="panel-head"><h3>Histórico da unidade</h3><div class="subtle">Consulte por cliente ou profissional</div></div>
+          <div class="panel-body">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="hist-local-tabs">
+              <button class="btn btn-primary btn-xs" id="hist-tab-cliente" onclick="alternarHistoricoLocal('cliente')">Por cliente</button>
+              <button class="btn btn-outline btn-xs" id="hist-tab-profissional" onclick="alternarHistoricoLocal('profissional')">Por profissional</button>
+            </div>
+            <div id="hist-local-cliente-box"><div class="search-box"><span class="ico">⚲</span><input id="historico-busca" placeholder="Buscar cliente por nome ou telefone…" oninput="buscaClienteHistorico()" /></div><div id="historico-resultados"></div></div>
+            <div id="hist-local-prof-box" class="hidden"><div class="search-box"><span class="ico">⚲</span><input id="historico-prof-busca" placeholder="Buscar profissional…" oninput="buscaProfissionalHistorico()" /></div><div id="historico-prof-resultados"></div></div>
+            <div id="hist-local-servico-box" class="hidden" style="margin-top:14px;">
+              <div class="field"><label>Serviço</label><select id="historico-servico-select" onchange="filtrarHistoricoPorServico()"><option value="">Selecione um serviço…</option></select></div>
+              <div id="historico-servico-resultados"></div>
+            </div>
+          </div>
+        </div>
+        <div id="historico-detalhe"></div>
+      </section>
+
+      <!-- VALIDAR CUPOM -->
+      <section id="view-cupom" class="view hidden">
+        <div id="ctx-cupom" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="field" style="margin:0"><label>Estabelecimento</label><select id="ctx-cupom-estab" onchange="trocarContextoOperacional(this.value)"></select></div></div></div>
+        <div class="topbar"><div><h2>Validar Cupom</h2><div class="sub">Confirme o cupom de indicação apresentado pelo novo cliente</div></div></div>
+        <div class="panel" style="max-width:420px;">
+          <div class="panel-body" style="text-align:center;">
+            <div class="field" style="text-align:left;"><label>Código do cupom</label>
+              <input id="cupom-input" placeholder="Ex: BPCO9FQZY8" style="text-transform:uppercase;" />
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="validarCupom()">Validar Cupom</button>
+            <div id="cupom-resultado" style="margin-top:18px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONFIGURAÇÕES -->
+      <section id="view-configuracoes" class="view hidden">
+        <div class="topbar"><div><h2>Configurações</h2><div class="sub">Regras do programa de fidelidade e dados da unidade</div></div></div>
+        <div id="cfg-estab-selector-panel" class="panel" style="margin-bottom:16px;"><div class="panel-body"><div class="field" style="max-width:520px;"><label>Unidade que receberá estas configurações</label><select id="cfg-estab-selector" onchange="trocarEstabelecimentoConfiguracoes()"></select></div></div></div>
+
+        <div id="cfg-quota-panel" class="panel" style="max-width:760px;margin-bottom:16px;"></div>
+
+        <div class="panel" id="cfg-identidade-panel" style="max-width:760px;">
+          <div class="panel-head"><h3>Identidade e dados da unidade</h3></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="field"><label>Nome da empresa</label><input id="cfg-estab-nome" /></div>
+              <div class="field"><label>Documento (CNPJ/CPF)</label><input id="cfg-estab-documento" /></div>
+              <div class="field"><label>Telefone</label><input id="cfg-estab-telefone" /></div>
+              <div class="field"><label>WhatsApp</label><input id="cfg-estab-whatsapp" /></div>
+              <div class="field"><label>E-mail</label><input id="cfg-estab-email" type="email" /></div>
+              <div class="field"><label>Horário</label><input id="cfg-estab-horario" placeholder="Seg-Sex 09:00-18:00" /></div>
+              <div class="field full"><label>Endereço</label><input id="cfg-estab-endereco" /></div>
+              <div class="field"><label>Site</label><input id="cfg-estab-site" type="url" placeholder="https://..." /></div>
+              <div class="field"><label>Instagram</label><input id="cfg-estab-instagram" placeholder="https://instagram.com/..." /></div>
+              <div class="field full"><label>Logo (URL)</label><input id="cfg-estab-logo" type="url" placeholder="https://.../logo.png" /></div>
+              <div class="field full"><label>Descrição</label><textarea id="cfg-estab-descricao" rows="3" placeholder="Descrição curta da unidade"></textarea></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:4px;" onclick="salvarDadosEstabelecimento()">Salvar dados da unidade</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Desconto para aniversariante</h3></div>
+          <div class="panel-body">
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin-bottom:14px;">
+              <input type="checkbox" id="cfg-aniversario-ativo" style="width:18px;height:18px;" /> Ativar módulo de aniversário
+            </label>
+            <p class="subtle" style="margin-top:0;">Informe a porcentagem de desconto que o cliente recebe no dia do aniversário.</p>
+            <div class="field"><label>Desconto em porcentagem %</label><input type="number" id="cfg-aniversario" /></div>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Marketing boca-a-boca (indicação)</h3></div>
+          <div class="panel-body">
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin-bottom:16px;">
+              <input type="checkbox" id="cfg-boca-boca-ativo" style="width:18px;height:18px;" /> Ativar módulo de indicação
+            </label>
+            <div class="form-grid">
+              <div class="field"><label>Desconto em % (novo cliente)</label><input type="number" id="cfg-indicacao-desconto" /></div>
+              <div class="field"><label>Pontos que o indicador ganha</label><input type="number" id="cfg-indicacao-pontos" /></div>
+              <div class="field full"><label>Observação (opcional)</label><textarea id="cfg-indicacao-obs" rows="2"></textarea></div>
+            </div>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Avaliação de clientes (NPS)</h3></div>
+          <div class="panel-body">
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;">
+              <input type="checkbox" id="cfg-avaliacao-ativo" style="width:18px;height:18px;" /> Ativar módulo de avaliação
+            </label>
+            <p class="subtle" style="margin:8px 0 16px;">Quando desativado, a aba "Avaliações" some da página do cliente.</p>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Validade dos pontos</h3></div>
+          <div class="panel-body">
+            <p class="subtle" style="margin-top:0;">Depois de expirados, os pontos não contam mais para resgate.</p>
+            <div class="field"><label>Selecione a validade</label>
+              <select id="cfg-validade-pontos">
+                <option value="sem_validade">Sem validade</option>
+                <option value="8_meses">8 meses</option>
+                <option value="10_meses">10 meses</option>
+                <option value="1_ano">1 ano</option>
+                <option value="1_ano_meio">1 ano e meio</option>
+                <option value="2_anos">2 anos</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Conversão de dinheiro em pontos</h3></div>
+          <div class="panel-body">
+            <p class="subtle" style="margin-top:0;">Defina quantos reais o cliente precisa gastar para ganhar 1 ponto. Padrão: R$1 = 1 ponto. Exemplo: para "a cada R$50, 1 ponto", coloque 50.</p>
+            <div class="field"><label>A cada quantos reais (R$) o cliente ganha 1 ponto?</label><input type="number" step="0.01" min="0.01" id="cfg-valor-por-ponto" placeholder="1" /></div>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Pontuação máxima por serviço</h3></div>
+          <div class="panel-body">
+            <p class="subtle" style="margin-top:0;">Limita quantos pontos um único atendimento pode gerar, mesmo que o valor seja alto.</p>
+            <div class="field"><label>Pontuação máxima</label><input type="number" id="cfg-pontuacao-maxima" placeholder="Deixe em branco para não limitar" /></div>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Cashback em dinheiro real</h3></div>
+          <div class="panel-body">
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin-bottom:14px;">
+              <input type="checkbox" id="cfg-cashback-ativo" style="width:18px;height:18px;" /> Ativar cashback em R$
+            </label>
+            <p class="subtle" style="margin-top:0;">O percentual de cashback é definido por serviço (tela Serviços). Aqui você define só a validade do saldo.</p>
+            <div class="field"><label>Saldo expira em (dias)</label><input type="number" id="cfg-cashback-dias" placeholder="90" /></div>
+            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Aparência</h3></div>
+          <div class="panel-body">
+            <p class="subtle" style="margin-top:0;">Cor de destaque usada na página do cliente.</p>
+            <div class="field"><label>Escolha uma cor</label><input type="color" id="cfg-cor-tema" style="width:70px;height:40px;padding:4px;" /></div>
+            <button class="btn btn-primary" onclick="salvarAparencia()">Salvar</button>
+          </div>
+        </div>
+
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Marketing automático</h3></div>
+          <div class="panel-body">
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin-bottom:10px;">
+              <input type="checkbox" id="cfg-mkt-inatividade-ativo" style="width:18px;height:18px;" /> Avisar cliente inativo
+            </label>
+            <div class="field"><label>Dias sem visita para considerar inativo</label><input type="number" id="cfg-mkt-inatividade-dias" /></div>
+
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin:18px 0 10px;">
+              <input type="checkbox" id="cfg-mkt-lembrete-ativo" style="width:18px;height:18px;" /> Lembrar cliente perto de resgatar um prêmio
+            </label>
+            <div class="field"><label>Avisar quando faltarem até quantos pontos</label><input type="number" id="cfg-mkt-lembrete-pontos" /></div>
+
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;margin:18px 0 10px;">
+              <input type="checkbox" id="cfg-mkt-reativacao-ativo" style="width:18px;height:18px;" /> Cupom de reativação (indicados que sumiram)
+            </label>
+            <div class="field"><label>Desconto do cupom de reativação (%)</label><input type="number" id="cfg-mkt-reativacao-desconto" /></div>
+
+            <button class="btn btn-primary" style="margin-top:6px;" onclick="salvarConfiguracoes()">Salvar</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== Modal Estabelecimento ===== -->
+<div class="modal-backdrop" id="modal-estabelecimento">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-head"><h3>Editar estabelecimento</h3><button class="modal-close" onclick="closeModal('modal-estabelecimento')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="estab-edit-id" />
+      <div class="form-grid">
+        <div class="field full"><label>Nome *</label><input id="estab-edit-nome" /></div>
+        <div class="field"><label>Área de atuação</label><select id="estab-edit-area"></select></div>
+        <div class="field"><label>Status</label><select id="estab-edit-status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+        <div class="field"><label>Documento</label><input id="estab-edit-documento" /></div>
+        <div class="field"><label>Telefone</label><input id="estab-edit-telefone" /></div>
+        <div class="field"><label>E-mail</label><input id="estab-edit-email" type="email" /></div>
+        <div class="field full"><label>Endereço</label><input id="estab-edit-endereco" /></div>
+        <div class="field full"><label>Horário de funcionamento</label><input id="estab-edit-horario" /></div>
+        <div class="field"><label>Cor principal</label><input id="estab-edit-cor" type="color" value="#5B3DF5" style="height:42px;padding:4px;" /></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-estabelecimento')">Cancelar</button><button class="btn btn-primary" onclick="salvarEstabelecimentoEditado()">Salvar alterações</button></div>
+  </div>
+</div>
+
+<!-- ===== Modal Cliente ===== -->
+<div class="modal-backdrop" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-cliente-title">Novo cliente</h3><button class="modal-close" onclick="closeModal('modal-cliente')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cliente-id" />
+      <div class="form-grid">
+        <div class="field full" id="cliente-estabelecimento-box"><label>Estabelecimento</label><select id="cliente-estabelecimento"></select></div>
+        <div class="field full"><label>Nome</label><input id="cliente-nome" /></div>
+        <div class="field"><label>Telefone</label><input id="cliente-telefone" placeholder="(21) 90000-0000" /></div>
+        <div class="field"><label>Gênero</label>
+          <select id="cliente-genero"><option value="feminino">Feminino</option><option value="masculino">Masculino</option></select>
+        </div>
+        <div class="field"><label>CPF</label><input id="cliente-cpf" /></div>
+        <div class="field"><label>Nascimento</label><input type="date" id="cliente-nascimento" /></div>
+        <div class="field full"><label>E-mail</label><input type="email" id="cliente-email" /></div>
+        <div class="field full" id="cliente-atendimento-regra-box" style="display:none;"><label>Quem pode atender este cliente?</label><select id="cliente-atendimento-regra" onchange="alternarRegraAtendimentoCliente()"><option value="qualquer">Qualquer profissional da unidade</option><option value="selecionados">Somente profissionais selecionados</option></select></div>
+        <div class="field full" id="cliente-profissionais-box" style="display:none;"><label>Profissionais autorizados a atender este cliente</label><select id="cliente-profissionais" multiple style="min-height:110px;"></select><div class="subtle" style="margin-top:6px;">Selecione pelo menos um profissional quando a regra for “Somente profissionais selecionados”.</div></div>
+        <div class="field full" id="cliente-principal-box" style="display:none;"><label>Profissional principal (opcional)</label><select id="cliente-profissional-principal"><option value="">Nenhum</option></select><div class="subtle" style="margin-top:6px;">É o profissional de preferência. Não impede os demais profissionais autorizados de atender.</div></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal Serviço ===== -->
+<div class="modal-backdrop" id="modal-servico">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-servico-titulo">Novo serviço</h3><button class="modal-close" onclick="closeModal('modal-servico')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="servico-edit-id" />
+      <div class="field"><label>Nome do serviço</label><input id="servico-nome" /></div>
+      <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="servico-valor" /></div>
+      <div class="field"><label>Cashback (%)</label><input type="number" step="0.1" id="servico-cashback" placeholder="0" /></div>
+      <div class="field" id="servico-profissional-box"><label>Profissional</label><select id="servico-profissional"><option value="">Qualquer profissional</option></select></div>
+      <p class="subtle" id="servico-pontos-preview">Gera 0 pontos</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-servico')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarServico()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal Prêmio ===== -->
+<div class="modal-backdrop" id="modal-premio">
+  <div class="modal">
+    <div class="modal-head"><h3>Novo prêmio</h3><button class="modal-close" onclick="closeModal('modal-premio')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nome do prêmio</label><input id="premio-nome" /></div>
+      <div class="field"><label>Pontos necessários</label><input type="number" id="premio-pontos" /></div>
+      <div class="field"><label>Estoque (opcional)</label><input type="number" id="premio-estoque" placeholder="Deixe em branco para ilimitado" /></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-premio')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPremio()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal Nível ===== -->
+<div class="modal-backdrop" id="modal-nivel">
+  <div class="modal">
+    <div class="modal-head"><h3>Novo nível</h3><button class="modal-close" onclick="closeModal('modal-nivel')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nome do nível</label><input id="nivel-nome" placeholder="Ex: Ouro" /></div>
+      <div class="field"><label>Pontos acumulados necessários</label><input type="number" id="nivel-pontos" /></div>
+      <div class="field"><label>Cor do selo</label><input type="color" id="nivel-cor" value="#2F6FED" style="width:70px;height:40px;padding:4px;" /></div>
+      <div class="field"><label>Benefícios</label><textarea id="nivel-beneficios" rows="3" placeholder="Ex: 10% de pontos extra, brinde de aniversário..."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-nivel')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarNivel()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal Editar Profissional ===== -->
+<div class="modal-backdrop" id="modal-editar-profissional">
+  <div class="modal">
+    <div class="modal-head"><h3>Editar profissional</h3><button class="modal-close" onclick="closeModal('modal-editar-profissional')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ep-id" />
+      <div class="field"><label>Nome do profissional</label><input id="ep-nome" /></div>
+      <div class="field"><label>E-mail de acesso</label><input type="email" id="ep-email" /></div>
+      <div class="field"><label>Nova senha (opcional)</label><input type="password" id="ep-senha" placeholder="Deixe em branco para manter a senha atual" /></div>
+      <div id="ep-resultado"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-editar-profissional')">Cancelar</button>
+      <button class="btn btn-primary" id="ep-btn" onclick="salvarEdicaoProfissional()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://uaqbnwwjqhhnqzsavbkh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_CtfOabxYTa17BqfZ-ap48A_T097PlEo";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let ESTAB_ID = null;
+let CLIENTES = [], SERVICOS = [], PREMIOS = [], PONTUACOES = [], RESGATES = [];
+let liberarPhoneBuffer = "";
+let pontuarClienteSelecionado = null;
+
+// ---------- helpers ----------
+
+async function functionErrorMessage(error, fallback='Falha na operação.') {
+  if(!error) return fallback;
+  try { if(error.context && typeof error.context.json==='function'){ const body=await error.context.json(); if(body?.error) return body.error; } } catch(_) {}
+  return error.message || fallback;
+}
+
+function toast(msg, err=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
+  setTimeout(()=> t.className = 'toast', 2600);
+}
+function initials(nome){ return nome.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function fmtDate(d){ if(!d) return '—'; const dt = new Date(d); return dt.toLocaleDateString('pt-BR'); }
+function fmtMoney(v){ return 'R$ ' + Number(v).toFixed(2).replace('.', ','); }
+async function obterConsumoEstabelecimento(id){
+  const {data,error}=await sb.rpc('consumo_dados_estabelecimento',{p_estabelecimento_id:id});
+  return error?null:data;
+}
+function quotaFillClass(pct){ return pct>=92?'danger':pct>=75?'warn':''; }
+function quotaBarHtml(c){ if(!c)return '<div class="subtle">Consumo indisponível</div>'; const pct=Math.min(Number(c.percentual||0),100); return `<div class="quota-head"><span class="quota-title">Armazenamento</span><span class="quota-value">${Number(c.mb||0).toFixed(2)} / ${Number(c.quota_mb||40).toFixed(0)} MB</span></div><div class="quota-bar"><div class="quota-fill ${quotaFillClass(pct)}" style="width:${pct}%"></div></div><div class="quota-note">${pct.toFixed(1)}% utilizado · ${c.status==='atencao'?'Atenção a partir de 30 MB':c.status==='critico'?'Próximo do limite':c.status==='bloqueado'?'Cadastros de expansão bloqueados':'Dentro do limite'}</div>`; }
+function quotaStatusHtml(c){ if(!c)return ''; return c.status==='bloqueado'?'<span class="pill pill-off">Bloqueado</span>':c.status==='critico'?'<span class="pill" style="background:#FFF0D6;color:#8A5A10">Crítico</span>':c.status==='atencao'?'<span class="pill" style="background:#FFF0D6;color:#8A5A10">Atenção</span>':'<span class="pill pill-on">Normal</span>'; }
+async function atualizarQuotaPainel(id){
+  const panel=document.getElementById('cfg-quota-panel'); if(!panel||!id)return;
+  const c=await obterConsumoEstabelecimento(id);
+  const e=TODOS_ESTABELECIMENTOS.find(x=>x.id===id);
+  panel.innerHTML=`<div class="panel-head"><h3>Consumo e limites da unidade</h3>${quotaStatusHtml(c)}</div><div class="panel-body"><div class="quota-grid"><div class="quota-card"><div class="quota-head"><span class="quota-title">Clientes</span><span class="quota-value">${c?.clientes??0} / ${c?.max_clientes??500}</span></div><div class="quota-bar"><div class="quota-fill" style="width:${Math.min(((c?.clientes||0)/(c?.max_clientes||500))*100,100)}%"></div></div><div class="quota-note">Limite por estabelecimento</div></div><div class="quota-card"><div class="quota-head"><span class="quota-title">Profissionais</span><span class="quota-value">${c?.profissionais??0} / ${c?.max_profissionais??8}</span></div><div class="quota-bar"><div class="quota-fill" style="width:${Math.min(((c?.profissionais||0)/(c?.max_profissionais||8))*100,100)}%"></div></div><div class="quota-note">Limite por estabelecimento</div></div><div class="quota-card"><div>${quotaBarHtml(c)}</div></div></div>${c?.alerta_30mb?'<div class="quota-alert">⚠️ Esta unidade já ultrapassou 30 MB. O sistema continuará funcionando, mas novos cadastros serão bloqueados ao atingir a cota de 40 MB.</div>':''}<div class="subtle">${e?.nome||'Unidade'} · cota lógica de 40 MB por estabelecimento.</div></div>`;
+}
+async function renderConsumoMaster(){
+  if(MEU_PAPEL!=='admin_master')return;
+  await carregarTodosEstabelecimentos();
+  const box=document.getElementById('view-consumo'); if(!box)return;
+  const items=await Promise.all(TODOS_ESTABELECIMENTOS.map(async e=>({e,c:await obterConsumoEstabelecimento(e.id)})));
+  box.innerHTML=`<div class="topbar"><div><h2>Consumo e limites</h2><div class="sub">Monitoramento global das cotas por estabelecimento</div></div><button class="btn btn-outline btn-sm" onclick="renderConsumoMaster()">↻ Atualizar</button></div><div class="panel"><div class="panel-body"><div class="subtle" style="margin-bottom:16px;">Limites definidos: <strong>500 clientes</strong>, <strong>8 profissionais</strong> e <strong>40 MB</strong> por unidade. Alerta a partir de 30 MB.</div><table><thead><tr><th>Estabelecimento</th><th>Clientes</th><th>Profissionais</th><th>Consumo de dados</th><th>Status</th><th></th></tr></thead><tbody>${items.map(({e,c})=>`<tr><td><strong>${e.nome}</strong></td><td>${c?.clientes??0} / 500</td><td>${c?.profissionais??0} / 8</td><td style="min-width:260px;">${quotaBarHtml(c)}</td><td>${quotaStatusHtml(c)}</td><td><button class="btn btn-outline btn-sm" onclick="selecionarEstabelecimentoMaster('${e.id}');setTimeout(()=>showView('configuracoes'),100)">Gerenciar</button></td></tr>`).join('')||`<tr><td colspan="6">${emptyState('Nenhum estabelecimento cadastrado.')}</td></tr>`}</tbody></table></div></div></div>`;
+}
+async function verificarPodeCadastrar(tipo,id=ESTAB_ID){
+  const {data,error}=await sb.rpc('verificar_limite_cadastro',{p_estabelecimento_id:id,p_tipo:tipo});
+  if(error){toast('Não foi possível verificar os limites da unidade.',true);return false;}
+  if(!data?.ok){toast(data?.mensagem||'Limite da unidade atingido.',true);return false;}
+  return true;
+}
+
+// ---------- ADMIN MASTER · troca de contexto operacional entre unidades ----------
+// Mostra/oculta os seletores de "Estabelecimento" nas telas operacionais (Pontuar, Prêmios,
+// Níveis, Liberar Prêmio, Validar Cupom) e os popula com as unidades existentes.
+// Só se aplica ao admin_master: admin_estabelecimento e profissional já operam presos à sua unidade.
+function atualizarContextosOperacionais(){
+  const paineis = ['ctx-pontuar','ctx-premios','ctx-niveis','ctx-liberar','ctx-cupom'];
+  const mostrar = MEU_PAPEL === 'admin_master';
+  paineis.forEach(id=>{
+    const painel = document.getElementById(id);
+    if(!painel) return;
+    painel.classList.toggle('hidden', !mostrar);
+    if(!mostrar) return;
+    const sel = document.getElementById(id+'-estab');
+    if(!sel) return;
+    sel.innerHTML = TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}" ${e.id===ESTAB_ID?'selected':''}>${e.nome}</option>`).join('') || '<option value="">Nenhum estabelecimento</option>';
+  });
+}
+// Chamado pelos seletores acima: troca a unidade "ativa" sem sair da tela operacional atual.
+async function trocarContextoOperacional(estabelecimentoId){
+  if(MEU_PAPEL!=='admin_master' || !estabelecimentoId || estabelecimentoId===ESTAB_ID) return;
+  ESTAB_ID = estabelecimentoId;
+  const e = TODOS_ESTABELECIMENTOS.find(x=>x.id===ESTAB_ID);
+  document.getElementById('estab-nome').textContent = (e?.nome||'Estabelecimento') + ' · Admin Master';
+  await carregarTudo();
+  atualizarContextosOperacionais();
+  const view = document.querySelector('.nav-item.active')?.dataset.view;
+  if(view==='pontuar') resetPontuar();
+  if(view==='premios') renderPremios();
+  if(view==='niveis') renderNiveis();
+  if(view==='liberar') resetLiberar();
+  if(view==='cupom'){ document.getElementById('cupom-input').value=''; document.getElementById('cupom-resultado').innerHTML=''; }
+}
+// Preview de limite ao trocar a unidade no formulário de Novo Profissional (admin_master).
+async function sincronizarEstabProfissional(){
+  const eid = document.getElementById('np-estab-selector')?.value;
+  const box = document.getElementById('np-resultado');
+  if(!eid || !box) return;
+  const {data} = await sb.rpc('verificar_limite_cadastro',{p_estabelecimento_id:eid,p_tipo:'profissional'});
+  box.innerHTML = (data && data.ok===false) ? `<div style="color:var(--danger)">${data.mensagem||'Limite de profissionais atingido para esta unidade.'}</div>` : '';
+}
+
+// ---------- ADMIN MASTER · dashboard e dados globais ----------
+let GLOBAL_STATS = null;
+// Carrega dados agregados de todas as unidades para o dashboard global do Admin Master.
+async function carregarTudoGlobal(){
+  await carregarTodosEstabelecimentos();
+  const [cli, prof, atendRecentes, atendTodos, pont, resg] = await Promise.all([
+    sb.from('clientes').select('id,estabelecimento_id,created_at'),
+    sb.from('perfis').select('id,estabelecimento_id').eq('role','profissional'),
+    sb.from('atendimentos').select('id,estabelecimento_id,valor,created_at').order('created_at',{ascending:false}).limit(8),
+    sb.from('atendimentos').select('id,estabelecimento_id,valor,cliente_id'),
+    sb.from('pontuacoes').select('pontos,estabelecimento_id'),
+    sb.from('resgates').select('id,pontos_utilizados,estabelecimento_id')
+  ]);
+  GLOBAL_STATS = {
+    clientes: cli.data||[], profissionais: prof.data||[], atendimentosRecentes: atendRecentes.data||[], atendimentosTodos: atendTodos.data||[],
+    pontos: pont.data||[], resgates: resg.data||[]
+  };
+}
+// Dashboard exclusivo do Admin Master: visão consolidada de todas as unidades.
+async function renderDashboardGlobal(){
+  const el = document.getElementById('view-dashboard'); if(!el) return;
+  if(!GLOBAL_STATS) await carregarTudoGlobal();
+  const g = GLOBAL_STATS;
+  const totalClientes = g.clientes.length;
+  const totalProfissionais = g.profissionais.length;
+  const totalPontos = g.pontos.reduce((s,p)=>s+Number(p.pontos||0),0);
+  const totalResgatado = g.resgates.reduce((s,r)=>s+Number(r.pontos_utilizados||0),0);
+  const hoje=new Date(), inicioMes=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  const novosMes = g.clientes.filter(c=>new Date(c.created_at)>=inicioMes).length;
+  const ranking = TODOS_ESTABELECIMENTOS.map(e=>({
+    nome:e.nome, clientes:g.clientes.filter(c=>c.estabelecimento_id===e.id).length
+  })).sort((a,b)=>b.clientes-a.clientes).slice(0,5);
+  const desempenho = TODOS_ESTABELECIMENTOS.map(e=>{
+    const atendUnidade=(g.atendimentosTodos||[]).filter(a=>a.estabelecimento_id===e.id);
+    return {
+      nome:e.nome,
+      vendas: atendUnidade.reduce((s,a)=>s+Number(a.valor||0),0),
+      vouchers: (g.resgates||[]).filter(r=>r.estabelecimento_id===e.id).length,
+      clientesAtendidos: new Set(atendUnidade.map(a=>a.cliente_id)).size,
+      clientesCadastrados: g.clientes.filter(c=>c.estabelecimento_id===e.id).length
+    };
+  }).sort((a,b)=>b.vendas-a.vendas);
+  el.innerHTML = `<div class="topbar"><div><h2>Visão global</h2><div class="sub">Consolidado de todas as unidades · Admin Master</div></div><span class="badge-demo">◆ Todas as unidades</span></div>
+  <div class="grid-cards">${[['Estabelecimentos',TODOS_ESTABELECIMENTOS.length],['Clientes (total)',totalClientes],['Profissionais (total)',totalProfissionais],['Novos clientes no mês',novosMes],['Pontos distribuídos',totalPontos],['Pontos resgatados',totalResgatado]].map(([l,v])=>`<div class="card stat-card"><div class="label">${l}</div><div class="value">${v}</div></div>`).join('')}</div>
+  <div class="panel"><div class="panel-head"><h3>Desempenho por unidade</h3><div class="subtle">Vendas em serviços, vouchers liberados e clientes atendidos/cadastrados</div></div><div class="panel-body">${desempenho.length?`<table><thead><tr><th>Estabelecimento</th><th>Vendas em serviços</th><th>Vouchers liberados</th><th>Clientes atendidos</th><th>Clientes cadastrados</th></tr></thead><tbody>${desempenho.map(d=>`<tr><td>${d.nome}</td><td>${fmtMoney(d.vendas)}</td><td>${d.vouchers}</td><td>${d.clientesAtendidos}</td><td>${d.clientesCadastrados}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum estabelecimento cadastrado.')}</div></div>
+  <div class="panel"><div class="panel-head"><h3>Ranking de unidades por clientes</h3></div><div class="panel-body">${ranking.length?`<table><thead><tr><th>Estabelecimento</th><th>Clientes</th></tr></thead><tbody>${ranking.map(r=>`<tr><td>${r.nome}</td><td>${r.clientes}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum estabelecimento cadastrado.')}</div></div>
+  <div class="panel"><div class="panel-head"><h3>Atendimentos recentes (todas as unidades)</h3></div><div class="panel-body">${g.atendimentosRecentes.length?`<table><thead><tr><th>Estabelecimento</th><th>Valor</th><th>Data</th></tr></thead><tbody>${g.atendimentosRecentes.map(a=>`<tr><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===a.estabelecimento_id)?.nome||'—'}</td><td>${fmtMoney(a.valor)}</td><td>${fmtDate(a.created_at)}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum atendimento registrado ainda.')}</div></div>`;
+}
+
+// ---------- ADMIN MASTER · Estabelecimentos e Administradores ----------
+// Lista todas as unidades com atalhos para editar, gerenciar equipe ou criar uma nova unidade.
+async function renderAdminEstabelecimentos(){
+  const box = document.getElementById('view-admin'); if(!box) return;
+  await carregarTodosEstabelecimentos();
+  box.innerHTML = `<div class="topbar" style="align-items:flex-start;"><div><h2>Estabelecimentos</h2><div class="sub">Todas as unidades da plataforma</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-estabelecimento')">＋ Novo estabelecimento</button></div>
+  <div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>Área</th><th>Status</th><th>Criado em</th><th></th></tr></thead><tbody>${TODOS_ESTABELECIMENTOS.map(e=>`<tr><td><strong>${e.nome}</strong></td><td>${areaLabels[e.area_atuacao]||'—'}</td><td>${e.status==='ativo'?'<span class="pill pill-on">Ativo</span>':'<span class="pill pill-off">Inativo</span>'}</td><td>${fmtDate(e.created_at)}</td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="abrirEdicaoEstabelecimento('${e.id}')">Editar</button><button class="btn btn-outline btn-sm" onclick="abrirEquipeDeEstabelecimento('${e.id}')">Equipe</button></div></td></tr>`).join('')||`<tr><td colspan="5">${emptyState('Nenhum estabelecimento cadastrado ainda.')}</td></tr>`}</tbody></table></div></div>`;
+}
+// Visão global de administradores: escolha a unidade para ver/gerenciar sua equipe e permissões.
+async function renderAdministradores(id){
+  const box = document.getElementById('view-administradores'); if(!box) return;
+  await carregarTodosEstabelecimentos();
+  if(id) { await renderEquipeEstabelecimento(id); return; }
+  box.innerHTML = `<div class="topbar"><div><h2>Administradores</h2><div class="sub">Selecione uma unidade para ver seus administradores e profissionais</div></div></div>
+  <div class="panel"><div class="panel-body"><table><thead><tr><th>Estabelecimento</th><th></th></tr></thead><tbody>${TODOS_ESTABELECIMENTOS.map(e=>`<tr><td>${e.nome}</td><td><button class="btn btn-outline btn-sm" onclick="renderAdministradores('${e.id}')">Ver equipe</button></td></tr>`).join('')||`<tr><td colspan="2">${emptyState('Nenhum estabelecimento cadastrado ainda.')}</td></tr>`}</tbody></table></div></div>`;
+}
+// Admin Master cria uma nova unidade + o administrador dela em uma única operação (Edge Function).
+async function criarEstabelecimento(){
+  const nome = document.getElementById('ne-nome').value.trim();
+  const nomeAdmin = document.getElementById('ne-admin').value.trim();
+  const email = document.getElementById('ne-email').value.trim().toLowerCase();
+  const senha = document.getElementById('ne-senha').value;
+  const box = document.getElementById('ne-resultado'), btn = document.getElementById('ne-btn');
+  if(!nome || !nomeAdmin || !email || !senha){ toast('Preencha estabelecimento, administrador, e-mail e senha.', true); return; }
+  if(senha.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres.', true); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  const payload = {
+    nome_estabelecimento: nome, nome_admin: nomeAdmin, email, senha,
+    area_atuacao: document.getElementById('ne-area').value,
+    documento: document.getElementById('ne-documento').value.trim() || null,
+    telefone: document.getElementById('ne-telefone').value.trim() || null,
+    email_estabelecimento: document.getElementById('ne-email-estab').value.trim() || null,
+    endereco: document.getElementById('ne-endereco').value.trim() || null,
+    horario_funcionamento: document.getElementById('ne-horario').value.trim() || null,
+    cor_tema: document.getElementById('ne-cor').value
+  };
+  const {data,error} = await sb.functions.invoke('criar-estabelecimento',{body:payload});
+  btn.disabled = false; btn.textContent = 'Criar estabelecimento';
+  if(error || (data && data.error)){ const msg = await functionErrorMessage(error, data?.error||'Falha ao criar estabelecimento.'); box.innerHTML = `<div style="color:var(--danger)"><strong>Erro:</strong> ${msg}</div>`; return; }
+  box.innerHTML = `<div class="card" style="background:var(--success-bg);border:none;"><strong style="color:var(--success);">Estabelecimento criado!</strong><p class="subtle" style="margin:6px 0 0;">Login do administrador: ${email}</p></div>`;
+  ['ne-nome','ne-documento','ne-telefone','ne-email-estab','ne-endereco','ne-horario','ne-admin','ne-email','ne-senha'].forEach(id=>document.getElementById(id).value='');
+  await carregarTodosEstabelecimentos();
+  setTimeout(()=>showView('admin'), 800);
+}
+// Chamado pelo botão "Gerenciar" na tela de Consumo / Limites: muda o contexto do Admin Master
+// para a unidade escolhida (mesmo efeito de trocarEstabelecimentoConfiguracoes, mas por id direto).
+async function selecionarEstabelecimentoMaster(id){
+  if(MEU_PAPEL!=='admin_master' || !id) return;
+  ESTAB_ID = id;
+  await carregarTodosEstabelecimentos();
+  const e = TODOS_ESTABELECIMENTOS.find(x=>x.id===id);
+  document.getElementById('estab-nome').textContent = (e?.nome||'Estabelecimento') + ' · Admin Master';
+  await carregarTudo();
+}
+
+// ---------- PRÊMIOS ----------
+// Lista os prêmios da unidade atual (PREMIOS já vem filtrado por ESTAB_ID via carregarTudo()).
+function renderPremios(){
+  const tbody = document.getElementById('premios-tbody'); if(!tbody) return;
+  if(!PREMIOS.length){ tbody.innerHTML = `<tr><td colspan="5">${emptyState('Nenhum prêmio cadastrado ainda.')}</td></tr>`; return; }
+  tbody.innerHTML = PREMIOS.map(p=>`
+    <tr>
+      <td><strong>${p.nome}</strong></td>
+      <td><span class="tag-points">${p.pontos_necessarios} pts</span></td>
+      <td>${p.estoque===null||p.estoque===undefined?'Ilimitado':p.estoque}</td>
+      <td>${p.ativo?'<span class="pill pill-on">Ativo</span>':'<span class="pill pill-off">Inativo</span>'}</td>
+      <td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="alternarPremioAtivo('${p.id}',${!p.ativo})">${p.ativo?'Desativar':'Ativar'}</button><button class="btn btn-outline btn-sm" onclick="excluirPremio('${p.id}')">Excluir</button></div></td>
+    </tr>`).join('');
+}
+function openPremioModal(){
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){ toast('Selecione um estabelecimento antes de criar um prêmio.', true); return; }
+  ['premio-nome','premio-pontos','premio-estoque'].forEach(id=>document.getElementById(id).value='');
+  openModal('modal-premio');
+}
+async function salvarPremio(){
+  const nome = document.getElementById('premio-nome').value.trim();
+  const pontos = parseInt(document.getElementById('premio-pontos').value);
+  const estoqueRaw = document.getElementById('premio-estoque').value;
+  if(!nome || isNaN(pontos)){ toast('Preencha nome e pontos necessários.', true); return; }
+  const { error } = await sb.from('premios').insert({
+    estabelecimento_id: ESTAB_ID, nome, pontos_necessarios: pontos,
+    estoque: estoqueRaw===''? null : parseInt(estoqueRaw)
+  });
+  if(error){ toast('Erro ao salvar prêmio: '+error.message, true); return; }
+  toast('Prêmio criado.'); closeModal('modal-premio');
+  await carregarTudo(); renderPremios();
+}
+async function alternarPremioAtivo(id, ativo){
+  const { error } = await sb.from('premios').update({ativo}).eq('id', id);
+  if(error){ toast('Erro ao atualizar prêmio: '+error.message, true); return; }
+  await carregarTudo(); renderPremios();
+}
+async function excluirPremio(id){
+  const { error } = await sb.from('premios').delete().eq('id', id);
+  if(error){ toast('Erro ao excluir prêmio: '+error.message, true); return; }
+  await carregarTudo(); renderPremios();
+}
+
+// taxa de conversão dinheiro->pontos, configurável pelo profissional (padrão R$1 = 1 ponto)
+function calcularPontos(valor){
+  const razao = (CONFIGURACOES && CONFIGURACOES.valor_por_ponto) ? CONFIGURACOES.valor_por_ponto : 1;
+  return Math.floor(valor / razao);
+}
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function pontosDoCliente(clienteId){
+  const ganhos = PONTUACOES.filter(p=>p.cliente_id===clienteId).reduce((s,p)=>s+p.pontos,0);
+  const usados = RESGATES.filter(r=>r.cliente_id===clienteId).reduce((s,r)=>s+r.pontos_utilizados,0);
+  return ganhos - usados;
+}
+function nivelBadgeCliente(clienteId){
+  if(!NIVEIS.length) return '—';
+  const totalVida = PONTUACOES.filter(p=>p.cliente_id===clienteId).reduce((s,p)=>s+p.pontos,0);
+  const atual = [...NIVEIS].reverse().find(n=>totalVida >= n.pontos_necessarios);
+  if(!atual) return '—';
+  return `<span class="pill" style="background:${atual.cor}22;color:${atual.cor};">● ${atual.nome}</span>`;
+}
+
+// ---------- auth ----------
+document.getElementById('login-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  const errBox = document.getElementById('login-error');
+  errBox.style.display='none';
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Entrar';
+  if(error){ errBox.textContent = 'E-mail ou senha inválidos.'; errBox.style.display='block'; return; }
+  await bootApp(data.session);
+});
+
+document.getElementById('logout-btn').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+  window.location.reload();
+});
+
+let MEU_PAPEL = null;
+let MEU_ID = null;
+let TODOS_ESTABELECIMENTOS = [];
+const areaLabels={beleza:'Beleza',barbearia:'Barbearia',estetica:'Estética',saude:'Saúde',fitness:'Fitness',moda:'Moda',alimentacao:'Alimentação',servicos:'Serviços',outros:'Outros'};
+
+async function bootApp(session){
+  document.getElementById('user-email').textContent = session.user.email;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  MEU_ID = session.user.id;
+
+  // O logout não recarrega a página — se alguém sai de uma conta de admin e entra com
+  // outra conta (ex: um profissional) na mesma aba, os itens de menu específicos de papel
+  // inseridos na sessão anterior (Estabelecimentos, Administradores, Consumo/Limites,
+  // Novo Profissional, Equipe) precisam ser removidos antes de decidir o que este novo
+  // usuário tem direito de ver.
+  ['admin','administradores','consumo','novo-profissional','equipe-local'].forEach(v=>{
+    const el=document.querySelector('.nav-item[data-view="'+v+'"]'); if(el) el.remove();
+  });
+  ESTAB_ID = null; TODOS_ESTABELECIMENTOS = [];
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.view==='dashboard'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('view-dashboard').classList.remove('hidden');
+
+  const { data: perfil, error: perfilErr } = await sb.from('perfis').select('*').eq('id', session.user.id).maybeSingle();
+  if(perfilErr || !perfil){ toast('Este usuário ainda não tem um perfil (admin ou profissional) configurado.', true); return; }
+  MEU_PAPEL = perfil.role;
+
+  if(MEU_PAPEL === 'admin_master' && !document.querySelector('.nav-item[data-view="consumo"]')){
+    document.querySelector('.nav-item[data-view="dashboard"]').insertAdjacentHTML('beforebegin',
+      `<div class="nav-item" data-view="admin"><span class="nav-icon">◆</span> Estabelecimentos</div>
+       <div class="nav-item" data-view="administradores"><span class="nav-icon">♟</span> Administradores</div>
+       <div class="nav-item" data-view="consumo"><span class="nav-icon">▥</span> Consumo / Limites</div>
+       <div class="nav-item" data-view="novo-profissional"><span class="nav-icon">＋</span> Novo Profissional</div>`);
+    await carregarTodosEstabelecimentos();
+  } else if(MEU_PAPEL === 'admin_estabelecimento' && !document.querySelector('.nav-item[data-view="novo-profissional"]')){
+    document.querySelector('.nav-item[data-view="dashboard"]').insertAdjacentHTML('beforebegin',
+      `<div class="nav-item" data-view="novo-profissional"><span class="nav-icon">＋</span> Novo Profissional</div>
+       <div class="nav-item" data-view="equipe-local"><span class="nav-icon">♟</span> Equipe</div>`);
+  }
+
+  atualizarContextosOperacionais();
+  buildKeypad();
+  ESTAB_ID = perfil.estabelecimento_id || ESTAB_ID;
+  if(MEU_PAPEL === 'admin_master' && !ESTAB_ID){
+    document.getElementById('estab-nome').textContent = 'Visão Global · Admin Master';
+    await carregarTudoGlobal(); await renderDashboardGlobal(); await prepararFiltrosHistorico(); return;
+  }
+  if(!ESTAB_ID){ toast('Nenhum estabelecimento vinculado a este usuário.', true); return; }
+
+  const { data: estab } = await sb.from('estabelecimentos').select('*').eq('id', ESTAB_ID).maybeSingle();
+  document.getElementById('estab-nome').textContent = (estab ? estab.nome : 'Estabelecimento') + (MEU_PAPEL==='admin_master' ? ' · Admin' : '');
+
+  await carregarTudo(); await carregarConfiguracoes();
+  await renderNiveis();
+  renderDashboard(); renderClientes(); renderServicos(); renderPremios();
+}
+
+async function carregarTodosEstabelecimentos(){
+  const { data } = await sb.from('estabelecimentos').select('*').order('created_at',{ascending:false});
+  TODOS_ESTABELECIMENTOS = data || [];
+}
+async function prepararNovoProfissional(){
+  const box=document.getElementById('np-estab-selector-box'), sel=document.getElementById('np-estab-selector');
+  if(!box||!sel)return;
+  if(!['admin_master','admin_estabelecimento'].includes(MEU_PAPEL)){ toast('Você não tem permissão para cadastrar profissionais.',true); showView('dashboard'); return; }
+  if(MEU_PAPEL==='admin_master'){
+    await carregarTodosEstabelecimentos(); box.style.display='block';
+    sel.innerHTML='<option value="">Selecione o estabelecimento</option>'+TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}" ${e.id===ESTAB_ID?'selected':''}>${e.nome}</option>`).join('');
+  } else { box.style.display='none'; }
+}
+async function criarProfissional(){
+  if(!['admin_master','admin_estabelecimento'].includes(MEU_PAPEL)){toast('Você não tem permissão para cadastrar profissionais.',true);return;}
+  const nome=document.getElementById('np-nome').value.trim(), email=document.getElementById('np-email').value.trim().toLowerCase(), senha=document.getElementById('np-senha').value;
+  const eid=MEU_PAPEL==='admin_estabelecimento'?ESTAB_ID:(document.getElementById('np-estab-selector')?.value||ESTAB_ID);
+  const box=document.getElementById('np-resultado'), btn=document.getElementById('np-btn');
+  if(!nome||!email||!senha||!eid){toast('Preencha nome, e-mail, senha e estabelecimento.',true);return;}
+  if(!await verificarPodeCadastrar('profissional',eid))return;
+  btn.disabled=true;btn.innerHTML='<span class="loader"></span>';
+  const {data,error}=await sb.functions.invoke('criar-profissional',{body:{email,senha,nome_profissional:nome,estabelecimento_id:eid}});
+  btn.disabled=false;btn.textContent='Criar profissional';
+  if(error||(data&&data.error)){ const msg=await functionErrorMessage(error,data?.error||'Falha ao criar profissional.'); box.innerHTML=`<div style="color:var(--danger)"><strong>Erro:</strong> ${msg}</div>`; return; }
+  box.innerHTML=`<div class="card" style="background:var(--success-bg);border:none;"><strong style="color:var(--success);">Profissional criado!</strong><p class="subtle" style="margin:6px 0 0;">Login: ${email}</p></div>`;
+  ['np-nome','np-email','np-senha'].forEach(id=>document.getElementById(id).value=''); await carregarTudo(); renderClientes(); await atualizarQuotaPainel(eid);
+  if(MEU_PAPEL==='admin_estabelecimento') await renderEquipeLocal();
+}
+
+// ---------- MARKETING (Fase 5) ----------
+async function renderMarketing(){
+  const tbody0 = document.getElementById('marketing-tbody');
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){ if(tbody0) tbody0.innerHTML = `<tr><td colspan="5">${emptyState('Selecione um estabelecimento em Estabelecimentos ou Consumo / Limites para ver as mensagens de marketing.')}</td></tr>`; return; }
+  const { data } = await sb.from('marketing_mensagens').select('*').eq('estabelecimento_id', ESTAB_ID)
+    .order('created_at', { ascending:false }).limit(100);
+  const tbody = document.getElementById('marketing-tbody');
+  const lista = data || [];
+  if(!lista.length){ tbody.innerHTML = `<tr><td colspan="5">${emptyState('Nenhuma mensagem gerada ainda. Configure as regras em Configurações → Marketing automático e clique em "Gerar mensagens agora".')}</td></tr>`; return; }
+  const rotulos = { inatividade:'Cliente inativo', lembrete_pontos:'Lembrete de pontos', reativacao:'Reativação' };
+  tbody.innerHTML = lista.map(m=>{
+    const cli = CLIENTES.find(c=>c.id===m.cliente_id);
+    return `<tr>
+      <td>${cli ? cli.nome : '—'}</td>
+      <td>${rotulos[m.tipo] || m.tipo}</td>
+      <td style="max-width:320px;">${m.mensagem}</td>
+      <td><span class="pill ${m.status==='enviada'?'pill-on':'pill-off'}">${m.status==='enviada'?'Enviada':'Pendente'}</span></td>
+      <td>${m.status==='pendente' && cli ? `<button class="btn btn-outline btn-sm" onclick="enviarMensagemMarketing('${m.id}','${cli.telefone.replace(/\D/g,'')}')">📲 Enviar</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+}
+async function gerarMensagensMarketing(){
+  const { data, error } = await sb.rpc('gerar_mensagens_marketing', { p_estabelecimento_id: ESTAB_ID });
+  if(error){ toast('Erro ao gerar mensagens.', true); return; }
+  toast(data > 0 ? `${data} nova(s) mensagem(ns) gerada(s).` : 'Nenhuma mensagem nova — regras em dia.');
+  await carregarTudo(); renderMarketing();
+}
+async function enviarMensagemMarketing(id, telefoneDigits){
+  const { data: msg } = await sb.from('marketing_mensagens').select('mensagem').eq('id', id).single();
+  if(msg) window.open(`https://wa.me/55${telefoneDigits}?text=${encodeURIComponent(msg.mensagem)}`, '_blank');
+  await sb.from('marketing_mensagens').update({ status:'enviada', enviada_em: new Date().toISOString() }).eq('id', id);
+  renderMarketing();
+}
+
+// URL base da página pública do cliente — ajuste para o domínio publicado do painel
+const CLIENTE_PAGE_BASE = (window.location.origin.includes('null') || window.location.protocol === 'file:')
+  ? 'https://SEU-DOMINIO-AQUI/cliente.html'
+  : window.location.origin + window.location.pathname.replace(/index\.html$/, '') + 'cliente.html';
+
+function enviarLinkWhatsapp(clienteId){
+  const c = CLIENTES.find(x=>x.id===clienteId);
+  if(!c) return;
+  const link = `${CLIENTE_PAGE_BASE}?c=${clienteId}`;
+  const msg = encodeURIComponent(`Olá ${c.nome}! Aqui está o link para acompanhar seus pontos: ${link}`);
+  const fone = c.telefone.replace(/\D/g,'');
+  window.open(`https://wa.me/55${fone}?text=${msg}`, '_blank');
+}
+
+// ---------- VALIDAR CUPOM ----------
+async function validarCupom(){
+  const codigo = document.getElementById('cupom-input').value.trim().toUpperCase();
+  const box = document.getElementById('cupom-resultado');
+  if(!codigo){ return; }
+  const { data, error } = await sb.from('cupons_indicacao').select('*').eq('estabelecimento_id', ESTAB_ID).eq('codigo', codigo).maybeSingle();
+  if(error || !data){ box.innerHTML = `<p style="color:var(--danger);">Cupom não encontrado.</p>`; return; }
+  if(!data.ativo || data.validado_em){ box.innerHTML = `<p style="color:var(--danger);">Este cupom já foi utilizado ou está inativo.</p>`; return; }
+  const indicador = CLIENTES.find(c=>c.id===data.cliente_indicador_id);
+  box.innerHTML = `
+    <div class="card" style="background:var(--success-bg);border:none;text-align:left;">
+      <strong style="color:var(--success);">Cupom válido!</strong>
+      <p class="subtle" style="margin:6px 0 14px;">Indicado por: ${indicador ? indicador.nome : '—'}</p>
+      <button class="btn btn-primary" style="width:100%;" onclick="confirmarValidacaoCupom('${data.id}')">Confirmar uso do cupom</button>
+    </div>`;
+}
+async function confirmarValidacaoCupom(cupomId){
+  const { error } = await sb.from('cupons_indicacao').update({ validado_em: new Date().toISOString(), ativo:false }).eq('id', cupomId);
+  if(error){ toast('Erro ao validar cupom: '+error.message, true); return; }
+  toast('Cupom validado com sucesso.');
+  document.getElementById('cupom-input').value=''; document.getElementById('cupom-resultado').innerHTML='';
+}
+
+// ---------- CONFIGURAÇÕES ----------
+let NIVEIS = [];
+let CONFIGURACOES = null;
+async function renderNiveis(){
+  const { data } = await sb.from('niveis').select('*').eq('estabelecimento_id', ESTAB_ID).order('pontos_necessarios');
+  NIVEIS = data || [];
+  const tbody = document.getElementById('niveis-tbody');
+  if(!NIVEIS.length){ tbody.innerHTML = `<tr><td colspan="4">${emptyState('Nenhum nível cadastrado ainda.')}</td></tr>`; return; }
+  tbody.innerHTML = NIVEIS.map(n=>`
+    <tr>
+      <td><span class="pill" style="background:${n.cor}22;color:${n.cor};">● ${n.nome}</span></td>
+      <td><span class="tag-points">${n.pontos_necessarios} pts</span></td>
+      <td style="max-width:340px;">${n.beneficios || '—'}</td>
+      <td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="excluirNivel('${n.id}')">Excluir</button></div></td>
+    </tr>`).join('');
+}
+function openNivelModal(){
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){ toast('Selecione um estabelecimento antes de criar um nível.', true); return; }
+  ['nivel-nome','nivel-pontos','nivel-beneficios'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nivel-cor').value = '#2F6FED';
+  openModal('modal-nivel');
+}
+async function salvarNivel(){
+  const nome = document.getElementById('nivel-nome').value.trim();
+  const pontos = parseInt(document.getElementById('nivel-pontos').value);
+  if(!nome || isNaN(pontos)){ toast('Preencha nome e pontos necessários.', true); return; }
+  const { error } = await sb.from('niveis').insert({
+    estabelecimento_id: ESTAB_ID, nome, pontos_necessarios: pontos,
+    cor: document.getElementById('nivel-cor').value,
+    beneficios: document.getElementById('nivel-beneficios').value.trim() || null
+  });
+  if(error){ toast('Erro ao salvar nível: '+error.message, true); return; }
+  toast('Nível criado.'); closeModal('modal-nivel');
+  renderNiveis();
+}
+async function excluirNivel(id){
+  await sb.from('niveis').delete().eq('id', id);
+  renderNiveis();
+}
+
+async function prepararSeletorConfiguracoes(){
+  const sel=document.getElementById('cfg-estab-selector'); const panel=document.getElementById('cfg-estab-selector-panel'); if(!sel)return;
+  if(panel) panel.style.display=MEU_PAPEL==='admin_master'?'block':'none';
+  if(MEU_PAPEL==='admin_master'){ await carregarTodosEstabelecimentos(); sel.innerHTML=TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}" ${e.id===ESTAB_ID?'selected':''}>${e.nome}</option>`).join(''); sel.disabled=false; }
+  else { const e=TODOS_ESTABELECIMENTOS.find(x=>x.id===ESTAB_ID); if(!e){ const {data}=await sb.from('estabelecimentos').select('id,nome').eq('id',ESTAB_ID).maybeSingle(); if(data) TODOS_ESTABELECIMENTOS=[...TODOS_ESTABELECIMENTOS,data]; } sel.innerHTML=`<option value="${ESTAB_ID}">${TODOS_ESTABELECIMENTOS.find(x=>x.id===ESTAB_ID)?.nome||'Minha unidade'}</option>`; sel.disabled=true; }
+}
+async function trocarEstabelecimentoConfiguracoes(){ const sel=document.getElementById('cfg-estab-selector'); if(MEU_PAPEL!=='admin_master'||!sel?.value)return; ESTAB_ID=sel.value; const e=TODOS_ESTABELECIMENTOS.find(x=>x.id===ESTAB_ID); document.getElementById('estab-nome').textContent=(e?.nome||'Estabelecimento')+' · Admin Master'; await carregarTudo(); await carregarConfiguracoes(); await renderNiveis(); renderClientes(); renderServicos(); renderPremios(); }
+
+async function carregarConfiguracoes(){
+  await prepararSeletorConfiguracoes();
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){ return; }
+  const { data } = await sb.from('configuracoes').select('*').eq('estabelecimento_id', ESTAB_ID).maybeSingle();
+  if(!data) return;
+  CONFIGURACOES = data;
+  document.getElementById('cfg-aniversario').value = data.desconto_aniversariante_pct || 0;
+  document.getElementById('cfg-aniversario-ativo').checked = !!data.aniversario_ativo;
+  document.getElementById('cfg-boca-boca-ativo').checked = !!data.marketing_boca_boca_ativo;
+  document.getElementById('cfg-indicacao-desconto').value = data.indicacao_desconto_pct || 0;
+  document.getElementById('cfg-indicacao-pontos').value = data.indicacao_pontos || 0;
+  document.getElementById('cfg-indicacao-obs').value = data.indicacao_observacao || '';
+  document.getElementById('cfg-avaliacao-ativo').checked = !!data.avaliacao_ativo;
+  document.getElementById('cfg-validade-pontos').value = data.validade_pontos || 'sem_validade';
+  document.getElementById('cfg-pontuacao-maxima').value = data.pontuacao_maxima_servico ?? '';
+  document.getElementById('cfg-valor-por-ponto').value = data.valor_por_ponto ?? 1;
+  document.getElementById('cfg-cashback-ativo').checked = !!data.cashback_ativo;
+  document.getElementById('cfg-cashback-dias').value = data.cashback_expiracao_dias ?? 90;
+  document.getElementById('cfg-mkt-inatividade-ativo').checked = !!data.inatividade_ativo;
+  document.getElementById('cfg-mkt-inatividade-dias').value = data.inatividade_dias ?? 45;
+  document.getElementById('cfg-mkt-lembrete-ativo').checked = !!data.lembrete_pontos_ativo;
+  document.getElementById('cfg-mkt-lembrete-pontos').value = data.lembrete_pontos_faltando ?? 20;
+  document.getElementById('cfg-mkt-reativacao-ativo').checked = !!data.reativacao_ativo;
+  document.getElementById('cfg-mkt-reativacao-desconto').value = data.reativacao_desconto_pct ?? 10;
+  // Profissional não tem acesso a "Identidade e dados da unidade" nem a "Consumo e limites":
+  // essas seções ficam ocultas e nem chegamos a consultar os dados administrativos da unidade.
+  const idPanel=document.getElementById('cfg-identidade-panel'), quotaPanel=document.getElementById('cfg-quota-panel');
+  if(MEU_PAPEL==='profissional'){
+    if(idPanel) idPanel.style.display='none';
+    if(quotaPanel) quotaPanel.style.display='none';
+    return;
+  }
+  if(idPanel) idPanel.style.display='';
+  if(quotaPanel) quotaPanel.style.display='';
+  const estab = await sb.from('estabelecimentos').select('*').eq('id', ESTAB_ID).maybeSingle();
+  const ed=estab.data||{};
+  document.getElementById('cfg-cor-tema').value = ed.cor_tema || '#5B3DF5';
+  document.getElementById('cfg-estab-nome').value=ed.nome||'';
+  document.getElementById('cfg-estab-documento').value=ed.documento||'';
+  document.getElementById('cfg-estab-telefone').value=ed.telefone||'';
+  document.getElementById('cfg-estab-whatsapp').value=ed.whatsapp||'';
+  document.getElementById('cfg-estab-email').value=ed.email||'';
+  document.getElementById('cfg-estab-horario').value=ed.horario_funcionamento||'';
+  document.getElementById('cfg-estab-endereco').value=ed.endereco||'';
+  document.getElementById('cfg-estab-site').value=ed.website_url||'';
+  document.getElementById('cfg-estab-instagram').value=ed.instagram_url||'';
+  document.getElementById('cfg-estab-logo').value=ed.logo_url||'';
+  document.getElementById('cfg-estab-descricao').value=ed.descricao||'';
+  await atualizarQuotaPainel(ESTAB_ID);
+}
+async function salvarConfiguracoes(){
+  const maxRaw = document.getElementById('cfg-pontuacao-maxima').value;
+  const payload = {
+    desconto_aniversariante_pct: parseFloat(document.getElementById('cfg-aniversario').value) || 0,
+    aniversario_ativo: document.getElementById('cfg-aniversario-ativo').checked,
+    marketing_boca_boca_ativo: document.getElementById('cfg-boca-boca-ativo').checked,
+    indicacao_desconto_pct: parseFloat(document.getElementById('cfg-indicacao-desconto').value) || 0,
+    indicacao_pontos: parseInt(document.getElementById('cfg-indicacao-pontos').value) || 0,
+    indicacao_observacao: document.getElementById('cfg-indicacao-obs').value.trim() || null,
+    avaliacao_ativo: document.getElementById('cfg-avaliacao-ativo').checked,
+    validade_pontos: document.getElementById('cfg-validade-pontos').value,
+    pontuacao_maxima_servico: maxRaw ? parseInt(maxRaw) : null,
+    valor_por_ponto: parseFloat(document.getElementById('cfg-valor-por-ponto').value) || 1,
+    cashback_ativo: document.getElementById('cfg-cashback-ativo').checked,
+    cashback_expiracao_dias: parseInt(document.getElementById('cfg-cashback-dias').value) || 90,
+    inatividade_ativo: document.getElementById('cfg-mkt-inatividade-ativo').checked,
+    inatividade_dias: parseInt(document.getElementById('cfg-mkt-inatividade-dias').value) || 45,
+    lembrete_pontos_ativo: document.getElementById('cfg-mkt-lembrete-ativo').checked,
+    lembrete_pontos_faltando: parseInt(document.getElementById('cfg-mkt-lembrete-pontos').value) || 20,
+    reativacao_ativo: document.getElementById('cfg-mkt-reativacao-ativo').checked,
+    reativacao_desconto_pct: parseFloat(document.getElementById('cfg-mkt-reativacao-desconto').value) || 10,
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('configuracoes').update(payload).eq('estabelecimento_id', ESTAB_ID);
+  if(error){ toast('Erro ao salvar configurações: '+error.message, true); return; }
+  CONFIGURACOES = { ...CONFIGURACOES, ...payload };
+  toast('Configurações salvas.');
+}
+async function salvarDadosEstabelecimento(){
+  if(MEU_PAPEL==='profissional'){toast('Você não tem permissão para alterar os dados da unidade.',true);return;}
+  if(!ESTAB_ID){toast('Selecione um estabelecimento.',true);return;}
+  const payload={
+    nome:document.getElementById('cfg-estab-nome').value.trim(),documento:document.getElementById('cfg-estab-documento').value.trim()||null,
+    telefone:document.getElementById('cfg-estab-telefone').value.trim()||null,whatsapp:document.getElementById('cfg-estab-whatsapp').value.trim()||null,
+    email:document.getElementById('cfg-estab-email').value.trim().toLowerCase()||null,horario_funcionamento:document.getElementById('cfg-estab-horario').value.trim()||null,
+    endereco:document.getElementById('cfg-estab-endereco').value.trim()||null,website_url:document.getElementById('cfg-estab-site').value.trim()||null,
+    instagram_url:document.getElementById('cfg-estab-instagram').value.trim()||null,logo_url:document.getElementById('cfg-estab-logo').value.trim()||null,
+    descricao:document.getElementById('cfg-estab-descricao').value.trim()||null,updated_at:new Date().toISOString()
+  };
+  if(!payload.nome){toast('Informe o nome da unidade.',true);return;}
+  const {error}=await sb.from('estabelecimentos').update(payload).eq('id',ESTAB_ID);
+  if(error){toast('Erro ao salvar dados da unidade: '+error.message,true);return;}
+  await carregarTodosEstabelecimentos();
+  const e=TODOS_ESTABELECIMENTOS.find(x=>x.id===ESTAB_ID); if(e)document.getElementById('estab-nome').textContent=(e.nome||'Estabelecimento')+' · '+(MEU_PAPEL==='admin_master'?'Admin Master':'Admin');
+  toast('Dados da unidade salvos.');
+}
+async function salvarAparencia(){
+  if(MEU_PAPEL==='profissional'){toast('Você não tem permissão para alterar a aparência da unidade.',true);return;}
+  const cor = document.getElementById('cfg-cor-tema').value;
+  const { error } = await sb.from('estabelecimentos').update({ cor_tema: cor }).eq('id', ESTAB_ID);
+  if(error){ toast('Erro ao salvar aparência: '+error.message, true); return; }
+  toast('Aparência salva — a página do cliente já reflete a nova cor.');
+}
+
+// meses de validade -> nº de meses (para calcular expiração)
+const VALIDADE_MESES = { 'sem_validade': null, '8_meses': 8, '10_meses': 10, '1_ano': 12, '1_ano_meio': 18, '2_anos': 24 };
+function calcularExpiracao(){
+  if(!CONFIGURACOES) return null;
+  const meses = VALIDADE_MESES[CONFIGURACOES.validade_pontos];
+  if(!meses) return null;
+  const d = new Date(); d.setMonth(d.getMonth() + meses);
+  return d.toISOString().slice(0,10);
+}
+
+async function renderDashboardLocal(){
+  if(!ESTAB_ID)return;
+  const el=document.getElementById('view-dashboard'); if(!el)return;
+  const profissionais=await carregarProfissionaisUnidade(ESTAB_ID);
+  const atendimentos=(window.ATENDIMENTOS_LOCAL||[]);
+  const pontos=PONTUACOES.reduce((s,p)=>s+Number(p.pontos||0),0);
+  const resgates=RESGATES.reduce((s,r)=>s+Number(r.pontos_utilizados||0),0);
+  const cashback=(window.CASHBACK_LOCAL||[]).filter(x=>x.tipo==='credito').reduce((s,x)=>s+Number(x.valor||0),0);
+  const hoje=new Date(), inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  const novos=CLIENTES.filter(c=>new Date(c.created_at)>=inicio).length;
+  el.innerHTML=`<div class="topbar"><div><h2>Painel da unidade</h2><div class="sub">Visão exclusiva do seu estabelecimento</div></div><span class="badge-demo">● Minha unidade</span></div>
+  <div class="grid-cards">${[['Clientes',CLIENTES.length+' / 500'],['Profissionais',profissionais.length+' / 8'],['Novos clientes no mês',novos],['Atendimentos',atendimentos.length],['Pontos gerados',pontos],['Pontos resgatados',resgates],['Cashback gerado',fmtMoney(cashback)]].map(([l,v])=>`<div class="card stat-card"><div class="label">${l}</div><div class="value">${v}</div></div>`).join('')}</div>
+  <div class="panel"><div class="panel-head"><h3>Atividade recente da unidade</h3></div><div class="panel-body">${atendimentos.length?`<table><thead><tr><th>Cliente</th><th>Profissional</th><th>Serviço</th><th>Valor</th><th>Data</th></tr></thead><tbody>${atendimentos.slice(0,8).map(a=>`<tr><td>${CLIENTES.find(c=>c.id===a.cliente_id)?.nome||'—'}</td><td>${profissionais.find(p=>p.id===a.profissional_id)?.nome||'—'}</td><td>${SERVICOS.find(s=>s.id===a.servico_id)?.nome||'—'}</td><td>${fmtMoney(a.valor)}</td><td>${fmtDate(a.created_at)}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum atendimento registrado ainda.')}</div></div>`;
+}
+async function renderDashboardProfissional(){
+  const el=document.getElementById('view-dashboard'); if(!el)return;
+  const meus=(window.ATENDIMENTOS_LOCAL||[]).filter(a=>a.profissional_id===MEU_ID);
+  const pontos=PONTUACOES.reduce((s,p)=>s+Number(p.pontos||0),0);
+  const resgates=RESGATES.reduce((s,r)=>s+Number(r.pontos_utilizados||0),0);
+  const faturamento=meus.reduce((s,a)=>s+Number(a.valor||0),0);
+  const hoje=new Date(), inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  const meusMes=meus.filter(a=>new Date(a.created_at)>=inicio).length;
+  const clientesUnicos=new Set(meus.map(a=>a.cliente_id)).size;
+  el.innerHTML=`<div class="topbar"><div><h2>Painel</h2><div class="sub">Visão dos seus atendimentos</div></div></div>
+  <div class="grid-cards">${[['Atendimentos realizados',meus.length],['Atendimentos no mês',meusMes],['Clientes atendidos',clientesUnicos],['Faturamento gerado',fmtMoney(faturamento)],['Pontos concedidos',pontos],['Pontos resgatados por seus clientes',resgates]].map(([l,v])=>`<div class="card stat-card"><div class="label">${l}</div><div class="value">${v}</div></div>`).join('')}</div>
+  <div class="panel"><div class="panel-head"><h3>Seus últimos atendimentos</h3></div><div class="panel-body">${meus.length?`<table><thead><tr><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Data</th></tr></thead><tbody>${[...meus].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8).map(a=>`<tr><td>${CLIENTES.find(c=>c.id===a.cliente_id)?.nome||'—'}</td><td>${SERVICOS.find(s=>s.id===a.servico_id)?.nome||'—'}</td><td>${fmtMoney(a.valor)}</td><td>${fmtDate(a.created_at)}</td></tr>`).join('')}</tbody></table>`:emptyState('Você ainda não registrou nenhum atendimento.')}</div></div>`;
+}
+async function renderEquipeLocal(){
+  if(MEU_PAPEL!=='admin_estabelecimento')return;
+  const box=document.getElementById('view-equipe-local'); if(!box)return;
+  const profs=await carregarProfissionaisUnidade(ESTAB_ID);
+  box.innerHTML=`<div class="topbar" style="align-items:flex-start;"><div><h2>Equipe</h2><div class="sub">Profissionais da sua unidade · clique no nome para ver os clientes vinculados</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-profissional')">＋ NOVO PROFISSIONAL</button></div><div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>E-mail/ID</th><th>Criado em</th><th></th></tr></thead><tbody>${profs.map(p=>`<tr><td style="cursor:pointer" onclick="abrirClientesProfissional('${p.id}','${(p.nome||'Profissional').replace(/'/g,"\\'")}')"><strong>${p.nome||'—'}</strong></td><td>${p.email||p.id}</td><td>${fmtDate(p.created_at)}</td><td><div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${p.id}')">Editar</button><button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);" onclick="excluirProfissional('${p.id}','${(p.nome||'Profissional').replace(/'/g,"\\'")}')">Excluir</button></div></td></tr>`).join('')||`<tr><td colspan="4">${emptyState('Nenhum profissional cadastrado.')}</td></tr>`}</tbody></table></div></div>`;
+}
+// Clique em um profissional na Equipe: mostra os clientes vinculados a ele (principal e/ou
+// autorizado via "quais profissionais podem atender este cliente"), com um resumo de quantos
+// clientes da unidade podem ser atendidos por qualquer profissional.
+async function abrirClientesProfissional(profissionalId, nomeProf){
+  const box=document.getElementById('view-equipe-local'); if(!box)return;
+  box.innerHTML=`<div class="topbar"><div><h2>Clientes de ${nomeProf}</h2><div class="sub">Vinculados como principal ou autorizado</div></div><button class="btn btn-outline btn-sm" onclick="renderEquipeLocal()">← Voltar para Equipe</button></div><div class="panel"><div class="panel-body"><p class="subtle">Carregando…</p></div></div>`;
+  const [{data:autorizados},{data:principais},{data:qualquer}] = await Promise.all([
+    sb.from('cliente_profissionais').select('cliente_id,clientes(id,nome,telefone)').eq('profissional_id',profissionalId).eq('estabelecimento_id',ESTAB_ID),
+    sb.from('clientes').select('id,nome,telefone').eq('profissional_principal_id',profissionalId).eq('estabelecimento_id',ESTAB_ID),
+    sb.from('clientes').select('id').eq('estabelecimento_id',ESTAB_ID).eq('atendimento_regra','qualquer')
+  ]);
+  const mapa=new Map();
+  (principais||[]).forEach(c=>mapa.set(c.id,{...c,principal:true}));
+  (autorizados||[]).forEach(r=>{ const c=r.clientes; if(!c)return; if(mapa.has(c.id)) mapa.get(c.id).autorizado=true; else mapa.set(c.id,{...c,autorizado:true}); });
+  const lista=[...mapa.values()].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const body=box.querySelector('.panel-body');
+  const qtdQualquer=(qualquer||[]).length;
+  body.innerHTML = (lista.length? `<table><thead><tr><th>Cliente</th><th>Telefone</th><th>Vínculo</th></tr></thead><tbody>${lista.map(c=>`<tr><td>${c.nome||'—'}</td><td>${c.telefone||'—'}</td><td>${c.principal?'<span class="pill pill-on">★ Principal</span> ':''}${c.autorizado?'<span class="pill pill-on">Autorizado</span>':''}</td></tr>`).join('')}</tbody></table>` : emptyState('Nenhum cliente vinculado diretamente a este profissional ainda.'))
+    + (qtdQualquer>0 ? `<p class="subtle" style="margin-top:12px;">+ ${qtdQualquer} cliente(s) da unidade podem ser atendidos por qualquer profissional (regra "Qualquer profissional").</p>` : '');
+}
+
+// ---------- DASHBOARD ----------
+async function renderDashboard(){
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){ await renderDashboardGlobal(); return; }
+  if(MEU_PAPEL==='admin_estabelecimento'){ await renderDashboardLocal(); return; }
+  if(MEU_PAPEL==='profissional'){ await renderDashboardProfissional(); return; }
+  const hoje = new Date();
+  const aniversariantesHoje = CLIENTES.filter(c=>{
+    if(!c.data_nascimento) return false;
+    const d = new Date(c.data_nascimento + 'T00:00:00');
+    return d.getDate()===hoje.getDate() && d.getMonth()===hoje.getMonth();
+  }).length;
+
+  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const novosMes = CLIENTES.filter(c=> new Date(c.created_at) >= inicioMes).length;
+  const pontosDistribuidos = PONTUACOES.reduce((s,p)=>s+p.pontos,0);
+  const pontosResgatados = RESGATES.reduce((s,r)=>s+r.pontos_utilizados,0);
+  const avaliacoesMedia = '5.0'; // dado ilustrativo do ambiente demo
+
+  const stats = [
+    ['Clientes cadastrados', CLIENTES.length, ''],
+    ['Aniversariantes hoje', aniversariantesHoje, ''],
+    ['Novos clientes no mês', novosMes, ''],
+    ['Pontos distribuídos', pontosDistribuidos, ''],
+    ['Pontos resgatados', pontosResgatados, ''],
+    ['Avaliação média', avaliacoesMedia, 'de 5'],
+  ];
+  document.getElementById('dash-stats').innerHTML = stats.map(([label,val,suf])=>`
+    <div class="card stat-card">
+      <div class="label">${label}</div>
+      <div class="value">${val} ${suf?`<small>${suf}</small>`:''}</div>
+    </div>`).join('');
+
+  const ultimas = [...PONTUACOES].sort((a,b)=> new Date(b.created_at)-new Date(a.created_at)).slice(0,6);
+  const body = document.getElementById('dash-ultimas');
+  if(!ultimas.length){ body.innerHTML = emptyState('Nenhuma visita registrada ainda.'); return; }
+  body.innerHTML = `<table><thead><tr><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Pontos</th><th>Data</th></tr></thead><tbody>` +
+    ultimas.map(p=>{
+      const cli = CLIENTES.find(c=>c.id===p.cliente_id);
+      const srv = SERVICOS.find(s=>s.id===p.servico_id);
+      return `<tr><td>${cli?cli.nome:'—'}</td><td>${srv?srv.nome:'—'}</td><td>${fmtMoney(p.valor)}</td><td><span class="tag-points">${p.pontos} pts</span></td><td>${fmtDate(p.created_at)}</td></tr>`;
+    }).join('') + `</tbody></table>`;
+}
+function emptyState(msg){ return `<div class="empty-state"><div class="ico">◇</div>${msg}</div>`; }
+
+// ---------- FASE 2 — ESTABELECIMENTOS / EQUIPE ----------
+function areaOptions(selected=''){
+  return Object.entries(areaLabels).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${v}</option>`).join('');
+}
+async function abrirEdicaoEstabelecimento(id){
+  if(MEU_PAPEL!=='admin_master' && id!==ESTAB_ID) return;
+  const {data,error}=await sb.from('estabelecimentos').select('*').eq('id',id).maybeSingle();
+  if(error||!data){ toast('Não foi possível carregar o estabelecimento.',true); return; }
+  document.getElementById('estab-edit-id').value=data.id;
+  document.getElementById('estab-edit-nome').value=data.nome||'';
+  document.getElementById('estab-edit-area').innerHTML=areaOptions(data.area_atuacao||'');
+  document.getElementById('estab-edit-status').value=data.status||'ativo';
+  document.getElementById('estab-edit-documento').value=data.documento||'';
+  document.getElementById('estab-edit-telefone').value=data.telefone||'';
+  document.getElementById('estab-edit-email').value=data.email||'';
+  document.getElementById('estab-edit-endereco').value=data.endereco||'';
+  document.getElementById('estab-edit-horario').value=data.horario_funcionamento||'';
+  document.getElementById('estab-edit-cor').value=data.cor_tema||'#5B3DF5';
+  openModal('modal-estabelecimento');
+}
+async function salvarEstabelecimentoEditado(){
+  const id=document.getElementById('estab-edit-id').value;
+  const payload={nome:document.getElementById('estab-edit-nome').value.trim(),area_atuacao:document.getElementById('estab-edit-area').value,status:document.getElementById('estab-edit-status').value,documento:document.getElementById('estab-edit-documento').value.trim()||null,telefone:document.getElementById('estab-edit-telefone').value.trim()||null,email:document.getElementById('estab-edit-email').value.trim().toLowerCase()||null,endereco:document.getElementById('estab-edit-endereco').value.trim()||null,horario_funcionamento:document.getElementById('estab-edit-horario').value.trim()||null,cor_tema:document.getElementById('estab-edit-cor').value};
+  if(!payload.nome){toast('Informe o nome do estabelecimento.',true);return;}
+  const {error}=await sb.from('estabelecimentos').update(payload).eq('id',id);
+  if(error){toast('Erro ao atualizar estabelecimento: '+error.message,true);return;}
+  toast('Estabelecimento atualizado.'); closeModal('modal-estabelecimento');
+  await carregarTodosEstabelecimentos();
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID) renderAdminEstabelecimentos();
+  else { const e=TODOS_ESTABELECIMENTOS.find(x=>x.id===id); if(e) document.getElementById('estab-nome').textContent=(e.nome||'Estabelecimento')+' · '+(MEU_PAPEL==='admin_master'?'Admin Master':'Admin'); await carregarTudo(); renderDashboard(); renderClientes(); renderServicos(); renderPremios(); }
+}
+async function renderEquipeEstabelecimento(id=ESTAB_ID){
+  if(!id)return;
+  const box=document.getElementById('view-administradores'); if(!box)return;
+  const {data:admins}=await sb.from('perfis').select('id,nome,email,role,estabelecimento_id,created_at,permissoes').eq('estabelecimento_id',id).in('role',['admin_estabelecimento','profissional']).order('role').order('nome');
+  const estab=TODOS_ESTABELECIMENTOS.find(e=>e.id===id);
+  const permLabels={dashboard:'Dashboard',clientes:'Clientes',atendimentos:'Atendimentos',servicos:'Serviços',premios:'Prêmios',marketing:'Marketing',configuracoes:'Configurações',equipe:'Equipe',auditoria:'Auditoria'};
+  const adminRows=(admins||[]).filter(a=>a.role==='admin_estabelecimento').map(a=>`<div class="panel" style="margin-top:16px;"><div class="panel-head"><div><h3>Permissões · ${a.nome||'Administrador'}</h3><div class="sub">Acesso administrativo restrito a esta unidade</div></div></div><div class="panel-body"><div class="permission-grid">${Object.entries(permLabels).map(([k,label])=>`<label class="permission-item"><input type="checkbox" data-perm-user="${a.id}" data-perm="${k}" ${a.permissoes?.[k]!==false?'checked':''}> ${label}</label>`).join('')}</div><button class="btn btn-primary" style="margin-top:14px;" onclick="salvarPermissoesAdmin('${a.id}')">Salvar permissões</button></div></div>`).join('');
+  box.innerHTML=`<div class="topbar" style="align-items:flex-start;"><div><h2>Equipe · ${estab?.nome||'Estabelecimento'}</h2><div class="sub">Administrador e profissionais vinculados a esta unidade</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-profissional')">＋ NOVO PROFISSIONAL</button></div><div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead><tbody>${(admins||[]).map(a=>`<tr><td>${a.nome||'—'}</td><td>${a.role==='admin_estabelecimento'?'Administrador':'Profissional'}</td><td>${fmtDate(a.created_at)}</td><td>${a.role==='profissional'?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="abrirConsultaAtendimentosProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Consultar</button><button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);" onclick="excluirProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Excluir</button></div>`:''}</td></tr>`).join('')||`<tr><td colspan="4">${emptyState('Nenhum integrante cadastrado.')}</td></tr>`}</tbody></table></div></div>${adminRows}<div id="view-consulta-profissional" style="margin-top:16px;"></div>`;
+}
+
+async function excluirProfissional(id, nome, estabId){
+  if(!confirm(`Excluir o profissional "${nome||'selecionado'}"? Esta ação remove o login dele, mas o histórico de atendimentos já registrado é mantido.`))return;
+  const {data,error}=await sb.functions.invoke('excluir-profissional',{body:{profissional_id:id}});
+  if(error||(data&&data.error)){ const msg=await functionErrorMessage(error,data?.error||'Falha ao excluir profissional.'); toast('Erro: '+msg,true); return; }
+  toast('Profissional excluído.');
+  if(MEU_PAPEL==='admin_estabelecimento'){ await renderEquipeLocal(); }
+  else { await renderEquipeEstabelecimento(estabId||ESTAB_ID); }
+}
+// ---------- Editar profissional (nome / e-mail / senha) ----------
+async function abrirEdicaoProfissional(id){
+  const {data:p}=await sb.from('perfis').select('id,nome,email,estabelecimento_id').eq('id',id).maybeSingle();
+  if(!p){toast('Profissional não encontrado.',true);return;}
+  document.getElementById('ep-id').value=p.id;
+  document.getElementById('ep-nome').value=p.nome||'';
+  document.getElementById('ep-email').value=p.email||'';
+  document.getElementById('ep-senha').value='';
+  document.getElementById('ep-resultado').innerHTML='';
+  openModal('modal-editar-profissional');
+}
+async function salvarEdicaoProfissional(){
+  const id=document.getElementById('ep-id').value;
+  const nome=document.getElementById('ep-nome').value.trim();
+  const email=document.getElementById('ep-email').value.trim().toLowerCase();
+  const senha=document.getElementById('ep-senha').value;
+  const box=document.getElementById('ep-resultado'), btn=document.getElementById('ep-btn');
+  if(!nome||!email){toast('Preencha nome e e-mail.',true);return;}
+  btn.disabled=true;btn.innerHTML='<span class="loader"></span>';
+  const {data,error}=await sb.functions.invoke('editar-profissional',{body:{profissional_id:id,nome,email,...(senha?{senha}:{})}});
+  btn.disabled=false;btn.textContent='Salvar alterações';
+  if(error||(data&&data.error)){ const msg=await functionErrorMessage(error,data?.error||'Falha ao salvar profissional.'); box.innerHTML=`<div style="color:var(--danger)"><strong>Erro:</strong> ${msg}</div>`; return; }
+  toast('Profissional atualizado.');
+  closeModal('modal-editar-profissional');
+  if(MEU_PAPEL==='admin_estabelecimento'){
+    await renderEquipeLocal();
+  } else {
+    const {data:p}=await sb.from('perfis').select('estabelecimento_id').eq('id',id).maybeSingle();
+    if(p) await renderEquipeEstabelecimento(p.estabelecimento_id);
+  }
+}
+
+// ---------- Consultar histórico de atendimentos de um profissional (Admin Master) ----------
+async function abrirConsultaAtendimentosProfissional(profissionalId, nomeProf, estabId){
+  const box=document.getElementById('view-consulta-profissional'); if(!box)return;
+  box.innerHTML=`<div class="panel"><div class="panel-head"><div><h3>Histórico de atendimentos · ${nomeProf}</h3><div class="sub">Clientes atendidos por este profissional</div></div></div><div class="panel-body">
+    <div class="grid-2">
+      <div class="field"><label>De</label><input type="date" id="cap-de" /></div>
+      <div class="field"><label>Até</label><input type="date" id="cap-ate" /></div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="filtrarAtendimentosProfissional('${profissionalId}','${estabId}')">Filtrar</button>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('cap-de').value='';document.getElementById('cap-ate').value='';filtrarAtendimentosProfissional('${profissionalId}','${estabId}')">Limpar</button>
+    <div id="cap-resultados" style="margin-top:14px;"></div>
+  </div></div>`;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  await filtrarAtendimentosProfissional(profissionalId, estabId);
+}
+async function filtrarAtendimentosProfissional(profissionalId, estabId){
+  const de=document.getElementById('cap-de')?.value, ate=document.getElementById('cap-ate')?.value;
+  let q=sb.from('atendimentos').select('id,created_at,valor,cliente_id,servico_id,clientes(nome,telefone),servicos(nome)').eq('profissional_id',profissionalId).eq('estabelecimento_id',estabId).order('created_at',{ascending:false}).limit(500);
+  if(de) q=q.gte('created_at',de+'T00:00:00');
+  if(ate) q=q.lte('created_at',ate+'T23:59:59');
+  const {data,error}=await q; const out=document.getElementById('cap-resultados');
+  if(error){out.innerHTML=`<p style="color:var(--danger)">${error.message}</p>`;return;}
+  const rows=data||[];
+  out.innerHTML=rows.length?`<table><thead><tr><th>Data</th><th>Cliente</th><th>Telefone</th><th>Serviço</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.created_at)}</td><td>${r.clientes?.nome||'—'}</td><td>${r.clientes?.telefone||'—'}</td><td>${r.servicos?.nome||'—'}</td><td>${fmtMoney(r.valor)}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum atendimento encontrado no período selecionado.');
+}
+async function salvarPermissoesAdmin(id){
+  if(MEU_PAPEL!=='admin_master')return;
+  const permissoes={}; document.querySelectorAll(`[data-perm-user="${id}"]`).forEach(i=>permissoes[i.dataset.perm]=i.checked);
+  const {error}=await sb.from('perfis').update({permissoes}).eq('id',id).eq('role','admin_estabelecimento');
+  if(error){toast('Erro ao salvar permissões: '+error.message,true);return;}
+  toast('Permissões atualizadas.');
+}
+
+
+// ---------- CLIENTES ----------
+async function carregarTudo(){
+  const [c,s,pr,pt,rg,at,cb]=await Promise.all([
+    sb.from('clientes').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
+    sb.from('servicos').select('*').eq('estabelecimento_id',ESTAB_ID).order('nome'),
+    sb.from('premios').select('*').eq('estabelecimento_id',ESTAB_ID).order('pontos_necessarios'),
+    sb.from('pontuacoes').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
+    sb.from('resgates').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
+    sb.from('atendimentos').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}).limit(200),
+    sb.from('cashback_lancamentos').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false})
+  ]);
+  CLIENTES=c.data||[]; SERVICOS=s.data||[]; PREMIOS=pr.data||[]; PONTUACOES=pt.data||[]; RESGATES=rg.data||[]; window.ATENDIMENTOS_LOCAL=at.data||[]; window.CASHBACK_LOCAL=cb.data||[];
+}
+// Navega para a tela "Administradores/Equipe" já mostrando a equipe de uma unidade
+// específica, sem que showView() dispare renderAdministradores() (visão de escolha de
+// unidade) por cima — essa condição de corrida era o motivo de a lista de profissionais
+// não aparecer ao clicar em "Equipe" a partir de Estabelecimentos.
+async function abrirEquipeDeEstabelecimento(id){
+  showView('administradores', true);
+  await renderEquipeEstabelecimento(id);
+}
+function showView(view, skipAutoLoad){
+  const target=document.getElementById('view-'+view); if(!target){toast('Tela não encontrada: '+view,true);return;}
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden')); target.classList.remove('hidden');
+  if(skipAutoLoad) return;
+  if(view==='admin' && MEU_PAPEL==='admin_master') renderAdminEstabelecimentos();
+  if(view==='administradores' && MEU_PAPEL==='admin_master') renderAdministradores();
+  if(view==='premios') renderPremios();
+  if(view==='niveis') renderNiveis();
+  if(view==='novo-profissional') prepararNovoProfissional();
+  if(view==='equipe-local') renderEquipeLocal();
+  if(view==='consumo'&&MEU_PAPEL==='admin_master') renderConsumoMaster();
+  if(view==='configuracoes') carregarConfiguracoes();
+  if(view==='dashboard') renderDashboard();
+  if(view==='liberar') resetLiberar();
+  if(view==='historico'&&MEU_PAPEL==='admin_master') prepararFiltrosHistorico();
+  if(view==='historico'&&MEU_PAPEL==='admin_estabelecimento') prepararHistoricoLocal();
+  if(view==='historico'&&MEU_PAPEL==='profissional') prepararHistoricoProfissional();
+}
+const sideNav=document.querySelector('nav.side-nav');
+if(sideNav) sideNav.addEventListener('click',(e)=>{
+  const item=e.target.closest('.nav-item'); if(!item)return;
+  const view=item.dataset.view;
+  if(view==='admin'&&MEU_PAPEL!=='admin_master')return;
+  if(view==='administradores'&&MEU_PAPEL!=='admin_master')return;
+  if(view==='consumo'&&MEU_PAPEL!=='admin_master')return;
+  if(view==='novo-profissional'&&!['admin_master','admin_estabelecimento'].includes(MEU_PAPEL))return;
+  if(view==='equipe-local'&&MEU_PAPEL!=='admin_estabelecimento')return;
+  showView(view);
+  if(view==='pontuar')resetPontuar();
+  if(view==='configuracoes')carregarConfiguracoes();
+  if(view==='cupom'){document.getElementById('cupom-input').value='';document.getElementById('cupom-resultado').innerHTML='';}
+  if(view==='pontuar'||view==='premios'||view==='niveis'||view==='liberar'||view==='cupom')atualizarContextosOperacionais();
+  if(view==='marketing')renderMarketing();
+  if(view==='clientes')renderClientes();
+  if(view==='servicos')renderServicos();
+});
+
+async function renderClientes(){
+  const tbody=document.getElementById('clientes-tbody'); if(!tbody)return;
+  const linhaMaster=c=>`<tr><td><div class="cell-name"><div class="avatar">${initials(c.nome)}</div>${c.nome}</div></td><td>${c.telefone||'—'}</td><td>${c.cpf||'—'}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===c.estabelecimento_id)?.nome||'—'}</td><td>${fmtDate(c.data_nascimento)}</td><td></td></tr>`;
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){
+    const filtroBox=document.getElementById('clientes-filtro-unidade');
+    if(filtroBox){
+      filtroBox.classList.remove('hidden');
+      const sel=document.getElementById('clientes-estab-filtro');
+      if(sel && sel.options.length<=1){ await carregarTodosEstabelecimentos(); sel.innerHTML='<option value="">Todas as unidades (últimos cadastros)</option>'+TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join(''); }
+    }
+    const eidFiltro=document.getElementById('clientes-estab-filtro')?.value||'';
+    const q=(document.getElementById('cliente-search').value||'').toLowerCase().trim();
+    if(eidFiltro){
+      // Unidade específica selecionada: lista completa dos clientes dessa unidade.
+      const {data}=await sb.from('clientes').select('*').eq('estabelecimento_id',eidFiltro).order('created_at',{ascending:false});
+      let list=data||[];
+      if(q) list=list.filter(c=>c.nome.toLowerCase().includes(q)||(c.telefone||'').includes(q));
+      tbody.innerHTML=list.length?list.map(linhaMaster).join(''):`<tr><td colspan="6">${emptyState('Nenhum cliente encontrado nesta unidade.')}</td></tr>`;
+      return;
+    }
+    // Nenhuma unidade selecionada: mostra, em blocos, os últimos cadastros de cada unidade.
+    await carregarTodosEstabelecimentos();
+    const blocos=await Promise.all(TODOS_ESTABELECIMENTOS.map(async e=>{
+      const {data}=await sb.from('clientes').select('*').eq('estabelecimento_id',e.id).order('created_at',{ascending:false}).limit(5);
+      return {estab:e, clientes:data||[]};
+    }));
+    let html='';
+    blocos.forEach(b=>{
+      let clientesFiltrados=b.clientes;
+      if(q) clientesFiltrados=clientesFiltrados.filter(c=>c.nome.toLowerCase().includes(q)||(c.telefone||'').includes(q));
+      if(q && !clientesFiltrados.length) return;
+      html+=`<tr><td colspan="6" style="background:#FBF6F1;font-weight:700;color:var(--wine);padding-top:16px;">${b.estab.nome} <span class="subtle" style="font-weight:500;">— últimos cadastros</span></td></tr>`;
+      html+= clientesFiltrados.length? clientesFiltrados.map(linhaMaster).join('') : `<tr><td colspan="6" class="subtle" style="padding:10px 16px;">Nenhum cliente cadastrado ainda.</td></tr>`;
+    });
+    tbody.innerHTML=html||`<tr><td colspan="6">${emptyState('Nenhum cliente encontrado.')}</td></tr>`;
+    return;
+  }
+  if(document.getElementById('clientes-filtro-unidade')) document.getElementById('clientes-filtro-unidade').classList.add('hidden');
+  const q=(document.getElementById('cliente-search').value||'').toLowerCase();
+  const list=CLIENTES.filter(c=>c.nome.toLowerCase().includes(q)||(c.telefone||'').includes(q));
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="6">${emptyState('Nenhum cliente encontrado.')}</td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr><td><div class="cell-name"><div class="avatar">${initials(c.nome)}</div>${c.nome}</div></td><td>${c.telefone}</td><td>${c.cpf||'—'}</td><td>${nivelBadgeCliente(c.id)}</td><td>${fmtDate(c.data_nascimento)}</td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="enviarLinkWhatsapp('${c.id}')">📲 Link</button><button class="btn btn-outline btn-sm" onclick="openClienteModal('${c.id}')">Editar</button></div></td></tr>`).join('');
+}
+async function carregarProfissionaisUnidade(id){
+  const {data}=await sb.from('perfis').select('id,nome,email,created_at').eq('estabelecimento_id',id).eq('role','profissional').order('nome'); return data||[];
+}
+async function prepararProfissionaisCliente(clienteId){
+  const box=document.getElementById('cliente-profissionais-box'), sel=document.getElementById('cliente-profissionais'), principal=document.getElementById('cliente-profissional-principal'), regra=document.getElementById('cliente-atendimento-regra');
+  if(!box||!sel||!principal||!regra)return;
+  if(MEU_PAPEL==='profissional'){document.getElementById('cliente-atendimento-regra-box').style.display='none';box.style.display='none';document.getElementById('cliente-principal-box').style.display='none';return;}
+  document.getElementById('cliente-atendimento-regra-box').style.display='block'; document.getElementById('cliente-principal-box').style.display='block';
+  const eid=document.getElementById('cliente-estabelecimento').value||ESTAB_ID; const profs=await carregarProfissionaisUnidade(eid);
+  sel.innerHTML=profs.map(p=>`<option value="${p.id}">${p.nome||'Profissional'}</option>`).join('');
+  principal.innerHTML='<option value="">Nenhum</option>'+profs.map(p=>`<option value="${p.id}">${p.nome||'Profissional'}</option>`).join('');
+  regra.value='qualquer';
+  if(clienteId){ const {data:c}=await sb.from('clientes').select('atendimento_regra,profissional_principal_id').eq('id',clienteId).maybeSingle(); regra.value=c?.atendimento_regra||'qualquer'; principal.value=c?.profissional_principal_id||''; const {data}=await sb.from('cliente_profissionais').select('profissional_id').eq('cliente_id',clienteId); const ids=(data||[]).map(x=>x.profissional_id); [...sel.options].forEach(o=>o.selected=ids.includes(o.value)); }
+  alternarRegraAtendimentoCliente();
+}
+function alternarRegraAtendimentoCliente(){
+  const regra=document.getElementById('cliente-atendimento-regra')?.value||'qualquer';
+  const box=document.getElementById('cliente-profissionais-box'); if(box)box.style.display=(MEU_PAPEL!=='profissional'&&regra==='selecionados')?'block':'none';
+}
+async function openClienteModal(id){
+  const sel=document.getElementById('cliente-estabelecimento'), box=document.getElementById('cliente-estabelecimento-box');
+  if(MEU_PAPEL==='admin_master'){sel.innerHTML=TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');sel.disabled=false;box.style.display='block';}else{sel.innerHTML=`<option value="${ESTAB_ID}">${document.getElementById('estab-nome').textContent.replace(' · Admin Master','').replace(' · Admin','')}</option>`;sel.disabled=true;box.style.display='none';}
+  sel.value=ESTAB_ID; document.getElementById('cliente-id').value=id||'';
+  if(id){ const c=CLIENTES.find(x=>x.id===id); if(!c){toast('Cliente não encontrado nesta unidade.',true);return;} document.getElementById('modal-cliente-title').textContent='Editar cliente'; document.getElementById('cliente-nome').value=c.nome; document.getElementById('cliente-telefone').value=c.telefone; document.getElementById('cliente-genero').value=c.genero||'feminino'; document.getElementById('cliente-cpf').value=c.cpf||''; document.getElementById('cliente-nascimento').value=c.data_nascimento||''; document.getElementById('cliente-email').value=c.email||''; }
+  else {document.getElementById('modal-cliente-title').textContent='Novo cliente';['cliente-nome','cliente-telefone','cliente-cpf','cliente-nascimento','cliente-email'].forEach(id=>document.getElementById(id).value='');document.getElementById('cliente-genero').value='feminino';}
+  await prepararProfissionaisCliente(id); openModal('modal-cliente');
+}
+async function salvarCliente(){
+  const id=document.getElementById('cliente-id').value; const eid=MEU_PAPEL==='admin_estabelecimento'?ESTAB_ID:(document.getElementById('cliente-estabelecimento').value||ESTAB_ID);
+  if(!id && !await verificarPodeCadastrar('cliente',eid))return;
+  const regra=document.getElementById('cliente-atendimento-regra')?.value||'qualquer'; const selected=[...document.getElementById('cliente-profissionais').selectedOptions].map(o=>o.value); const principal=document.getElementById('cliente-profissional-principal')?.value||null;
+  if(MEU_PAPEL!=='profissional' && regra==='selecionados' && !selected.length){toast('Selecione pelo menos um profissional autorizado.',true);return;}
+  if(principal && !selected.includes(principal) && regra==='selecionados'){toast('O profissional principal precisa estar entre os profissionais autorizados.',true);return;}
+  const payload={estabelecimento_id:eid,nome:document.getElementById('cliente-nome').value.trim(),telefone:document.getElementById('cliente-telefone').value.trim(),genero:document.getElementById('cliente-genero').value,cpf:document.getElementById('cliente-cpf').value.trim()||null,data_nascimento:document.getElementById('cliente-nascimento').value||null,email:document.getElementById('cliente-email').value.trim()||null,atendimento_regra:regra,profissional_principal_id:principal};
+  if(!payload.nome||!payload.telefone){toast('Preencha nome e telefone.',true);return;}
+  const result=id?await sb.from('clientes').update(payload).eq('id',id).select().single():await sb.from('clientes').insert(payload).select().single();
+  if(result.error){toast('Erro ao salvar cliente: '+result.error.message,true);return;}
+  const clienteId=result.data.id;
+  if(MEU_PAPEL!=='profissional'){ const rel=await sb.from('cliente_profissionais').delete().eq('cliente_id',clienteId); if(rel.error){toast('Erro ao atualizar profissionais autorizados: '+rel.error.message,true);return;} if(selected.length){ const ins=await sb.from('cliente_profissionais').insert(selected.map(pid=>({cliente_id:clienteId,profissional_id:pid,estabelecimento_id:eid}))); if(ins.error){toast('Erro ao salvar profissionais autorizados: '+ins.error.message,true);return;} } }
+  toast('Cliente salvo com sucesso.'); closeModal('modal-cliente'); await carregarTudo(); renderClientes(); renderDashboard(); await atualizarQuotaPainel(eid);
+}
+
+// ---------- SERVIÇOS ----------
+async function renderServicos(){
+  const tbody=document.getElementById('servicos-tbody'); if(!tbody)return;
+  const filtroBox=document.getElementById('servicos-filtro-unidade');
+  if(MEU_PAPEL==='admin_master' && !ESTAB_ID){
+    if(filtroBox){
+      filtroBox.classList.remove('hidden');
+      const sel=document.getElementById('servicos-estab-filtro');
+      if(sel && sel.options.length<=1){ await carregarTodosEstabelecimentos(); sel.innerHTML='<option value="">Todas as unidades</option>'+TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join(''); }
+    }
+    const eidFiltro=document.getElementById('servicos-estab-filtro')?.value||'';
+    let q=sb.from('servicos').select('*').order('nome'); if(eidFiltro) q=q.eq('estabelecimento_id',eidFiltro);
+    const [{data},profsPorUnidade]=await Promise.all([q, eidFiltro?carregarProfissionaisUnidade(eidFiltro):Promise.resolve([])]);
+    const list=data||[];
+    const nomeProf=s=>s.profissional_id? (profsPorUnidade.find(p=>p.id===s.profissional_id)?.nome||'Profissional') : 'Qualquer profissional';
+    tbody.innerHTML=list.length?list.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td>${calcularPontos(s.valor)}</td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===s.estabelecimento_id)?.nome||'—'}<br><span class="subtle">${s.ativo?'Ativo':'Inativo'} · ${eidFiltro?nomeProf(s):(s.profissional_id?'Profissional vinculado':'Qualquer profissional')}</span></td><td></td></tr>`).join(''): `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado para o filtro selecionado.')}</td></tr>`; return;
+  }
+  if(filtroBox) filtroBox.classList.add('hidden');
+  const btnNovoServico=document.getElementById('btn-novo-servico'); if(btnNovoServico) btnNovoServico.classList.remove('hidden');
+  if(MEU_PAPEL==='profissional'){
+    const meusServicos=SERVICOS.filter(s=>s.profissional_id===MEU_ID || !s.profissional_id);
+    tbody.innerHTML = meusServicos.length? meusServicos.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> ${s.profissional_id?'':'<span class="subtle">· Qualquer profissional</span>'}</td><td>${s.profissional_id===MEU_ID?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div>`:''}</td></tr>`).join('') : `<tr><td colspan="6">${emptyState('Você ainda não cadastrou nenhum serviço.')}</td></tr>`;
+    return;
+  }
+  if(!SERVICOS.length){ tbody.innerHTML = `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado.')}</td></tr>`; return; }
+  const profs=await carregarProfissionaisUnidade(ESTAB_ID);
+  const nomeProf=s=>s.profissional_id? (profs.find(p=>p.id===s.profissional_id)?.nome||'Profissional') : 'Qualquer profissional';
+  tbody.innerHTML = SERVICOS.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> <span class="subtle">· ${nomeProf(s)}</span></td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-sm" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div></td></tr>`).join('');
+}
+document.getElementById('servico-valor').addEventListener('input', ()=>{
+  const v = parseFloat(document.getElementById('servico-valor').value || 0);
+  document.getElementById('servico-pontos-preview').textContent = `Gera ${calcularPontos(v)} pontos`;
+});
+// Abre o modal para criar um novo serviço (sem id) ou editar um existente (passando o id).
+async function openServicoModal(id){
+  const s = id ? SERVICOS.find(x=>x.id===id) : null;
+  document.getElementById('servico-edit-id').value = s ? s.id : '';
+  document.getElementById('modal-servico-titulo').textContent = s ? 'Editar serviço' : 'Novo serviço';
+  document.getElementById('servico-nome').value = s ? s.nome : '';
+  document.getElementById('servico-valor').value = s ? s.valor : '';
+  document.getElementById('servico-cashback').value = s ? (s.cashback_pct || '') : '';
+  document.getElementById('servico-pontos-preview').textContent = `Gera ${calcularPontos(s ? s.valor : 0)} pontos`;
+  const profBox=document.getElementById('servico-profissional-box'), profSel=document.getElementById('servico-profissional');
+  if(MEU_PAPEL==='profissional'){
+    // O profissional cadastra o serviço vinculado a si mesmo — não escolhe outro colega
+    // nem deixa como "qualquer profissional" (isso fica a critério do admin da unidade).
+    profBox.style.display='none';
+  } else {
+    profBox.style.display='block';
+    const profs=await carregarProfissionaisUnidade(ESTAB_ID);
+    profSel.innerHTML='<option value="">Qualquer profissional</option>'+profs.map(p=>`<option value="${p.id}">${p.nome||'Profissional'}</option>`).join('');
+    profSel.value = s?.profissional_id || '';
+  }
+  openModal('modal-servico');
+}
+async function salvarServico(){
+  const id = document.getElementById('servico-edit-id').value;
+  const nome = document.getElementById('servico-nome').value.trim();
+  const valor = parseFloat(document.getElementById('servico-valor').value);
+  const cashback_pct = parseFloat(document.getElementById('servico-cashback').value) || 0;
+  if(!nome || isNaN(valor)){ toast('Preencha nome e valor.', true); return; }
+  const profissional_id = MEU_PAPEL==='profissional' ? MEU_ID : (document.getElementById('servico-profissional').value || null);
+  const payload = { nome, valor, cashback_pct, profissional_id };
+  const { error } = id
+    ? await sb.from('servicos').update(payload).eq('id', id)
+    : await sb.from('servicos').insert({ ...payload, estabelecimento_id: ESTAB_ID, ativo:true });
+  if(error){ toast('Erro ao salvar serviço: '+error.message, true); return; }
+  toast(id ? 'Serviço atualizado.' : 'Serviço criado.'); closeModal('modal-servico');
+  await carregarTudo(); renderServicos();
+}
+async function toggleServico(id, ativoAtual){
+  await sb.from('servicos').update({ ativo: !ativoAtual }).eq('id', id);
+  await carregarTudo(); renderServicos();
+}
+
+// ---------- REGISTRAR PONTUAÇÃO ----------
+function buscaClientePontuar(){
+  const q = document.getElementById('pontuar-busca').value.toLowerCase().trim();
+  const box = document.getElementById('pontuar-resultados');
+  if(!q){ box.innerHTML=''; return; }
+  const hits = CLIENTES.filter(c=>c.nome.toLowerCase().includes(q) || c.telefone.includes(q)).slice(0,5);
+  box.innerHTML = hits.map(c=>`
+    <div class="client-hit" onclick="selecionarClientePontuar('${c.id}')">
+      <div class="cell-name"><div class="avatar">${initials(c.nome)}</div>${c.nome}</div>
+      <span class="subtle">${c.telefone}</span>
+    </div>`).join('') || `<p class="subtle">Nenhum cliente encontrado.</p>`;
+}
+async function selecionarClientePontuar(id){
+  pontuarClienteSelecionado=CLIENTES.find(c=>c.id===id); if(!pontuarClienteSelecionado)return;
+  document.getElementById('pontuar-step-busca').classList.add('hidden'); document.getElementById('pontuar-step-form').classList.remove('hidden');
+  document.getElementById('pontuar-cliente-avatar').textContent=initials(pontuarClienteSelecionado.nome); document.getElementById('pontuar-cliente-nome').textContent=pontuarClienteSelecionado.nome; document.getElementById('pontuar-cliente-fone').textContent=pontuarClienteSelecionado.telefone;
+  const ps=document.getElementById('pontuar-profissional-box'), psel=document.getElementById('pontuar-profissional');
+  if(MEU_PAPEL==='profissional'){ps.style.display='none';psel.innerHTML=`<option value="${(await sb.auth.getUser()).data.user.id}">Meu atendimento</option>`;}
+  else {const profs=await carregarProfissionaisUnidade(ESTAB_ID); ps.style.display='block'; psel.innerHTML=profs.map(p=>`<option value="${p.id}">${p.nome||'Profissional'}</option>`).join('');}
+  const sel=document.getElementById('pontuar-servico');
+  const servicosDisponiveis=SERVICOS.filter(s=>s.ativo && (MEU_PAPEL!=='profissional' || s.profissional_id===MEU_ID || !s.profissional_id));
+  sel.innerHTML=servicosDisponiveis.map(s=>`<option value="${s.id}">${s.nome} — ${fmtMoney(s.valor)}</option>`).join('');
+  const usarBox=document.getElementById('pontuar-cashback-usar-box'); if(CONFIGURACOES&&CONFIGURACOES.cashback_ativo){const saldo=await saldoCashbackCliente(pontuarClienteSelecionado.id);pontuarClienteSelecionado._saldoCashback=saldo;if(saldo>0){document.getElementById('pontuar-cashback-saldo').textContent=fmtMoney(saldo);usarBox.style.display='block';}else usarBox.style.display='none';}else usarBox.style.display='none';
+  atualizaPontosPreview();
+}
+async function saldoCashbackCliente(clienteId){
+  const { data } = await sb.from('cashback_lancamentos').select('tipo,valor,expira_em').eq('cliente_id', clienteId);
+  if(!data) return 0;
+  const hoje = new Date().toISOString().slice(0,10);
+  return data.reduce((s,l)=>{
+    if(l.tipo==='credito' && (!l.expira_em || l.expira_em >= hoje)) return s + Number(l.valor);
+    if(l.tipo==='uso') return s - Number(l.valor);
+    return s;
+  }, 0);
+}
+function atualizaPontosPreview(){
+  const s = SERVICOS.find(x=>x.id===document.getElementById('pontuar-servico').value);
+  const cbBox = document.getElementById('pontuar-cashback-credito-box');
+  if(!s){ document.getElementById('pontuar-preview').textContent = '0 pontos'; cbBox.style.display='none'; return; }
+  let pontos = calcularPontos(s.valor);
+  let limitado = false;
+  if(CONFIGURACOES && CONFIGURACOES.pontuacao_maxima_servico && pontos > CONFIGURACOES.pontuacao_maxima_servico){
+    pontos = CONFIGURACOES.pontuacao_maxima_servico; limitado = true;
+  }
+  document.getElementById('pontuar-preview').textContent = `${pontos} pontos` + (limitado ? ' (limite máximo aplicado)' : '');
+
+  if(CONFIGURACOES && CONFIGURACOES.cashback_ativo && s.cashback_pct > 0){
+    const cb = s.valor * (s.cashback_pct/100);
+    document.getElementById('pontuar-cashback-preview').textContent = fmtMoney(cb);
+    cbBox.style.display = 'block';
+  } else { cbBox.style.display = 'none'; }
+}
+function resetPontuar(){
+  pontuarClienteSelecionado = null;
+  document.getElementById('pontuar-busca').value='';
+  document.getElementById('pontuar-resultados').innerHTML='';
+  document.getElementById('pontuar-step-busca').classList.remove('hidden');
+  document.getElementById('pontuar-step-form').classList.add('hidden');
+  document.getElementById('pontuar-usar-cashback').checked = false;
+  document.getElementById('pontuar-cashback-usar-box').style.display = 'none';
+  document.getElementById('pontuar-cashback-credito-box').style.display = 'none';
+}
+async function confirmarPontuacao(){
+  const s=SERVICOS.find(x=>x.id===document.getElementById('pontuar-servico').value); if(!s||!pontuarClienteSelecionado)return;
+  const {data:userData}=await sb.auth.getUser(); const pid=MEU_PAPEL==='profissional'?userData?.user?.id:document.getElementById('pontuar-profissional').value;
+  if(!pid){toast('Selecione o profissional responsável pelo atendimento.',true);return;}
+  const usar=!!document.getElementById('pontuar-usar-cashback').checked;
+  const {data,error}=await sb.rpc('registrar_atendimento_pontuacao',{p_estabelecimento_id:ESTAB_ID,p_cliente_id:pontuarClienteSelecionado.id,p_servico_id:s.id,p_profissional_id:pid,p_usar_cashback:usar,p_observacao:null});
+  if(error||data?.error){toast('Erro ao registrar atendimento: '+(error?.message||data?.error||'operação inválida'),true);return;}
+  let msg=`Atendimento registrado: ${data.pontos} pontos para ${pontuarClienteSelecionado.nome}`; if(Number(data.cashback)>0)msg+=` + ${fmtMoney(data.cashback)} de cashback`; if(Number(data.cashback_usado)>0)msg+=` · ${fmtMoney(data.cashback_usado)} de cashback usado`; toast(msg+'.'); resetPontuar(); await carregarTudo(); renderDashboard(); await atualizarQuotaPainel(ESTAB_ID);
+}
+
+// ---------- LIBERAR PRÊMIO ----------
+function buildKeypad(){
+  const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','⚲'];
+  document.getElementById('liberar-keypad').innerHTML = keys.map(k=>`<button onclick="keypadPress('${k}')">${k}</button>`).join('');
+}
+function keypadPress(k){
+  if(k==='⌫'){ liberarPhoneBuffer = liberarPhoneBuffer.slice(0,-1); }
+  else if(k==='⚲'){ buscarClienteLiberar(); return; }
+  else { liberarPhoneBuffer += k; }
+  document.getElementById('liberar-phone-display').textContent = liberarPhoneBuffer || 'Celular com DDD';
+}
+function resetLiberar(){
+  liberarPhoneBuffer = '';
+  document.getElementById('liberar-phone-display').textContent = 'Celular com DDD';
+  document.getElementById('liberar-resultado').innerHTML = '';
+}
+function buscarClienteLiberar(){
+  const digits = liberarPhoneBuffer.replace(/\D/g,'');
+  const box = document.getElementById('liberar-resultado');
+  if(digits.length < 4){ toast('Digite ao menos os 4 últimos dígitos.', true); return; }
+  const hits = CLIENTES.filter(c=> c.telefone.replace(/\D/g,'').includes(digits));
+  if(!hits.length){ box.innerHTML = emptyState('Nenhum cliente encontrado com esse número.'); return; }
+  box.innerHTML = hits.map(c=>{
+    const pontos = pontosDoCliente(c.id);
+    const disponiveis = PREMIOS.filter(p=>p.ativo && p.pontos_necessarios<=pontos);
+    return `<div class="card" style="margin-bottom:10px;">
+      <div class="cell-name" style="margin-bottom:10px;"><div class="avatar">${initials(c.nome)}</div>
+        <div><strong>${c.nome}</strong><div class="subtle">${c.telefone} · <span class="tag-points">${pontos} pts</span></div></div>
+      </div>
+      ${disponiveis.length ? disponiveis.map(p=>`
+        <div class="client-hit" onclick="liberarPremio('${c.id}','${p.id}')">
+          <span>${p.nome}</span><span class="tag-points">${p.pontos_necessarios} pts</span>
+        </div>`).join('') : `<p class="subtle">Nenhum prêmio disponível com os pontos atuais.</p>`}
+    </div>`;
+  }).join('');
+}
+async function liberarPremio(clienteId, premioId){
+  const premio = PREMIOS.find(p=>p.id===premioId);
+  const cliente = CLIENTES.find(c=>c.id===clienteId);
+  const { error } = await sb.from('resgates').insert({
+    estabelecimento_id: ESTAB_ID, cliente_id: clienteId, premio_id: premioId,
+    pontos_utilizados: premio.pontos_necessarios
+  });
+  if(error){ toast('Erro ao liberar prêmio: '+error.message, true); return; }
+  toast(`Prêmio "${premio.nome}" liberado para ${cliente.nome}.`);
+  resetLiberar();
+  await carregarTudo(); renderDashboard();
+}
+
+function prepararHistoricoLocal(){
+  const master=document.getElementById('historico-master-resultados'); if(master)master.parentElement.parentElement.style.display='none';
+  const local=document.getElementById('historico-local'); if(local)local.classList.remove('hidden');
+  const tabs=document.getElementById('hist-local-tabs'); if(tabs)tabs.classList.remove('hidden');
+  const sb2=document.getElementById('hist-local-servico-box'); if(sb2)sb2.classList.add('hidden');
+  alternarHistoricoLocal('cliente');
+  carregarProfissionaisLocalHistorico();
+}
+// Histórico do login do profissional: sem os campos "Estabelecimento" e "Profissional" (que só
+// fazem sentido para master/admin da unidade) e com um filtro extra "Serviços" — ao escolher um
+// serviço, lista os clientes que o profissional atendeu com aquele serviço.
+function prepararHistoricoProfissional(){
+  const master=document.getElementById('historico-master-resultados'); if(master)master.parentElement.parentElement.style.display='none';
+  const local=document.getElementById('historico-local'); if(local)local.classList.remove('hidden');
+  const tabs=document.getElementById('hist-local-tabs'); if(tabs)tabs.classList.add('hidden');
+  const cb=document.getElementById('hist-local-cliente-box'); if(cb)cb.classList.remove('hidden');
+  const pb=document.getElementById('hist-local-prof-box'); if(pb)pb.classList.add('hidden');
+  const sb2=document.getElementById('hist-local-servico-box'); if(sb2)sb2.classList.remove('hidden');
+  carregarServicosProfissionalHistorico();
+}
+async function carregarServicosProfissionalHistorico(){
+  const {data:userData}=await sb.auth.getUser();
+  const {data:atend}=await sb.from('atendimentos').select('servico_id,servicos(id,nome)').eq('profissional_id',userData?.user?.id).eq('estabelecimento_id',ESTAB_ID);
+  const mapa=new Map(); (atend||[]).forEach(a=>{ if(a.servicos) mapa.set(a.servicos.id,a.servicos.nome); });
+  const sel=document.getElementById('historico-servico-select'); if(!sel)return;
+  sel.innerHTML='<option value="">Selecione um serviço…</option>'+[...mapa.entries()].map(([id,nome])=>`<option value="${id}">${nome}</option>`).join('');
+  document.getElementById('historico-servico-resultados').innerHTML='';
+}
+async function filtrarHistoricoPorServico(){
+  const servicoId=document.getElementById('historico-servico-select')?.value; const box=document.getElementById('historico-servico-resultados');
+  if(!box)return; if(!servicoId){box.innerHTML='';return;}
+  const {data:userData}=await sb.auth.getUser();
+  const {data,error}=await sb.from('atendimentos').select('created_at,valor,clientes(id,nome,telefone)').eq('profissional_id',userData?.user?.id).eq('estabelecimento_id',ESTAB_ID).eq('servico_id',servicoId).order('created_at',{ascending:false});
+  if(error){box.innerHTML=`<p style="color:var(--danger)">${error.message}</p>`;return;}
+  const rows=data||[];
+  box.innerHTML=rows.length?`<table><thead><tr><th>Cliente</th><th>Telefone</th><th>Data</th><th>Valor</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.clientes?.nome||'—'}</td><td>${r.clientes?.telefone||'—'}</td><td>${fmtDate(r.created_at)}</td><td>${fmtMoney(r.valor)}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum cliente recebeu este serviço ainda.');
+}
+function alternarHistoricoLocal(tipo){
+  const cb=document.getElementById('hist-local-cliente-box'), pb=document.getElementById('hist-local-prof-box'), tc=document.getElementById('hist-tab-cliente'), tp=document.getElementById('hist-tab-profissional');
+  if(!cb||!pb)return; const cliente=tipo==='cliente'; cb.classList.toggle('hidden',!cliente);pb.classList.toggle('hidden',cliente);tc.className='btn btn-xs '+(cliente?'btn-primary':'btn-outline');tp.className='btn btn-xs '+(!cliente?'btn-primary':'btn-outline');
+}
+function buscaProfissionalHistorico(){
+  const q=(document.getElementById('historico-prof-busca')?.value||'').toLowerCase().trim(), box=document.getElementById('historico-prof-resultados'); if(!box)return;
+  const profs=(window.PROFISSIONAIS_LOCAL||[]).filter(p=>!q||(p.nome||'').toLowerCase().includes(q));
+  box.innerHTML=profs.map(p=>`<div class="client-hit" onclick="mostrarHistoricoProfissional('${p.id}')"><div class="cell-name"><div class="avatar">${initials(p.nome||'Profissional')}</div>${p.nome||'Profissional'}</div></div>`).join('')||emptyState('Nenhum profissional encontrado.');
+}
+async function carregarProfissionaisLocalHistorico(){ window.PROFISSIONAIS_LOCAL=await carregarProfissionaisUnidade(ESTAB_ID); buscaProfissionalHistorico(); }
+async function mostrarHistoricoProfissional(profissionalId){
+  const prof=(window.PROFISSIONAIS_LOCAL||[]).find(p=>p.id===profissionalId); if(!prof)return;
+  const atend=(window.ATENDIMENTOS_LOCAL||[]).filter(a=>a.profissional_id===profissionalId); const box=document.getElementById('historico-prof-resultados');
+  box.innerHTML=`<div class="panel" style="margin-top:14px"><div class="panel-head"><h3>${prof.nome||'Profissional'}</h3><span class="subtle">${atend.length} atendimento(s)</span></div><div class="panel-body">${atend.length?`<table><thead><tr><th>Data</th><th>Cliente</th><th>Serviço</th><th>Valor</th></tr></thead><tbody>${atend.map(a=>`<tr><td>${fmtDate(a.created_at)}</td><td>${CLIENTES.find(c=>c.id===a.cliente_id)?.nome||'—'}</td><td>${SERVICOS.find(s=>s.id===a.servico_id)?.nome||'—'}</td><td>${fmtMoney(a.valor)}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum atendimento encontrado.')}</div></div>`;
+}
+
+// ---------- HISTÓRICO ----------
+async function prepararFiltrosHistorico(){
+  if(MEU_PAPEL!=='admin_master') return;
+  const sel=document.getElementById('hist-estab'); if(!sel)return;
+  sel.innerHTML='<option value="">Todos os estabelecimentos</option>'+TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');
+  await carregarFiltroHistorico();
+}
+async function carregarFiltroHistorico(){
+  const eid=document.getElementById('hist-estab')?.value||''; const sel=document.getElementById('hist-prof'); if(!sel)return;
+  let q=sb.from('perfis').select('id,nome,estabelecimento_id').eq('role','profissional').order('nome'); if(eid)q=q.eq('estabelecimento_id',eid);
+  const {data}=await q; sel.innerHTML='<option value="">Todos os profissionais</option>'+(data||[]).map(x=>`<option value="${x.id}">${x.nome||x.id}</option>`).join('');
+  await atualizarHistoricoLocalMaster(eid);
+}
+// Quando o Admin Master escolhe uma unidade específica no filtro, habilita a mesma navegação
+// "Por cliente / Por profissional" que o Admin da Unidade usa (escopada àquela unidade).
+// Com "Todos os estabelecimentos" selecionado, essa navegação fica oculta (não faz sentido
+// misturar clientes/profissionais de unidades diferentes nessa visão).
+async function atualizarHistoricoLocalMaster(eid){
+  if(MEU_PAPEL!=='admin_master') return;
+  const local=document.getElementById('historico-local');
+  if(!local) return;
+  if(!eid){ local.classList.add('hidden'); return; }
+  ESTAB_ID = eid;
+  await carregarTudo();
+  local.classList.remove('hidden');
+  alternarHistoricoLocal('cliente');
+  await carregarProfissionaisLocalHistorico();
+}
+async function filtrarHistoricoMaster(){
+  const eid=document.getElementById('hist-estab')?.value||'', pid=document.getElementById('hist-prof')?.value||'', ev=document.getElementById('hist-evento')?.value||'', cq=(document.getElementById('hist-cliente')?.value||'').toLowerCase().trim();
+  const di=document.getElementById('hist-data-inicio')?.value||'', df=document.getElementById('hist-data-fim')?.value||'';
+  let q=sb.from('auditoria_admin').select('*').order('created_at',{ascending:false}).limit(500);
+  if(eid) q=q.eq('estabelecimento_id',eid);
+  if(pid) q=q.eq('profissional_id',pid);
+  if(ev) q=q.eq('evento',ev);
+  if(di) q=q.gte('created_at', di+'T00:00:00');
+  if(df) q=q.lte('created_at', df+'T23:59:59');
+  if(cq){
+    const {data:cli}=await sb.from('clientes').select('id').or(`nome.ilike.%${cq}%,telefone.ilike.%${cq}%`).limit(100);
+    const ids=(cli||[]).map(c=>c.id);
+    if(!ids.length){ document.getElementById('historico-master-resultados').innerHTML=emptyState('Nenhum evento encontrado com os filtros.'); return; }
+    q=q.in('cliente_id',ids);
+  }
+  const {data,error}=await q; const box=document.getElementById('historico-master-resultados');
+  if(error){box.innerHTML=`<p style="color:var(--danger)">${error.message}</p>`;return;}
+  const rows=data||[];
+  const profIds=[...new Set(rows.map(r=>r.profissional_id).filter(Boolean))];
+  const cliIds=[...new Set(rows.map(r=>r.cliente_id).filter(Boolean))];
+  const [pr,cl]=await Promise.all([
+    profIds.length?sb.from('perfis').select('id,nome').in('id',profIds):Promise.resolve({data:[]}),
+    cliIds.length?sb.from('clientes').select('id,nome,telefone').in('id',cliIds):Promise.resolve({data:[]})
+  ]);
+  const pmap=new Map((pr.data||[]).map(x=>[x.id,x.nome||x.id]));
+  const cmap=new Map((cl.data||[]).map(x=>[x.id,x.nome||x.id]));
+  box.innerHTML=rows.length?`<table><thead><tr><th>Data</th><th>Estabelecimento</th><th>Profissional</th><th>Cliente</th><th>Evento</th><th>Entidade</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.created_at)}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===r.estabelecimento_id)?.nome||'—'}</td><td>${r.profissional_id?pmap.get(r.profissional_id)||'—':'—'}</td><td>${r.cliente_id?cmap.get(r.cliente_id)||'—':'—'}</td><td>${r.evento}</td><td>${r.entidade}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum evento encontrado com os filtros.');
+}
+function limparFiltrosHistorico(){ ['hist-estab','hist-prof','hist-evento','hist-data-inicio','hist-data-fim'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';}); const c=document.getElementById('hist-cliente');if(c)c.value=''; carregarFiltroHistorico(); document.getElementById('historico-master-resultados').innerHTML=''; }
+
+// Para o profissional, o histórico só pode listar clientes que ele de fato atendeu — não todos
+// os clientes da unidade (mesmo os de regra "qualquer profissional" que ele pode atender, mas
+// ainda não atendeu). PONTUACOES/RESGATES/atendimentos já vêm restritos pelo RLS às linhas onde
+// profissional_id = auth.uid(), então usamos essas listas para montar o conjunto permitido.
+function clientesAtendidosPorMim(){
+  const ids=new Set();
+  (window.ATENDIMENTOS_LOCAL||[]).forEach(a=>{ if(a.cliente_id) ids.add(a.cliente_id); });
+  PONTUACOES.forEach(p=>{ if(p.cliente_id) ids.add(p.cliente_id); });
+  RESGATES.forEach(r=>{ if(r.cliente_id) ids.add(r.cliente_id); });
+  return ids;
+}
+function buscaClienteHistorico(){
+  const q=document.getElementById('historico-busca').value.toLowerCase().trim(),box=document.getElementById('historico-resultados'); if(!q){box.innerHTML='';return;}
+  let base=CLIENTES;
+  if(MEU_PAPEL==='profissional'){ const meus=clientesAtendidosPorMim(); base=CLIENTES.filter(c=>meus.has(c.id)); }
+  const hits=base.filter(c=>c.nome.toLowerCase().includes(q)||(c.telefone||'').includes(q)).slice(0,5);
+  box.innerHTML=hits.map(c=>`<div class="client-hit" onclick="mostrarHistorico('${c.id}')"><div class="cell-name"><div class="avatar">${initials(c.nome)}</div>${c.nome}</div><span class="tag-points">${pontosDoCliente(c.id)} pts</span></div>`).join('')||`<p class="subtle">Nenhum cliente encontrado.</p>`;
+}
+function mostrarHistorico(clienteId){
+  const c=CLIENTES.find(x=>x.id===clienteId); if(!c)return;
+  const consumo=PONTUACOES.filter(p=>p.cliente_id===clienteId).map(p=>({tipo:'Pontuação',item:(SERVICOS.find(s=>s.id===p.servico_id)||{}).nome||'—',pontos:`+${p.pontos}`,data:p.created_at}));
+  const resgates=RESGATES.filter(r=>r.cliente_id===clienteId).map(r=>({tipo:'Resgate',item:(PREMIOS.find(p=>p.id===r.premio_id)||{}).nome||'—',pontos:`−${r.pontos_utilizados}`,data:r.created_at}));
+  const linha=[...consumo,...resgates].sort((a,b)=>new Date(b.data)-new Date(a.data)); const box=document.getElementById('historico-detalhe');
+  box.innerHTML=`<div class="panel"><div class="panel-head"><h3>${c.nome}</h3><span class="tag-points">${pontosDoCliente(clienteId)} pts</span></div><div class="panel-body">${linha.length?`<table><thead><tr><th>Tipo</th><th>Item</th><th>Pontos</th><th>Data</th></tr></thead><tbody>${linha.map(l=>`<tr><td>${l.tipo}</td><td>${l.item}</td><td>${l.pontos}</td><td>${fmtDate(l.data)}</td></tr>`).join('')}</tbody></table>`:emptyState('Nenhum histórico para este cliente.')}</div></div>`;
+}
+</script>
+</body>
+</html>

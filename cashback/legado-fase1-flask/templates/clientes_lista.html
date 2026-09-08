@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Clientes · Yansix Cashback{% endblock %}
+{% block page_title %}Clientes{% endblock %}
+{% block page_subtitle %}<div class="topbar-sub">{{ clientes|length }} cliente(s) cadastrado(s)</div>{% endblock %}
+{% block topbar_action %}
+  <a href="{{ url_for('cliente_novo') }}" class="btn btn-primary">+ Novo cliente</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="section-header">
+    <form class="search-box" method="get">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#837A93" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por nome ou telefone...">
+    </form>
+  </div>
+
+  {% if clientes %}
+    <table>
+      <thead>
+        <tr><th>Cliente</th><th>Telefone</th><th>Saldo de pontos</th><th>Visitas</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for c in clientes %}
+        <tr>
+          <td>
+            <div class="row-link">
+              <div class="avatar-hex">{{ c.iniciais }}</div>
+              <a href="{{ url_for('cliente_detalhe', cliente_id=c.id) }}" style="font-weight:600;">{{ c.nome }}</a>
+            </div>
+          </td>
+          <td>{{ c.telefone }}</td>
+          <td><span class="badge badge-purple">{{ c.saldo }} pts</span></td>
+          <td>{{ c.total_visitas }}</td>
+          <td style="text-align:right;">
+            <a href="{{ url_for('cliente_detalhe', cliente_id=c.id) }}" class="btn btn-outline btn-sm">Ver</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      <div class="hex-empty"></div>
+      {% if busca %}
+        Nenhum cliente encontrado para "{{ busca }}".
+      {% else %}
+        Nenhum cliente cadastrado ainda.<br>
+        <a href="{{ url_for('cliente_novo') }}" class="btn btn-primary" style="margin-top:14px;">Cadastrar o primeiro cliente</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meus Pontos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --wine:#141B3C; --wine-2:#1F2B63; --gold:#2F6FED; --gold-soft:#D9E6FF;
+    --cream:#FBF6F1; --card:#FFFFFF; --line:#EEE2D8; --muted:#8A7A83; --ink:#2B1B26;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  .phone-frame{max-width:430px;margin:0 auto;min-height:100vh;background:var(--card);position:relative;padding-bottom:78px;}
+  .hero{background:linear-gradient(135deg,var(--wine),var(--wine-2));color:#fff;padding:30px 24px 60px;position:relative;overflow:hidden;}
+  .hero::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.06);}
+  .hero .brand{display:flex;align-items:center;gap:10px;margin-bottom:26px;}
+  .hero .brand .mark{width:38px;height:38px;border-radius:11px;background:var(--gold);color:var(--wine);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;}
+  .hero h1{font-size:20px;}
+  .hero .greet{font-size:14px;color:#e6d3df;margin-bottom:4px;}
+  .hero .balance{font-size:42px;font-family:'Fraunces',serif;font-weight:700;margin:4px 0 2px;}
+  .hero .balance small{font-size:15px;font-weight:500;color:#e6d3df;}
+
+  .content{padding:0 20px;margin-top:-32px;}
+  .card{background:#fff;border-radius:16px;box-shadow:0 10px 30px -12px rgba(59,19,48,.18);border:1px solid var(--line);padding:20px;margin-bottom:16px;}
+  .section-title{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:12px;}
+
+  .premio-row{margin-bottom:16px;}
+  .premio-row:last-child{margin-bottom:0;}
+  .premio-row .top{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:6px;}
+  .bar-bg{height:8px;background:var(--line);border-radius:100px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--wine));border-radius:100px;}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:11px;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:14.5px;width:100%;text-decoration:none;}
+  .btn-primary{background:var(--wine);color:#fff;}
+  .btn-gold{background:var(--gold);color:#fff;}
+  .btn-wa{background:#25D366;color:#fff;}
+
+  .emoji-row{display:flex;justify-content:space-between;margin:22px 0 18px;}
+  .emoji-opt{flex:1;text-align:center;cursor:pointer;padding:8px 2px;border-radius:12px;font-size:30px;border:2px solid transparent;transition:.15s;}
+  .emoji-opt:hover{background:var(--cream);}
+  .emoji-opt.selected{border-color:var(--gold);background:var(--gold-soft);}
+  .emoji-opt .lbl{display:block;font-size:10.5px;color:var(--muted);margin-top:4px;font-weight:600;}
+
+  .cupom-card{background:linear-gradient(135deg,var(--wine),#7a1f5c);border-radius:16px;padding:26px 22px;text-align:center;color:#fff;margin-bottom:18px;}
+  .cupom-card .mark{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-family:'Fraunces',serif;font-weight:700;font-size:20px;}
+  .cupom-code{font-family:'Fraunces',serif;font-size:22px;letter-spacing:.06em;background:rgba(255,255,255,.12);border:1.5px dashed rgba(255,255,255,.5);border-radius:10px;padding:10px;margin:14px 0;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--muted);padding:0 0 8px;border-bottom:1.5px solid var(--line);}
+  td{padding:11px 0;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  .pts-pos{color:#3F7A5C;font-weight:600;}
+  .pts-neg{color:#B23A48;font-weight:600;}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px 6px;box-shadow:0 -6px 20px -10px rgba(0,0,0,.15);}
+  .tab{flex:1;text-align:center;padding:8px 0;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;border-radius:10px;}
+  .tab .ic{display:block;font-size:19px;margin-bottom:2px;}
+  .tab.active{color:var(--wine);background:var(--cream);}
+  .view{display:none;}
+  .view.active{display:block;}
+  .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13.5px;}
+  .loading, .notfound{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:14px;color:var(--muted);text-align:center;padding:20px;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading"><div>Carregando seus pontos…</div></div>
+<div id="notfound" class="notfound hidden" style="display:none;">
+  <h2 style="color:var(--wine)">Link inválido</h2>
+  <p>Não encontramos seus dados. Peça um novo link ao estabelecimento.</p>
+</div>
+
+<div class="phone-frame hidden" id="app" style="display:none;">
+  <div class="hero">
+    <div class="brand"><div class="mark">Y</div><h1 id="estab-nome">—</h1></div>
+    <div class="greet">Olá, <span id="cliente-nome">—</span>! Seu saldo atual é</div>
+    <div class="balance"><span id="saldo-pontos">0</span> <small>pontos</small></div>
+  </div>
+
+  <div class="content">
+
+    <!-- INÍCIO -->
+    <div class="view active" id="tab-inicio">
+      <div class="card hidden" id="nivel-card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <div id="nivel-selo" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">♛</div>
+          <div>
+            <div class="section-title" style="margin-bottom:2px;">Seu nível</div>
+            <div style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;" id="nivel-nome">—</div>
+          </div>
+        </div>
+        <div class="bar-bg" style="margin-bottom:6px;"><div class="bar-fill" id="nivel-barra" style="width:0%;"></div></div>
+        <p class="subtle" id="nivel-faltando" style="margin:0 0 10px;"></p>
+        <p style="font-size:13px;color:var(--ink);margin:0;" id="nivel-beneficios"></p>
+      </div>
+      <div class="card hidden" id="cashback-card">
+        <div class="section-title">Seu saldo em cashback</div>
+        <div style="font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:var(--wine);" id="cashback-saldo">R$ 0,00</div>
+        <p class="subtle" style="margin:4px 0 0;">Use como desconto na sua próxima visita.</p>
+      </div>
+      <div class="card">
+        <div class="section-title">Seu progresso de prêmios</div>
+        <div id="premios-lista"></div>
+      </div>
+    </div>
+
+    <!-- AVALIAÇÕES -->
+    <div class="view" id="tab-avaliacoes">
+      <div class="card">
+        <h3 style="font-size:18px;margin-bottom:4px;">Sua opinião é muito importante</h3>
+        <p style="color:var(--muted);font-size:13.5px;margin:0 0 4px;">Qual a sua satisfação com o último serviço realizado?</p>
+        <div class="emoji-row" id="emoji-row">
+          <div class="emoji-opt" data-n="5">😍<span class="lbl">Muito satisfeito</span></div>
+          <div class="emoji-opt" data-n="4">🙂<span class="lbl">Satisfeito</span></div>
+          <div class="emoji-opt" data-n="3">😐<span class="lbl">Regular</span></div>
+          <div class="emoji-opt" data-n="2">🙁<span class="lbl">Ruim</span></div>
+          <div class="emoji-opt" data-n="1">😡<span class="lbl">Péssimo</span></div>
+        </div>
+        <button class="btn btn-primary" id="btn-avaliar" onclick="enviarAvaliacao()">Enviar avaliação</button>
+        <p id="avaliacao-msg" style="text-align:center;color:#3F7A5C;font-size:13.5px;margin-top:12px;display:none;">Obrigado pela sua avaliação!</p>
+      </div>
+    </div>
+
+    <!-- INDIQUE -->
+    <div class="view" id="tab-indique">
+      <div class="cupom-card">
+        <div class="mark">Y</div>
+        <h3 style="font-size:16px;">Indique um amigo e ganhe pontos</h3>
+        <p style="font-size:13px;color:#f0e0ea;margin:8px 0 0;" id="cupom-regra">Carregando…</p>
+        <div class="cupom-code" id="cupom-codigo">——————</div>
+        <p style="font-size:11px;color:#f0e0ea;">* Válido para novos clientes na primeira visita</p>
+      </div>
+      <button class="btn btn-wa" id="btn-compartilhar">📲 Compartilhar pelo WhatsApp</button>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div class="view" id="tab-historico">
+      <div class="card">
+        <div class="section-title">Histórico</div>
+        <div id="historico-lista"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active" data-tab="inicio"><span class="ic">⌂</span>Início</div>
+    <div class="tab" data-tab="avaliacoes"><span class="ic">★</span>Avaliações</div>
+    <div class="tab" data-tab="indique"><span class="ic">☺</span>Indique</div>
+    <div class="tab" data-tab="historico"><span class="ic">↺</span>Histórico</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://uaqbnwwjqhhnqzsavbkh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_CtfOabxYTa17BqfZ-ap48A_T097PlEo";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function getClienteId(){
+  const url = new URL(window.location.href);
+  const parts = url.pathname.split('/').filter(Boolean);
+  return url.searchParams.get('c') || parts[parts.length-1] || null;
+}
+const CLIENTE_ID = getClienteId();
+let notaSelecionada = null;
+
+async function init(){
+  if(!CLIENTE_ID || CLIENTE_ID.length < 10){ showNotFound(); return; }
+  const { data, error } = await sb.rpc('cliente_publico_info', { p_cliente_id: CLIENTE_ID });
+  if(error || !data){ showNotFound(); return; }
+
+  if(data.avaliacao_ativo === false){
+    document.querySelector('.tab[data-tab="avaliacoes"]').style.display = 'none';
+  }
+  if(data.indicacao_ativa === false){
+    document.querySelector('.tab[data-tab="indique"]').style.display = 'none';
+  }
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('estab-nome').textContent = data.estabelecimento_nome || 'Meus Pontos';
+  document.getElementById('cliente-nome').textContent = data.nome;
+  document.getElementById('saldo-pontos').textContent = data.saldo;
+  if(data.cor_tema){ document.documentElement.style.setProperty('--wine', data.cor_tema); }
+
+  const premios = data.premios || [];
+  const box = document.getElementById('premios-lista');
+  box.innerHTML = premios.length ? premios.map(p=>`
+    <div class="premio-row">
+      <div class="top"><span>${p.nome}</span><span>${p.progresso_pct}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${p.progresso_pct}%"></div></div>
+    </div>`).join('') : `<div class="empty">Nenhum prêmio disponível no momento.</div>`;
+
+  if(data.nivel){
+    document.getElementById('nivel-card').classList.remove('hidden');
+    document.getElementById('nivel-selo').style.background = data.nivel.cor + '22';
+    document.getElementById('nivel-selo').style.color = data.nivel.cor;
+    document.getElementById('nivel-nome').textContent = data.nivel.nome;
+    document.getElementById('nivel-nome').style.color = data.nivel.cor;
+    document.getElementById('nivel-barra').style.width = data.nivel.progresso_pct + '%';
+    document.getElementById('nivel-faltando').textContent = data.nivel.proximo_nome
+      ? `Faltam ${data.nivel.pontos_faltando} pontos para o nível ${data.nivel.proximo_nome}`
+      : 'Você atingiu o nível máximo!';
+    document.getElementById('nivel-beneficios').textContent = data.nivel.beneficios || '';
+  }
+
+  loadCupom();
+  loadHistorico();
+  loadCashback();
+}
+
+async function loadCashback(){
+  const { data } = await sb.rpc('cliente_publico_saldo_cashback', { p_cliente_id: CLIENTE_ID });
+  if(data && data.ativo){
+    document.getElementById('cashback-saldo').textContent =
+      'R$ ' + Number(data.saldo).toFixed(2).replace('.', ',');
+    document.getElementById('cashback-card').classList.remove('hidden');
+  }
+}
+function showNotFound(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('notfound').style.display='flex';
+}
+
+async function loadCupom(){
+  const { data } = await sb.rpc('cliente_publico_cupom', { p_cliente_id: CLIENTE_ID });
+  if(!data) return;
+  document.getElementById('cupom-codigo').textContent = data.codigo;
+  document.getElementById('cupom-regra').textContent =
+    `Seu amigo ganha ${data.desconto_pct}% de desconto e você ganha ${data.pontos} pontos.`;
+  const link = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '') + '?cupom=' + data.codigo;
+  const msg = encodeURIComponent(`Olha só! Use meu cupom ${data.codigo} e ganhe ${data.desconto_pct}% de desconto na sua primeira visita 💜`);
+  document.getElementById('btn-compartilhar').onclick = ()=> window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+async function loadHistorico(){
+  const { data } = await sb.rpc('cliente_publico_historico', { p_cliente_id: CLIENTE_ID });
+  const lista = data || [];
+  const box = document.getElementById('historico-lista');
+  box.innerHTML = lista.length ? `<table><thead><tr><th>Item</th><th>Pontos</th><th>Data</th></tr></thead><tbody>` +
+    lista.map(l=>`<tr><td>${l.item}</td><td class="${l.pontos>=0?'pts-pos':'pts-neg'}">${l.pontos>=0?'+':''}${l.pontos}</td><td>${new Date(l.data).toLocaleDateString('pt-BR')}</td></tr>`).join('') +
+    `</tbody></table>` : `<div class="empty">Nenhuma movimentação ainda.</div>`;
+}
+
+document.getElementById('emoji-row').addEventListener('click', (e)=>{
+  const opt = e.target.closest('.emoji-opt');
+  if(!opt) return;
+  document.querySelectorAll('.emoji-opt').forEach(o=>o.classList.remove('selected'));
+  opt.classList.add('selected');
+  notaSelecionada = parseInt(opt.dataset.n);
+});
+async function enviarAvaliacao(){
+  if(!notaSelecionada){ return; }
+  const { data } = await sb.rpc('cliente_publico_avaliar', { p_cliente_id: CLIENTE_ID, p_nota: notaSelecionada });
+  if(data){
+    document.getElementById('avaliacao-msg').style.display='block';
+    document.getElementById('btn-avaliar').disabled = true;
+    document.getElementById('btn-avaliar').style.opacity = .6;
+  }
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+init();
+</script>
+</body>
+</html>

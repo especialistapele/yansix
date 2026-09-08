@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Serviços · Yansix Cashback{% endblock %}
+{% block page_title %}Serviços{% endblock %}
+{% block page_subtitle %}<div class="topbar-sub">Cada real gasto vira 1 ponto (arredondado para baixo)</div>{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+  <div class="card">
+    <div class="card-title">Serviços cadastrados</div>
+    {% if servicos %}
+      <table>
+        <thead><tr><th>Serviço</th><th>Valor</th><th>Pontos</th><th></th></tr></thead>
+        <tbody>
+          {% for s in servicos %}
+          <tr>
+            <td>{{ s.nome }}</td>
+            <td>R$ {{ "%.2f"|format(s.valor) }}</td>
+            <td><span class="badge badge-purple">{{ s.pontos }} pts</span></td>
+            <td style="text-align:right;">
+              <form method="post" action="{{ url_for('servico_excluir', servico_id=s.id) }}"
+                    onsubmit="return confirm('Remover este serviço?');">
+                <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="hex-empty"></div>
+        Nenhum serviço cadastrado ainda.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Novo serviço</div>
+    <form method="post">
+      <div class="form-group">
+        <label>Nome do serviço</label>
+        <input class="form-control" type="text" name="nome" required placeholder="Ex: Corte de cabelo">
+      </div>
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input class="form-control" type="text" name="valor" required placeholder="Ex: 50,00">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Cadastrar serviço</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
