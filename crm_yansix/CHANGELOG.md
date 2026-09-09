@@ -1,4 +1,38 @@
 
+## 2026-09-08 — 5 novos módulos: Catálogo, Automação real, Financeiro, Motivo de perda, NPS
+- **Catálogo de Produtos/Serviços** (aba "Produtos"): CRUD simples (nome, categoria, preço padrão, ativo/inativo). Só Administrador cadastra/edita/exclui; Gestor só visualiza. No formulário de negociação, "Produto/Serviço" agora sugere os itens do catálogo (campo combo com `<datalist>` — continua aceitando texto livre, então negociações antigas não quebram), e se o item tem preço padrão e o campo valor está vazio, o valor é preenchido automaticamente. Nova tabela `produtos_servicos` no Supabase.
+- **Automação ativada de verdade**: `runAutomations()` já existia no código mas nunca era chamado — agora roda a cada sincronização (a cada 60s e ao logar), criando as tarefas de follow-up de proposta, lead parado e recuperação de oportunidade perdida que já estavam configuradas em Configurações.
+- **Financeiro** (aba "Financeiro", Administrador e Gestor): faturas por cliente (valor, valor pago, status Em aberto/Parcial/Pago/Cancelado, forma de pagamento, vencimento, data de pagamento), pode ser vinculada a uma negociação. Cards de faturado/recebido/em aberto no período, e uma tabela simples de fluxo de caixa dos últimos 6 meses. Nova tabela `faturas` no Supabase.
+- **Motivo de perda**: ao mover uma negociação para "Perdido" (no Kanban por arrastar-e-soltar, ou editando a negociação), o sistema agora pede o motivo (campo combo com sugestões: Preço, Concorrência, Sem retorno do cliente, Timing/orçamento, etc., mas aceita texto livre) — obrigatório para salvar. Relatórios ganhou um painel novo "Motivos de perda" com o ranking de motivos e as perdas cruzadas por origem do lead. Nova coluna `negociacoes.motivoPerda`.
+- **Satisfação/NPS** (aba "Satisfação", Administrador e Gestor): registro manual de nota (0–10) e comentário por cliente, com nota média, total de respondidas e pendentes. É registro manual (não há envio automático de pesquisa por e-mail/WhatsApp — isso exigiria uma integração de envio que o projeto ainda não tem). Nova tabela `pesquisas_satisfacao` no Supabase.
+- `js/config.js`, `js/api.js` atualizados com as novas tabelas/permissões (Gestor ganhou acesso a Produtos, Financeiro e Satisfação).
+
+## 2026-09-08 — Nome do vendedor na tela do gestor
+- No modal "Ver vendas" aberto a partir da aba Gestores, agora aparece uma coluna **Vendedor** mostrando quem fez cada venda (antes só aparecia o cliente).
+- Confirmado que a "Taxa de conversão (reunião → fechamento)" não é bug: a tabela `interacoes` do banco está vazia — assim que interações do tipo "Reunião" forem registradas na aba Interações, a conversão passa a calcular sozinha.
+
+## 2026-09-08 — Correção: percentual da comissão não salvava
+- Bug encontrado com acesso direto ao Supabase: `ensureCommissionRecords()` tentava gravar `percentual: ""` (texto vazio) numa coluna `numeric`, o que o Postgres rejeita (`invalid input syntax for type numeric`). O erro caía num try/catch silencioso, então nenhuma linha de comissão chegava a ser criada — por isso o botão Salvar não tinha em cima do que gravar, e o total geral ficava sempre zerado.
+- Corrigido para `percentual: null`. As linhas de comissão que faltavam para as 5 negociações já fechadas foram criadas diretamente no banco (9 linhas: 5 de vendedor + 4 de gestor).
+
+## 2026-09-08 — Botão Salvar nas comissões + filtros avançados de Desempenho
+- Nos modais "Ver vendas" (vendedor e gestor), o % de comissão, o status e a data de pagamento agora só são salvos ao clicar em **Salvar** na linha (antes salvava sozinho ao sair do campo).
+- Sub-aba Desempenho ganhou: filtro por origem do lead, filtro por produto/serviço, ticket médio por vendedor/equipe, tempo médio entre criação do lead e fechamento, metas de vendas por vendedor e por equipe (com barra de progresso, editável direto na tabela), comparativo do período atual vs. anterior por vendedor, e exportação do ranking em CSV e PDF (impressão).
+- Metas ficam salvas na tabela `configuracoes` (chave `metasComerciais`), sem precisar de nova tabela no banco.
+
+## 2026-09-08 — Tabela `comissoes` criada no Supabase
+- Confirmado (com acesso direto ao projeto Supabase `zxeupenncextzrqgthqx` / "yansix-crm") que este é de fato um projeto dedicado ao CRM, com todas as tabelas já existentes (`usuarios`, `clientes`, `negociacoes`, `interacoes`, `tarefas`, `propostas`, `historico`, `configuracoes`, `logs`). A investigação anterior (entrada de 2026-09-07 abaixo) usou por engano projetos errados (bancos do painel central da YANSIX); o schema prefixado `crm_yansix_*` criado a partir dela foi descartado.
+- Tabela `comissoes` criada diretamente neste projeto (ver `sql/comissoes.sql`), com `id`s em `text` (para bater com o restante do schema) e RLS seguindo o mesmo padrão hierárquico das demais tabelas (`public.is_crm_admin()` / `public.can_access_crm_user()`): Administrador vê/edita tudo; Gestor vê/edita as comissões da própria equipe; cada usuário vê/edita as próprias.
+- `js/config.js` (`DB_TABLES`) mantido com os nomes reais (sem prefixo).
+
+## 2026-09-07 — Módulo de Comissões (Vendedores e Gestores)
+- Nova aba **Comissões** (Administrador e Gestor), com sub-abas Vendedores, Gestores e Desempenho.
+- Vendedores: lista todos os vendedores com o nome do gestor ao lado; ao clicar, abre a lista de negociações fechadas do vendedor com valor da venda, % de comissão (editável), comissão calculada automaticamente, status (Pendente/A pagar/Pago), data de pagamento e total geral do período.
+- Gestores: mesma lógica aplicada às vendas de toda a equipe do gestor, com percentual próprio por venda (independente do percentual do vendedor).
+- Desempenho: ranking de vendedores e de equipes por valor vendido no período, destaque de "vendedor do mês" e "em destaque" (maior crescimento vs. período anterior), taxa de conversão de reunião → fechamento por vendedor, filtro por período (mês) e por equipe, e uma lista de sugestões de novos filtros para próximas iterações.
+- Nova tabela `comissoes` no Supabase (ver `sql/comissoes.sql`) — 1 linha por negociação fechada e papel (vendedor/gestor), criada automaticamente pelo próprio CRM.
+- `usuarios.gestorId` (já existente desde a Fase 14.3) é reaproveitado para vincular a comissão do gestor às vendas da sua equipe.
+
 ## 2026-09-02 — Status operacional exposto ao Painel Central
 - Nova função `public.obter_status_operacional()` (substitui `obter_status_banco()`): devolve tamanho do banco + contagem de clientes/administradores/gestores/vendedores — nunca dados individuais.
 - Liberada tanto para `authenticated` (tela de Configurações → Status do CRM, dentro do próprio CRM) quanto para `anon` (consulta somente-leitura feita pelo Painel Central usando a anon key já cadastrada, sem login e sem `service_role`).

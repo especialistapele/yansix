@@ -19,8 +19,13 @@ const CONFIG={
   USER_PROVISIONING_MODE:"supabase_edge_function",
   ADMIN_USER_FUNCTION_URL:"https://zxeupenncextzrqgthqx.supabase.co/functions/v1/admin-create-user",
   RELATIONAL_ACCESS_READY:true,
-  SHEETS:{LOGS:"LOGS",USUARIOS:"USUARIOS",CLIENTES:"CLIENTES",NEGOCIACOES:"NEGOCIACOES",INTERACOES:"INTERACOES",TAREFAS:"TAREFAS",PROPOSTAS:"PROPOSTAS",HISTORICO:"HISTORICO",CONFIGURACOES:"CONFIGURACOES"},
-  DB_TABLES:{LOGS:"logs",USUARIOS:"usuarios",CLIENTES:"clientes",NEGOCIACOES:"negociacoes",INTERACOES:"interacoes",TAREFAS:"tarefas",PROPOSTAS:"propostas",HISTORICO:"historico",CONFIGURACOES:"configuracoes"},
+  SHEETS:{LOGS:"LOGS",USUARIOS:"USUARIOS",CLIENTES:"CLIENTES",NEGOCIACOES:"NEGOCIACOES",INTERACOES:"INTERACOES",TAREFAS:"TAREFAS",PROPOSTAS:"PROPOSTAS",HISTORICO:"HISTORICO",CONFIGURACOES:"CONFIGURACOES",COMISSOES:"COMISSOES",PRODUTOS:"PRODUTOS",FATURAS:"FATURAS",PESQUISAS:"PESQUISAS"},
+  DB_TABLES:{LOGS:"logs",USUARIOS:"usuarios",CLIENTES:"clientes",NEGOCIACOES:"negociacoes",INTERACOES:"interacoes",TAREFAS:"tarefas",PROPOSTAS:"propostas",HISTORICO:"historico",CONFIGURACOES:"configuracoes",COMISSOES:"comissoes",PRODUTOS:"produtos_servicos",FATURAS:"faturas",PESQUISAS:"pesquisas_satisfacao"},
+  COMMISSION_STATUS:["pendente","a_pagar","pago"],
+  COMMISSION_STATUS_LABELS:{pendente:"Pendente",a_pagar:"A pagar",pago:"Pago"},
+  LOSS_REASONS:["Preço","Concorrência","Sem retorno do cliente","Timing / orçamento","Não era o público certo","Desistiu da compra","Falta de fit com o serviço","Outro"],
+  INVOICE_STATUS:["em_aberto","parcial","pago","cancelado"],
+  INVOICE_STATUS_LABELS:{em_aberto:"Em aberto",parcial:"Parcial",pago:"Pago",cancelado:"Cancelado"},
   PIPELINE_STAGES:[
     {id:"lead",label:"Lead",defaultProbability:10},{id:"contato",label:"Contato",defaultProbability:25},{id:"qualificacao",label:"Qualificação",defaultProbability:40},{id:"reuniao",label:"Reunião",defaultProbability:60},{id:"proposta",label:"Proposta",defaultProbability:75},{id:"negociacao",label:"Negociação",defaultProbability:85},{id:"fechado",label:"Fechado",defaultProbability:100},{id:"perdido",label:"Perdido",defaultProbability:0}
   ],
@@ -33,7 +38,7 @@ const CONFIG={
   PROPOSAL_STATUSES_LABEL:{rascunho:"Rascunho",enviada:"Enviada",visualizada:"Visualizada",negociacao:"Negociação",aprovada:"Aprovada",recusada:"Recusada",expirada:"Expirada"},
   USER_ROLES:{
     Administrador:{label:"Administrador",permissions:["*"]},
-    Gestor:{label:"Gestor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","propostas","relatorios","configuracoes"]},
+    Gestor:{label:"Gestor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","propostas","relatorios","configuracoes","comissoes","produtos","financeiro","satisfacao"]},
     Vendedor:{label:"Vendedor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","propostas"]}
   },
   USER_DEFAULTS:{nome:"Administrador",email:"yansix.tech@gmail.com",perfil:"Administrador",gestorId:"",ativo:true},

@@ -1,4 +1,4 @@
-let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],propostas:[],historico:[],configuracoes:[]};
+let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],propostas:[],historico:[],configuracoes:[],comissoes:[],produtos:[],faturas:[],pesquisas:[]};
 let SESSION=null;
 let SESSION_LAST_ACTIVITY=Date.now();
 let SESSION_WARNING_SHOWN=false;
@@ -7,6 +7,14 @@ let agendaFilter="atrasadas";
 let currentView="dashboard";
 let AUTOMATION_RULES={...CONFIG.AUTOMATION_DEFAULTS};
 let INTEGRATION_SETTINGS={...CONFIG.INTEGRATION_DEFAULTS};
+let commissionsSubview="vendedores";
+let commissionsTeamFilter="";
+let commissionsOriginFilter="";
+let commissionsProductFilter="";
+let lastCommissionsRanking=[];
+let commissionsPeriod=currentMonthKey();
+let commissionsDetailPeriod=currentMonthKey();
+let commissionsDetailContext=null;
 
 /* =========================================================
    ESTADO DE CARREGAMENTO DOS BOTÕES
@@ -91,6 +99,8 @@ function showView(view){
   currentView=view;document.querySelectorAll(".nav-link").forEach(x=>x.classList.toggle("active",x.dataset.view===view));
   document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===`view-${view}`));history.replaceState(null,"",`#${view}`);
   if(view==="dashboard")renderDashboard();if(view==="clientes")renderClients();if(view==="funil")renderKanban();if(view==="tarefas")renderTasks();if(view==="interacoes")renderInteractions();if(view==="calendario")renderAgenda();if(view==="propostas")renderProposals();if(view==="relatorios")renderReports();if(view==="configuracoes"){renderAutomationSettings();renderCrmStatus();}if(view==="integracoes")renderIntegrations();if(view==="usuarios")renderUsers();
+  if(view==="comissoes"){renderCommissions();if(hasPermission("comissoes"))ensureCommissionRecords().then(()=>{if(currentView==="comissoes")renderCommissions()});}
+  if(view==="produtos")renderProducts();if(view==="financeiro")renderFinance();if(view==="satisfacao")renderSatisfaction();
 }
 function applyPermissions(){
   document.querySelectorAll(".nav-link").forEach(el=>{el.classList.toggle("permission-hidden",!hasPermission(el.dataset.view));});
@@ -183,6 +193,7 @@ function initEvents(){
   document.getElementById("clear-proposal-filters").onclick=()=>{document.getElementById("proposal-search").value="";document.getElementById("proposal-filter-status").value="";renderProposals()};
   document.getElementById("calendar-new-task").onclick=()=>openTaskModal();
   document.querySelectorAll("#agenda-tabs button").forEach(b=>b.onclick=()=>{agendaFilter=b.dataset.agenda;document.querySelectorAll("#agenda-tabs button").forEach(x=>x.classList.toggle("active",x===b));renderAgenda()});
+  document.querySelectorAll("#comissoes-tabs button").forEach(b=>b.onclick=()=>{commissionsSubview=b.dataset.commissionsTab;renderCommissions()});
   ["client-search","filter-tag","filter-origin","filter-status"].forEach(id=>document.getElementById(id).addEventListener("input",renderClients));
   document.getElementById("clear-filters").onclick=()=>{["client-search","filter-tag","filter-origin","filter-status"].forEach(id=>document.getElementById(id).value="");renderClients()};
   document.getElementById("task-filter").onchange=renderTasks;
@@ -197,6 +208,11 @@ function initEvents(){
   document.getElementById("interaction-delete").onclick=()=>deleteInteraction(document.getElementById("interaction-id").value);
   document.getElementById("deal-delete").onclick=()=>deleteDeal(document.getElementById("deal-id").value);
   document.getElementById("task-delete").onclick=()=>deleteTask(document.getElementById("task-id").value);
+  document.getElementById("product-form").onsubmit=saveProduct;
+  document.getElementById("product-delete").onclick=deleteProduct;
+  document.getElementById("invoice-form").onsubmit=saveInvoice;
+  document.getElementById("invoice-delete").onclick=deleteInvoice;
+  document.getElementById("satisfaction-form").onsubmit=saveSatisfaction;
   document.querySelectorAll("[data-close-modal]").forEach(b=>b.onclick=()=>document.getElementById(b.dataset.closeModal).close());
 }
 function renderNotifications(){
@@ -250,9 +266,11 @@ async function syncAll({silent=false}={}){
     applyIntegrationConfig(data.configuracoes||[]);
     STATE=data;
     filterVisibleState();
+    await runAutomations();
+    if(hasPermission("comissoes"))await ensureCommissionRecords();
     document.getElementById("notification-count").textContent=String(STATE.tarefas.filter(t=>t.status!=="concluida"&&isOverdue(t.data)).length);
     if(!document.getElementById("notification-panel")?.classList.contains("hidden"))renderNotifications();
-    renderDashboard();if(currentView==="clientes")renderClients();if(currentView==="funil")renderKanban();if(currentView==="tarefas")renderTasks();if(currentView==="interacoes")renderInteractions();if(currentView==="calendario")renderAgenda();if(currentView==="propostas")renderProposals();if(currentView==="relatorios")renderReports();if(currentView==="integracoes")renderIntegrations()
+    renderDashboard();if(currentView==="clientes")renderClients();if(currentView==="funil")renderKanban();if(currentView==="tarefas")renderTasks();if(currentView==="interacoes")renderInteractions();if(currentView==="calendario")renderAgenda();if(currentView==="propostas")renderProposals();if(currentView==="relatorios")renderReports();if(currentView==="integracoes")renderIntegrations();if(currentView==="comissoes")renderCommissions();if(currentView==="produtos")renderProducts();if(currentView==="financeiro")renderFinance();if(currentView==="satisfacao")renderSatisfaction()
   }catch(e){if(!CONFIG.MOCK&&/Sessão inválida|Não autenticado|Usuário inválido|Sessão expirada/i.test(String(e.message||""))){await logout("Sua sessão expirou. Faça login novamente.");return;}try{await API.create("LOGS",{tipo:"ERRO",usuario:SESSION?.nome||"Sistema",acao:"Sincronização",detalhes:e.message||String(e),dataHora:new Date().toISOString()})}catch{}if(!silent)toast(e.message||"Falha ao sincronizar.","error")}
 }
 function automationConfigRecord(){return STATE.configuracoes?.find(x=>x.chave==="automationRules")}
@@ -299,7 +317,7 @@ function filterVisibleState(){
   const ids=visibleClientIds();
   STATE.clientes=(STATE.clientes||[]).filter(c=>ids.has(String(c.id)));
   const byClient=rows=>(rows||[]).filter(r=>!r.clienteId||ids.has(String(r.clienteId)));
-  STATE.negociacoes=byClient(STATE.negociacoes); STATE.interacoes=byClient(STATE.interacoes); STATE.tarefas=byClient(STATE.tarefas); STATE.propostas=byClient(STATE.propostas); STATE.historico=byClient(STATE.historico);
+  STATE.negociacoes=byClient(STATE.negociacoes); STATE.interacoes=byClient(STATE.interacoes); STATE.tarefas=byClient(STATE.tarefas); STATE.propostas=byClient(STATE.propostas); STATE.historico=byClient(STATE.historico); STATE.comissoes=byClient(STATE.comissoes); STATE.faturas=byClient(STATE.faturas); STATE.pesquisas=byClient(STATE.pesquisas);
 }
 function dealByClient(id){return STATE.negociacoes.filter(n=>String(n.clienteId)===String(id))}
 function tasksByClient(id){return STATE.tarefas.filter(t=>String(t.clienteId)===String(id))}
@@ -384,7 +402,7 @@ function renderReports(){
     reportCard("Pipeline ponderado",money(weighted),`${proposalRate.toFixed(1)}% de aprovação de propostas`),
     reportCard("Ciclo médio",cycle===null?"—":`${cycle.toFixed(0)} dias`,"da criação ao fechamento")
   ].join("");
-  renderReportSources(clients);renderReportStages(deals);renderReportRevenue(wins);renderReportPerformance(wins,topSource,topService);renderReportHistory(w,clients,deals,wins,losses,proposals);
+  renderReportSources(clients);renderReportStages(deals);renderReportRevenue(wins);renderReportPerformance(wins,topSource,topService);renderReportHistory(w,clients,deals,wins,losses,proposals);renderReportLossReasons(losses);
 }
 function reportCard(label,value,meta){return`<div class="report-card"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(meta)}</small></div>`}
 function reportTop(list,fn){const map={};list.forEach(x=>{const k=String(fn(x)||"Não informado");map[k]=(map[k]||0)+1});return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5)}
@@ -394,6 +412,14 @@ function renderReportRevenue(wins){const map={};wins.forEach(n=>{const k=reportM
 function renderReportPerformance(wins,topSource,topService){const source=topSource[0],service=topService[0];document.getElementById("report-performance").innerHTML=`<div class="rank-item"><span>Melhor origem</span><strong>${esc(source?.[0]||"—")}</strong><small>${source?.[1]||0} lead${source?.[1]===1?"":"s"}</small></div><div class="rank-item"><span>Melhor serviço / oportunidade</span><strong>${esc(service?.[0]||"—")}</strong><small>${service?.[1]||0} venda${service?.[1]===1?"":"s"}</small></div><div class="rank-list"><h4>Top origens</h4>${topSource.map(([k,v])=>`<div><span>${esc(k)}</span><b>${v}</b></div>`).join("")||"<small>Sem dados.</small>"}</div>`}
 function renderReportHistory(w,clients,deals,wins,losses,proposals){const months={};const add=(date,type,value=1)=>{const k=reportMonthKey(date);if(!k)return;(months[k]??={leads:0,oportunidades:0,vendas:0,valor:0});months[k][type]+=value};clients.forEach(c=>add(c.criadoEm,"leads"));deals.forEach(n=>add(n.criadoEm||n.previsaoFechamento||n.previsao,"oportunidades"));wins.forEach(n=>{add(n.criadoEm||n.previsaoFechamento||n.previsao,"vendas");add(n.criadoEm||n.previsaoFechamento||n.previsao,"valor",reportDealValue(n))});const rows=Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,8);document.getElementById("report-history").innerHTML=`<div class="history-kpis"><span>Perdas <b>${losses.length}</b></span><span>Propostas <b>${proposals.length}</b></span></div><div class="history-table"><div class="history-head"><span>Mês</span><span>Leads</span><span>Oport.</span><span>Vendas</span><span>Faturamento</span></div>${rows.map(([k,v])=>`<div class="history-row"><span>${esc(reportMonthLabel(k))}</span><span>${v.leads}</span><span>${v.oportunidades}</span><span>${v.vendas}</span><span>${money(v.valor)}</span></div>`).join("")||"<div class='empty'>Sem histórico suficiente.</div>"}</div>`}
 function reportSalesCycle(wins){const values=wins.map(n=>{const start=reportDate(n.criadoEm);const end=reportDate(n.dataFechamento||n.fechadoEm||n.previsaoFechamento);if(!start||!end||end<start)return null;return(end-start)/86400000}).filter(x=>x!==null);return values.length?values.reduce((a,b)=>a+b,0)/values.length:null}
+function renderReportLossReasons(losses){
+  const reasons=reportTop(losses,n=>n.motivoPerda||"Não informado");
+  const origins=reportTop(losses,n=>clientById(n.clienteId)?.origem||"Não informado");
+  const maxR=Math.max(1,...reasons.map(x=>x[1])),maxO=Math.max(1,...origins.map(x=>x[1]));
+  document.getElementById("report-loss-reasons").innerHTML=`
+    <div><h4>Motivos mais comuns</h4>${reasons.length?reasons.map(([k,v])=>`<div class="report-bar-row"><div><span>${esc(k)}</span><strong>${v}</strong></div><div class="bar-track"><i class="pct-${Math.round(v/maxR*100)}"></i></div></div>`).join(""):`<div class="empty">Nenhuma negociação perdida no período.</div>`}</div>
+    <div><h4>Perdas por origem do lead</h4>${origins.length?origins.map(([k,v])=>`<div class="report-bar-row"><div><span>${esc(k)}</span><strong>${v}</strong></div><div class="bar-track"><i class="pct-${Math.round(v/maxO*100)}"></i></div></div>`).join(""):`<div class="empty">Sem dados.</div>`}</div>`;
+}
 
 function populateFilters(){
   const tags=[...new Set(STATE.clientes.flatMap(c=>String(c.tags||"").split(",").map(x=>x.trim()).filter(Boolean)))].sort(),origins=[...new Set(STATE.clientes.map(c=>c.origem).filter(Boolean))].sort();
@@ -439,7 +465,7 @@ function renderKanban(){
     return `<div class="kanban-column" data-stage="${esc(stage.id)}"><div class="kanban-head"><div><strong>${esc(stage.label)}</strong><small>${deals.length} · ${money(stageValue)}</small></div><span>${deals.length}</span></div><div class="kanban-cards">${deals.length?deals.map(n=>{const c=clientById(n.clienteId);return `<article class="deal-card priority-${esc(n.prioridade||'média')}" draggable="true" data-deal="${esc(n.id)}"><div class="deal-card-top"><span class="deal-priority">${esc(priorityLabel(n.prioridade))}</span><span>${Number(n.probabilidade||0)}%</span></div><strong>${esc(c?.nome||"Cliente removido")}</strong><div class="deal-product">${esc(n.produtoServico||"Produto/serviço não informado")}</div><div class="deal-value">${money(n.valor)}</div><div class="deal-meta"><span>Fechamento<br><b>${dateBR(n.previsaoFechamento||n.previsao)}</b></span><span>Origem<br><b>${esc(n.origem||"—")}</b></span></div><div class="deal-footer"><small>${esc(ownerName(n.responsavel)||"Sem responsável")}</small>${c?`<a class="wa-mini" target="_blank" rel="noopener" href="${waLink(c.whatsapp||c.contato,`Olá, ${c.nome}! Estou acompanhando nossa negociação.`)}">WhatsApp ↗</a>`:""}</div></article>`}).join(""):`<div class="empty">Solte aqui</div>`}</div></div>`
   }).join("");
   document.querySelectorAll(".deal-card").forEach(card=>{card.addEventListener("click",e=>{if(!e.target.closest("a"))openDealModal(card.dataset.deal)});card.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",card.dataset.deal))});
-  document.querySelectorAll(".kanban-column").forEach(col=>{col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drag-over")});col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));col.addEventListener("drop",async e=>{e.preventDefault();col.classList.remove("drag-over");const id=e.dataTransfer.getData("text/plain"),n=STATE.negociacoes.find(x=>String(x.id)===String(id));if(!n||n.etapa===col.dataset.stage)return;const old=n.etapa;try{await API.update(CONFIG.SHEETS.NEGOCIACOES,id,{etapa:col.dataset.stage});await auditChange(n.clienteId,"NEGOCIACOES",id,"Mudança de etapa",`Etapa: ${stageLabel(old)} → ${stageLabel(col.dataset.stage)}`);await syncAll({silent:true});toast(`Negociação movida para ${stageLabel(col.dataset.stage)}.`)}catch(err){toast(err.message,"error")}})});
+  document.querySelectorAll(".kanban-column").forEach(col=>{col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drag-over")});col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));col.addEventListener("drop",async e=>{e.preventDefault();col.classList.remove("drag-over");const id=e.dataTransfer.getData("text/plain"),n=STATE.negociacoes.find(x=>String(x.id)===String(id));if(!n||n.etapa===col.dataset.stage)return;const old=n.etapa;const patch={etapa:col.dataset.stage};if(col.dataset.stage==="perdido"){const motivo=prompt("Motivo da perda:","");if(motivo===null)return;patch.motivoPerda=motivo.trim()}try{await API.update(CONFIG.SHEETS.NEGOCIACOES,id,patch);await auditChange(n.clienteId,"NEGOCIACOES",id,"Mudança de etapa",`Etapa: ${stageLabel(old)} → ${stageLabel(col.dataset.stage)}`+(patch.motivoPerda?` · Motivo: ${patch.motivoPerda}`:""));await syncAll({silent:true});toast(`Negociação movida para ${stageLabel(col.dataset.stage)}.`)}catch(err){toast(err.message,"error")}})});
 }
 function stageLabel(id){return CONFIG.PIPELINE_STAGES.find(x=>x.id===id)?.label||id}
 function renderTasks(){
@@ -569,23 +595,29 @@ function fillDealSelects(selected=""){
   document.getElementById("deal-stage").innerHTML=CONFIG.PIPELINE_STAGES.map(s=>`<option value="${esc(s.id)}">${esc(s.label)}</option>`).join("");
   document.getElementById("deal-origin").innerHTML='<option value="">Selecione</option>'+CONFIG.DEAL_ORIGINS.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
   document.getElementById("deal-priority").innerHTML=CONFIG.DEAL_PRIORITIES.map(x=>`<option value="${esc(x)}">${esc(priorityLabel(x))}</option>`).join("");
+  document.getElementById("deal-product-list").innerHTML=(STATE.produtos||[]).filter(p=>p.ativo!==false).map(p=>`<option value="${esc(p.nome)}">`).join("");
+  document.getElementById("deal-loss-reason-list").innerHTML=CONFIG.LOSS_REASONS.map(x=>`<option value="${esc(x)}">`).join("");
   if(selected)document.getElementById("deal-client").value=selected;
 }
 function defaultDealProbability(stage){return CONFIG.PIPELINE_STAGES.find(x=>x.id===stage)?.defaultProbability??50}
+function toggleLossReasonField(){const isLost=document.getElementById("deal-stage").value==="perdido";document.getElementById("deal-loss-reason-wrap").classList.toggle("hidden",!isLost)}
 function openDealModal(id=""){
   const n=id?STATE.negociacoes.find(x=>String(x.id)===String(id)):null;
   document.getElementById("deal-form").reset();fillDealSelects(n?.clienteId);
   document.getElementById("deal-id").value=n?.id||"";document.getElementById("deal-probability").dataset.manual="";document.getElementById("deal-modal-title").textContent=n?"Editar negociação":"Nova negociação";document.getElementById("deal-delete").classList.toggle("hidden",!n);document.getElementById("deal-save-btn").textContent=n?"Salvar negociação":"Criar negociação";
-  document.getElementById("deal-client").value=n?.clienteId||STATE.clientes[0]?.id||"";document.getElementById("deal-product").value=n?.produtoServico||"";document.getElementById("deal-stage").value=n?.etapa||"lead";document.getElementById("deal-value").value=n?.valor??"";document.getElementById("deal-probability").value=n?.probabilidade??defaultDealProbability(n?.etapa||"lead");document.getElementById("deal-date").value=n?.previsaoFechamento||n?.previsao||"";populateResponsavelSelect(document.getElementById("deal-owner"),n?.responsavel||"");document.getElementById("deal-origin").value=n?.origem||"";document.getElementById("deal-priority").value=n?.prioridade||"média";
-  document.getElementById("deal-stage").onchange=()=>{if(!n||document.getElementById("deal-probability").dataset.manual!=="true")document.getElementById("deal-probability").value=defaultDealProbability(document.getElementById("deal-stage").value)};
+  document.getElementById("deal-client").value=n?.clienteId||STATE.clientes[0]?.id||"";document.getElementById("deal-product").value=n?.produtoServico||"";document.getElementById("deal-stage").value=n?.etapa||"lead";document.getElementById("deal-value").value=n?.valor??"";document.getElementById("deal-probability").value=n?.probabilidade??defaultDealProbability(n?.etapa||"lead");document.getElementById("deal-date").value=n?.previsaoFechamento||n?.previsao||"";populateResponsavelSelect(document.getElementById("deal-owner"),n?.responsavel||"");document.getElementById("deal-origin").value=n?.origem||"";document.getElementById("deal-priority").value=n?.prioridade||"média";document.getElementById("deal-loss-reason").value=n?.motivoPerda||"";
+  toggleLossReasonField();
+  document.getElementById("deal-product").oninput=()=>{if(document.getElementById("deal-value").value)return;const p=(STATE.produtos||[]).find(x=>x.nome===document.getElementById("deal-product").value);if(p?.precoPadrao)document.getElementById("deal-value").value=p.precoPadrao};
+  document.getElementById("deal-stage").onchange=()=>{if(!n||document.getElementById("deal-probability").dataset.manual!=="true")document.getElementById("deal-probability").value=defaultDealProbability(document.getElementById("deal-stage").value);toggleLossReasonField()};
   document.getElementById("deal-probability").oninput=()=>document.getElementById("deal-probability").dataset.manual="true";
   document.getElementById("deal-modal").showModal();
 }
 async function saveDeal(e){
   e.preventDefault();
-  const id=val("deal-id"),prob=Math.max(0,Math.min(100,Number(val("deal-probability")||0))),data={clienteId:val("deal-client"),produtoServico:val("deal-product").trim(),etapa:val("deal-stage"),valor:Number(val("deal-value")||0),probabilidade:prob,previsaoFechamento:val("deal-date"),responsavel:val("deal-owner").trim()||CONFIG.CURRENT_USER,origem:val("deal-origin"),prioridade:val("deal-priority")||"média",criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()};
+  const id=val("deal-id"),prob=Math.max(0,Math.min(100,Number(val("deal-probability")||0))),data={clienteId:val("deal-client"),produtoServico:val("deal-product").trim(),etapa:val("deal-stage"),valor:Number(val("deal-value")||0),probabilidade:prob,previsaoFechamento:val("deal-date"),responsavel:val("deal-owner").trim()||CONFIG.CURRENT_USER,origem:val("deal-origin"),prioridade:val("deal-priority")||"média",motivoPerda:val("deal-stage")==="perdido"?val("deal-loss-reason").trim():"",criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()};
   data.previsao=data.previsaoFechamento;
   if(!data.clienteId||!data.produtoServico){toast("Informe cliente e produto/serviço.","error");return}
+  if(data.etapa==="perdido"&&!data.motivoPerda){toast("Informe o motivo da perda.","error");return}
   const btn=submitButtonOf(e);
   await withButtonLoading(btn,async()=>{
   try{if(id){const old=STATE.negociacoes.find(x=>String(x.id)===String(id));await API.update(CONFIG.SHEETS.NEGOCIACOES,id,data);const changes=diffDeal(old,data);if(changes)await auditChange(data.clienteId,"NEGOCIACOES",id,"Edição",changes)}else{const n=await API.create(CONFIG.SHEETS.NEGOCIACOES,data);await auditChange(data.clienteId,"NEGOCIACOES",n.id,"Criação",`Negociação criada · ${data.produtoServico} · ${money(data.valor)} · ${stageLabel(data.etapa)}`)}document.getElementById("deal-modal").close();await syncAll({silent:true});toast(id?"Negociação atualizada.":"Negociação criada.");}catch(e){toast(e.message,"error")}
@@ -669,3 +701,441 @@ async function saveTask(e){
 }
 function diffTask(o,n){const p=[];if(o.titulo!==n.titulo)p.push(`Título: "${o.titulo}" → "${n.titulo}"`);if(o.data!==n.data)p.push(`Data: ${dateBR(o.data)} → ${dateBR(n.data)}`);if(o.status!==n.status)p.push(`Status: ${o.status} → ${n.status}`);if(o.canal!==n.canal)p.push(`Canal: ${o.canal} → ${n.canal}`);return p.join(" · ")||"Tarefa editada"}
 async function deleteTask(id){const t=STATE.tarefas.find(x=>String(x.id)===String(id));if(!t||!confirm(`Excluir a tarefa "${t.titulo}"?`))return;const btn=document.getElementById("task-delete");await withButtonLoading(btn,async()=>{try{await API.remove(CONFIG.SHEETS.TAREFAS,id);await auditChange(t.clienteId,"TAREFAS",id,"Exclusão",`Tarefa excluída: ${t.titulo}`);document.getElementById("task-modal").close();await syncAll({silent:true});toast("Tarefa excluída.");}catch(e){toast(e.message,"error")}});}
+
+/* =========================================================
+   FASE — COMISSÕES DE VENDEDORES E GESTORES
+   Cada negociação com etapa "fechado" gera até 2 linhas na
+   tabela COMISSOES: uma para o vendedor responsável (papel
+   "vendedor") e, se ele tiver gestor vinculado (gestorId),
+   outra para o gestor (papel "gestor"), cada uma com seu
+   próprio percentual preenchido manualmente. O valor da
+   comissão é sempre recalculado a partir do valor atual da
+   negociação, para nunca ficar desatualizado.
+   ========================================================= */
+function monthKeyFromDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
+function currentMonthKey(){return monthKeyFromDate(new Date())}
+function previousMonthKey(key){if(!key)return"";const [y,m]=key.split("-").map(Number);return monthKeyFromDate(new Date(y,m-2,1))}
+function teamMembers(gestorId){return (STATE.usuarios||[]).filter(u=>u.perfil==="Vendedor"&&String(u.gestorId||"")===String(gestorId))}
+function allSellers(){return (STATE.usuarios||[]).filter(u=>u.perfil==="Vendedor"&&u.ativo!==false)}
+function allManagers(){return (STATE.usuarios||[]).filter(u=>u.perfil==="Gestor"&&u.ativo!==false)}
+function commissionRow(negociacaoId,papel){return STATE.comissoes.find(c=>String(c.negociacaoId)===String(negociacaoId)&&c.papel===papel)}
+function commissionValue(row,deal){const base=Number(deal?.valor??row?.valorVenda??0);return Math.max(0,base*Number(row?.percentual||0)/100)}
+function commissionStatusLabel(v){return CONFIG.COMMISSION_STATUS_LABELS?.[v]||v||"Pendente"}
+function sellerClosedDeals(sellerId){return STATE.negociacoes.filter(n=>n.etapa==="fechado"&&resolveUserId(n.responsavel)===String(sellerId))}
+function managerClosedDeals(managerId){const ids=new Set(teamMembers(managerId).map(u=>String(u.id)));return STATE.negociacoes.filter(n=>n.etapa==="fechado"&&ids.has(resolveUserId(n.responsavel)))}
+function filterDealsByPeriod(deals,period){return period?deals.filter(n=>reportMonthKey(reportDealDate(n))===period):deals}
+function sellerSoldInPeriod(sellerId,period){return filterDealsByPeriod(sellerClosedDeals(sellerId),period).reduce((a,n)=>a+Number(n.valor||0),0)}
+function conversionForSeller(sellerId,period){
+  const myClients=STATE.clientes.filter(c=>ownerIdForClient(c)===String(sellerId));
+  const myClientIds=new Set(myClients.map(c=>String(c.id)));
+  const meetingClientIds=new Set(STATE.interacoes.filter(i=>{if((i.tipo||i.canal)!=="Reunião")return false;if(period&&reportMonthKey(i.data)!==period)return false;return myClientIds.has(String(i.clienteId))}).map(i=>String(i.clienteId)));
+  if(!meetingClientIds.size)return{meetings:0,closed:0,rate:0};
+  const closed=[...meetingClientIds].filter(cid=>STATE.negociacoes.some(n=>String(n.clienteId)===cid&&n.etapa==="fechado")).length;
+  return{meetings:meetingClientIds.size,closed,rate:closed/meetingClientIds.size*100};
+}
+async function ensureCommissionRecords(){
+  const closed=STATE.negociacoes.filter(n=>n.etapa==="fechado");
+  for(const n of closed){
+    const vendedorId=resolveUserId(n.responsavel);
+    if(!vendedorId)continue;
+    if(!commissionRow(n.id,"vendedor")){
+      try{const rec=await API.create(CONFIG.SHEETS.COMISSOES,{negociacaoId:n.id,clienteId:n.clienteId,usuarioId:vendedorId,papel:"vendedor",valorVenda:Number(n.valor||0),percentual:null,valorComissao:0,status:"pendente",dataPagamento:"",criadoEm:new Date().toISOString()});STATE.comissoes.push(rec)}catch(e){console.warn("Comissão (vendedor):",e)}
+    }
+    const gestorId=userById(vendedorId)?.gestorId?String(userById(vendedorId).gestorId):"";
+    if(gestorId&&!commissionRow(n.id,"gestor")){
+      try{const rec=await API.create(CONFIG.SHEETS.COMISSOES,{negociacaoId:n.id,clienteId:n.clienteId,usuarioId:gestorId,papel:"gestor",valorVenda:Number(n.valor||0),percentual:null,valorComissao:0,status:"pendente",dataPagamento:"",criadoEm:new Date().toISOString()});STATE.comissoes.push(rec)}catch(e){console.warn("Comissão (gestor):",e)}
+    }
+  }
+}
+function availableCommissionPeriods(){const set=new Set(STATE.negociacoes.filter(n=>n.etapa==="fechado").map(n=>reportMonthKey(reportDealDate(n))).filter(Boolean));set.add(currentMonthKey());return[...set].sort().reverse()}
+function commissionPeriodOptions(selected){return `<option value="">Todos os períodos</option>`+availableCommissionPeriods().map(k=>`<option value="${k}" ${k===selected?"selected":""}>${esc(reportMonthLabel(k))}</option>`).join("")}
+function commissionTeamOptions(selected){return `<option value="">Todas as equipes</option>`+allManagers().map(g=>`<option value="${esc(g.id)}" ${String(g.id)===String(selected)?"selected":""}>${esc(g.nome)}</option>`).join("")}
+
+function renderCommissions(){
+  document.querySelectorAll("#comissoes-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.commissionsTab===commissionsSubview));
+  const body=document.getElementById("comissoes-body");if(!body)return;
+  if(commissionsSubview==="vendedores")body.innerHTML=commissionsSellersMarkup();
+  else if(commissionsSubview==="gestores")body.innerHTML=commissionsManagersMarkup();
+  else body.innerHTML=commissionsPerformanceMarkup();
+  bindCommissionsEvents();
+}
+function commissionsSellersMarkup(){
+  const sellers=allSellers().filter(u=>!commissionsTeamFilter||String(u.gestorId||"")===commissionsTeamFilter);
+  const rows=sellers.map(u=>{const deals=filterDealsByPeriod(sellerClosedDeals(u.id),commissionsPeriod);const totalVendido=deals.reduce((a,n)=>a+Number(n.valor||0),0);const totalComissao=deals.reduce((a,n)=>a+commissionValue(commissionRow(n.id,"vendedor"),n),0);const pago=deals.filter(n=>commissionRow(n.id,"vendedor")?.status==="pago").length;return{u,deals,totalVendido,totalComissao,pago}}).sort((a,b)=>b.totalVendido-a.totalVendido);
+  return`<div class="panel commissions-panel">
+    <div class="commissions-toolbar"><select id="commissions-period">${commissionPeriodOptions(commissionsPeriod)}</select><select id="commissions-team-filter">${commissionTeamOptions(commissionsTeamFilter)}</select></div>
+    <div class="table-scroll"><table><thead><tr><th>Vendedor</th><th>Gestor</th><th>Vendas</th><th>Valor vendido</th><th>Comissão</th><th>Pagas</th><th></th></tr></thead>
+    <tbody>${rows.length?rows.map(r=>`<tr><td><strong>${esc(r.u.nome)}</strong></td><td>${esc(gestorNome(r.u.gestorId))}</td><td>${r.deals.length}</td><td>${money(r.totalVendido)}</td><td>${money(r.totalComissao)}</td><td>${r.pago}/${r.deals.length}</td><td><button type="button" class="text-btn" data-commission-seller="${esc(r.u.id)}">Ver vendas →</button></td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">Nenhum vendedor encontrado para este filtro.</div></td></tr>`}</tbody></table></div>
+  </div>`;
+}
+function commissionsManagersMarkup(){
+  const managers=allManagers();
+  const rows=managers.map(g=>{const deals=filterDealsByPeriod(managerClosedDeals(g.id),commissionsPeriod);const totalVendido=deals.reduce((a,n)=>a+Number(n.valor||0),0);const totalComissao=deals.reduce((a,n)=>a+commissionValue(commissionRow(n.id,"gestor"),n),0);return{g,deals,totalVendido,totalComissao,team:teamMembers(g.id)}}).sort((a,b)=>b.totalVendido-a.totalVendido);
+  return`<div class="panel commissions-panel">
+    <div class="commissions-toolbar"><select id="commissions-period">${commissionPeriodOptions(commissionsPeriod)}</select></div>
+    <div class="table-scroll"><table><thead><tr><th>Gestor</th><th>Vendedores</th><th>Vendas da equipe</th><th>Valor vendido</th><th>Comissão do gestor</th><th></th></tr></thead>
+    <tbody>${rows.length?rows.map(r=>`<tr><td><strong>${esc(r.g.nome)}</strong></td><td>${r.team.length}</td><td>${r.deals.length}</td><td>${money(r.totalVendido)}</td><td>${money(r.totalComissao)}</td><td><button type="button" class="text-btn" data-commission-manager="${esc(r.g.id)}">Ver vendas →</button></td></tr>`).join(""):`<tr><td colspan="6"><div class="empty">Nenhum gestor encontrado.</div></td></tr>`}</tbody></table></div>
+  </div>`;
+}
+function loadCommissionGoals(){
+  const row=(STATE.configuracoes||[]).find(c=>c.chave==="metasComerciais");
+  try{const parsed=row?.valor?JSON.parse(row.valor):null;return{vendedores:parsed?.vendedores||{},equipes:parsed?.equipes||{}}}catch(e){return{vendedores:{},equipes:{}}}
+}
+async function saveCommissionGoals(goals){
+  const current=(STATE.configuracoes||[]).find(c=>c.chave==="metasComerciais");
+  const data={id:current?.id||"metasComerciais",chave:"metasComerciais",valor:JSON.stringify(goals)};
+  if(current){const updated=await API.update(CONFIG.SHEETS.CONFIGURACOES,current.id,data);const i=STATE.configuracoes.findIndex(c=>String(c.id)===String(current.id));if(i>=0)STATE.configuracoes[i]=updated;}
+  else{const created=await API.create(CONFIG.SHEETS.CONFIGURACOES,data);STATE.configuracoes.push(created);}
+}
+async function updateCommissionGoal(kind,id,value){
+  const goals=loadCommissionGoals();goals[kind]=goals[kind]||{};
+  const v=Math.max(0,Number(value||0));
+  if(v>0)goals[kind][id]=v;else delete goals[kind][id];
+  try{await saveCommissionGoals(goals);if(currentView==="comissoes")renderCommissions();toast("Meta atualizada.")}
+  catch(e){toast(e.message||"Não foi possível salvar a meta.","error")}
+}
+function goalProgressBar(total,meta){
+  if(!meta)return"";
+  const pct=Math.min(100,total/meta*100);
+  return `<div class="commission-goal-bar"><div class="commission-goal-bar-fill" style="width:${pct.toFixed(0)}%"></div></div><small>${pct.toFixed(0)}% da meta de ${money(meta)}</small>`;
+}
+function leadToCloseDays(n){
+  const c=clientById(n.clienteId);
+  if(!c?.criadoEm)return null;
+  const start=new Date(c.criadoEm);
+  const end=new Date(n.atualizadoEm||n.previsaoFechamento||n.previsao||n.criadoEm);
+  if(isNaN(start)||isNaN(end))return null;
+  const days=(end-start)/86400000;
+  return days>=0?days:null;
+}
+function dealOriginMatches(n){if(!commissionsOriginFilter)return true;return (clientById(n.clienteId)?.origem||"")===commissionsOriginFilter}
+function dealProductMatches(n){if(!commissionsProductFilter)return true;return (n.produtoServico||"")===commissionsProductFilter}
+function commissionOriginOptions(selected){
+  const set=new Set(STATE.clientes.map(c=>c.origem).filter(Boolean));
+  return `<option value="">Todas as origens</option>`+[...set].sort().map(o=>`<option value="${esc(o)}" ${o===selected?"selected":""}>${esc(o)}</option>`).join("");
+}
+function commissionProductOptions(selected){
+  const set=new Set(STATE.negociacoes.filter(n=>n.etapa==="fechado").map(n=>n.produtoServico).filter(Boolean));
+  return `<option value="">Todos os produtos/serviços</option>`+[...set].sort().map(p=>`<option value="${esc(p)}" ${p===selected?"selected":""}>${esc(p)}</option>`).join("");
+}
+function computeSellerMetrics(u,period){
+  let deals=sellerClosedDeals(u.id);
+  deals=filterDealsByPeriod(deals,period).filter(dealOriginMatches).filter(dealProductMatches);
+  const total=deals.reduce((a,n)=>a+Number(n.valor||0),0);
+  const ticket=deals.length?total/deals.length:0;
+  const tempos=deals.map(leadToCloseDays).filter(d=>d!=null);
+  const tempoMedio=tempos.length?tempos.reduce((a,b)=>a+b,0)/tempos.length:null;
+  return{u,deals,total,ticket,tempoMedio,conv:conversionForSeller(u.id,period)};
+}
+function csvEscape(v){v=String(v??"");return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCommissionsCsv(rows,period){
+  const goals=loadCommissionGoals();
+  const header=["Vendedor","Equipe","Vendas","Valor vendido","Ticket médio","Conversão (%)","Tempo médio de fechamento (dias)","Meta"];
+  const lines=[header.join(";")];
+  rows.forEach(r=>{const meta=goals.vendedores?.[r.u.id]||"";lines.push([r.u.nome,gestorNome(r.u.gestorId),r.deals.length,r.total.toFixed(2).replace(".",","),r.ticket.toFixed(2).replace(".",","),r.conv.rate.toFixed(0),r.tempoMedio!=null?r.tempoMedio.toFixed(1).replace(".",","):"",meta].map(csvEscape).join(";"))});
+  const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=`comissoes_ranking_${period||"todos-periodos"}.csv`;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function exportCommissionsPdf(rows,period){
+  const w=window.open("","_blank");
+  if(!w){toast("O navegador bloqueou a janela de impressão.","error");return}
+  const label=esc(reportMonthLabel(period)||"Todos os períodos");
+  const html=`<html><head><title>Ranking de comissões — ${label}</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:24px;color:#222}h2{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px 10px;text-align:left;font-size:12px}th{background:#F1EEFF}</style></head><body>
+    <h2>Ranking de vendedores</h2><p>${label}</p>
+    <table><thead><tr><th>Vendedor</th><th>Equipe</th><th>Vendas</th><th>Valor vendido</th><th>Ticket médio</th><th>Conversão</th><th>Tempo médio de fechamento</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td>${esc(r.u.nome)}</td><td>${esc(gestorNome(r.u.gestorId))}</td><td>${r.deals.length}</td><td>${money(r.total)}</td><td>${money(r.ticket)}</td><td>${r.conv.rate.toFixed(0)}%</td><td>${r.tempoMedio!=null?r.tempoMedio.toFixed(1)+" dias":"—"}</td></tr>`).join("")}</tbody></table>
+  </body></html>`;
+  w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+function commissionsComparisonMarkup(period,sellers){
+  if(!period)return `<div class="panel report-panel commission-conversion-panel"><div class="panel-head"><div><h2>Comparativo com o período anterior</h2><p>Selecione um mês específico no filtro de período para comparar.</p></div></div></div>`;
+  const prev=previousMonthKey(period);
+  const rows=sellers.map(u=>{const cur=sellerSoldInPeriod(u.id,period),ant=sellerSoldInPeriod(u.id,prev);const growth=ant>0?((cur-ant)/ant*100):(cur>0?100:0);return{u,cur,ant,growth}}).filter(r=>r.cur>0||r.ant>0).sort((a,b)=>b.cur-a.cur);
+  return `<div class="panel report-panel commission-conversion-panel">
+    <div class="panel-head"><div><h2>Comparativo com o período anterior</h2><p>${esc(reportMonthLabel(period))} vs. ${esc(reportMonthLabel(prev))}</p></div></div>
+    <div class="table-scroll"><table><thead><tr><th>Vendedor</th><th>${esc(reportMonthLabel(period))}</th><th>${esc(reportMonthLabel(prev))}</th><th>Crescimento</th></tr></thead>
+    <tbody>${rows.length?rows.map(r=>`<tr><td>${esc(r.u.nome)}</td><td>${money(r.cur)}</td><td>${money(r.ant)}</td><td class="${r.growth>=0?"commission-growth-up":"commission-growth-down"}">${r.growth>=0?"+":""}${r.growth.toFixed(0)}%</td></tr>`).join(""):`<tr><td colspan="4"><div class="empty">Sem vendas para comparar.</div></td></tr>`}</tbody></table></div>
+  </div>`;
+}
+function commissionsPerformanceMarkup(){
+  const period=commissionsPeriod,team=commissionsTeamFilter;
+  const goals=loadCommissionGoals();
+  const sellers=allSellers().filter(u=>!team||String(u.gestorId||"")===team);
+  const ranking=sellers.map(u=>computeSellerMetrics(u,period)).sort((a,b)=>b.total-a.total);
+  lastCommissionsRanking=ranking;
+  const teamsRanking=allManagers().map(g=>{const deals=filterDealsByPeriod(managerClosedDeals(g.id),period).filter(dealOriginMatches).filter(dealProductMatches);const total=deals.reduce((a,n)=>a+Number(n.valor||0),0);return{g,total,deals,count:teamMembers(g.id).length,ticket:deals.length?total/deals.length:0}}).sort((a,b)=>b.total-a.total);
+  const top=ranking[0];
+  const prevPeriod=period?previousMonthKey(period):"";
+  const trending=[...sellers].map(u=>{const cur=sellerSoldInPeriod(u.id,period),prev=prevPeriod?sellerSoldInPeriod(u.id,prevPeriod):0;const growth=prev>0?((cur-prev)/prev*100):(cur>0?100:0);return{u,cur,prev,growth}}).filter(x=>x.cur>0).sort((a,b)=>b.growth-a.growth)[0];
+  const totalVendidoGeral=ranking.reduce((a,r)=>a+r.total,0),totalVendasGeral=ranking.reduce((a,r)=>a+r.deals.length,0);
+  return`<div class="commissions-toolbar">
+    <select id="commissions-period">${commissionPeriodOptions(period)}</select>
+    <select id="commissions-team-filter">${commissionTeamOptions(team)}</select>
+    <select id="commissions-origin-filter">${commissionOriginOptions(commissionsOriginFilter)}</select>
+    <select id="commissions-product-filter">${commissionProductOptions(commissionsProductFilter)}</select>
+    <button type="button" class="text-btn" id="commissions-export-csv">Exportar CSV</button>
+    <button type="button" class="text-btn" id="commissions-export-pdf">Exportar PDF</button>
+  </div>
+  <div class="report-summary">
+    ${reportCard("Vendedor do mês",top?top.u.nome:"—",top?`${money(top.total)} em vendas`:"Sem vendas no período")}
+    ${reportCard("Em destaque",trending?trending.u.nome:"—",trending?`${trending.growth>=0?"+":""}${trending.growth.toFixed(0)}% vs. período anterior`:"Sem dados suficientes")}
+    ${reportCard("Equipe líder",teamsRanking[0]&&teamsRanking[0].total>0?teamsRanking[0].g.nome:"—",teamsRanking[0]&&teamsRanking[0].total>0?money(teamsRanking[0].total):"Sem vendas no período")}
+    ${reportCard("Total vendido",money(totalVendidoGeral),`${totalVendasGeral} venda${totalVendasGeral===1?"":"s"} no período`)}
+  </div>
+  <div class="panel report-panel">
+    <div class="panel-head"><div><h2>Desempenho por vendedor</h2><p>Vendas, ticket médio, tempo de fechamento, conversão e meta no período filtrado.</p></div></div>
+    <div class="table-scroll"><table><thead><tr><th>#</th><th>Vendedor</th><th>Equipe</th><th>Vendas</th><th>Valor vendido</th><th>Ticket médio</th><th>Tempo médio fechamento</th><th>Conversão</th><th>Meta do período</th></tr></thead>
+    <tbody>${ranking.length?ranking.map((r,i)=>`<tr><td>${i+1}º</td><td><strong>${esc(r.u.nome)}</strong></td><td>${esc(gestorNome(r.u.gestorId))}</td><td>${r.deals.length}</td><td>${money(r.total)}</td><td>${money(r.ticket)}</td><td>${r.tempoMedio!=null?r.tempoMedio.toFixed(1)+" dias":"—"}</td><td>${r.conv.rate.toFixed(0)}%</td><td class="commission-goal-cell"><input type="number" min="0" step="100" class="commission-goal-input" placeholder="Definir meta" value="${goals.vendedores?.[r.u.id]||""}" data-goal-kind="vendedores" data-goal-id="${esc(r.u.id)}">${goalProgressBar(r.total,goals.vendedores?.[r.u.id])}</td></tr>`).join(""):`<tr><td colspan="9"><div class="empty">Sem vendas no período.</div></td></tr>`}</tbody></table></div>
+  </div>
+  <div class="panel report-panel">
+    <div class="panel-head"><div><h2>Desempenho por equipe</h2><p>Soma das vendas fechadas por equipe (gestor), com meta própria.</p></div></div>
+    <div class="table-scroll"><table><thead><tr><th>#</th><th>Gestor</th><th>Vendedores</th><th>Vendas</th><th>Valor vendido</th><th>Ticket médio</th><th>Meta do período</th></tr></thead>
+    <tbody>${teamsRanking.length?teamsRanking.map((r,i)=>`<tr><td>${i+1}º</td><td><strong>${esc(r.g.nome)}</strong></td><td>${r.count}</td><td>${r.deals.length}</td><td>${money(r.total)}</td><td>${money(r.ticket)}</td><td class="commission-goal-cell"><input type="number" min="0" step="100" class="commission-goal-input" placeholder="Definir meta" value="${goals.equipes?.[r.g.id]||""}" data-goal-kind="equipes" data-goal-id="${esc(r.g.id)}">${goalProgressBar(r.total,goals.equipes?.[r.g.id])}</td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">Nenhuma equipe com vendas no período.</div></td></tr>`}</tbody></table></div>
+  </div>
+  ${commissionsComparisonMarkup(period,sellers)}
+  <div class="panel report-panel commission-conversion-panel">
+    <div class="panel-head"><div><h2>Taxa de conversão (reunião → fechamento)</h2><p>Leads que o vendedor levou a uma reunião e quantos desses viraram venda.</p></div></div>
+    <div class="table-scroll"><table><thead><tr><th>Vendedor</th><th>Levados a reunião</th><th>Fechados</th><th>Conversão</th></tr></thead>
+    <tbody>${ranking.length?ranking.map(r=>`<tr><td>${esc(r.u.nome)}</td><td>${r.conv.meetings}</td><td>${r.conv.closed}</td><td>${r.conv.rate.toFixed(0)}%</td></tr>`).join(""):`<tr><td colspan="4"><div class="empty">Sem dados de reuniões no período.</div></td></tr>`}</tbody></table></div>
+  </div>`;
+}
+function bindCommissionsEvents(){
+  const periodSel=document.getElementById("commissions-period");if(periodSel){periodSel.value=commissionsPeriod;periodSel.onchange=()=>{commissionsPeriod=periodSel.value;renderCommissions()}}
+  const teamSel=document.getElementById("commissions-team-filter");if(teamSel){teamSel.value=commissionsTeamFilter;teamSel.onchange=()=>{commissionsTeamFilter=teamSel.value;renderCommissions()}}
+  const originSel=document.getElementById("commissions-origin-filter");if(originSel){originSel.value=commissionsOriginFilter;originSel.onchange=()=>{commissionsOriginFilter=originSel.value;renderCommissions()}}
+  const productSel=document.getElementById("commissions-product-filter");if(productSel){productSel.value=commissionsProductFilter;productSel.onchange=()=>{commissionsProductFilter=productSel.value;renderCommissions()}}
+  const csvBtn=document.getElementById("commissions-export-csv");if(csvBtn)csvBtn.onclick=()=>exportCommissionsCsv(lastCommissionsRanking,commissionsPeriod);
+  const pdfBtn=document.getElementById("commissions-export-pdf");if(pdfBtn)pdfBtn.onclick=()=>exportCommissionsPdf(lastCommissionsRanking,commissionsPeriod);
+  document.querySelectorAll(".commission-goal-input").forEach(inp=>inp.onchange=()=>updateCommissionGoal(inp.dataset.goalKind,inp.dataset.goalId,inp.value));
+  document.querySelectorAll("[data-commission-seller]").forEach(b=>b.onclick=()=>openCommissionDetail(b.dataset.commissionSeller,"vendedor"));
+  document.querySelectorAll("[data-commission-manager]").forEach(b=>b.onclick=()=>openCommissionDetail(b.dataset.commissionManager,"gestor"));
+}
+function openCommissionDetail(userId,papel){commissionsDetailContext={userId,papel};commissionsDetailPeriod=currentMonthKey();renderCommissionDetail();document.getElementById("commission-detail-modal").showModal()}
+function renderCommissionDetail(){
+  if(!commissionsDetailContext)return;
+  const{userId,papel}=commissionsDetailContext,user=userById(userId);
+  const allDeals=papel==="vendedor"?sellerClosedDeals(userId):managerClosedDeals(userId);
+  const deals=filterDealsByPeriod(allDeals,commissionsDetailPeriod).sort((a,b)=>String(reportDealDate(b)||"").localeCompare(String(reportDealDate(a)||"")));
+  const totalVendido=deals.reduce((a,n)=>a+Number(n.valor||0),0),totalComissao=deals.reduce((a,n)=>a+commissionValue(commissionRow(n.id,papel),n),0);
+  const isGestor=papel==="gestor";
+  document.getElementById("commission-detail-title").innerHTML=`<p class="eyebrow">${isGestor?"Vendas da equipe":"Vendas do vendedor"}</p><h3>${esc(user?.nome||"—")}</h3>`;
+  document.getElementById("commission-detail-body").innerHTML=`
+    <div class="commissions-toolbar"><select id="commission-detail-period">${commissionPeriodOptions(commissionsDetailPeriod)}</select></div>
+    <div class="table-scroll"><table class="commission-table"><thead><tr><th>Cliente</th>${isGestor?"<th>Vendedor</th>":""}<th>Produto/serviço</th><th>Fechamento</th><th>Valor da venda</th><th>%</th><th>Comissão</th><th>Status</th><th>Data pagamento</th><th></th></tr></thead>
+    <tbody>${deals.length?deals.map(n=>{const row=commissionRow(n.id,papel),c=clientById(n.clienteId),v=commissionValue(row,n);const vendedorNome=isGestor?esc(userById(resolveUserId(n.responsavel))?.nome||"—"):"";return`<tr><td>${esc(c?.nome||"—")}</td>${isGestor?`<td>${vendedorNome}</td>`:""}<td>${esc(n.produtoServico||"—")}</td><td>${dateBR(reportDealDate(n))}</td><td>${money(n.valor)}</td><td><input type="number" min="0" max="100" step="0.01" class="commission-pct-input" value="${row?.percentual??""}" data-deal-id="${esc(n.id)}"></td><td class="commission-value">${money(v)}</td><td><select class="commission-status-input">${CONFIG.COMMISSION_STATUS.map(s=>`<option value="${s}" ${row?.status===s?"selected":""}>${esc(commissionStatusLabel(s))}</option>`).join("")}</select></td><td><input type="date" class="commission-date-input" value="${row?.dataPagamento||""}"></td><td><button type="button" class="text-btn commission-save-btn" data-commission-id="${esc(row?.id||"")}">Salvar</button></td></tr>`}).join(""):`<tr><td colspan="${isGestor?10:9}"><div class="empty">Nenhuma venda fechada neste período.</div></td></tr>`}</tbody>
+    ${deals.length?`<tfoot><tr class="commission-total-row"><td colspan="${isGestor?4:3}">Total geral</td><td>${money(totalVendido)}</td><td></td><td>${money(totalComissao)}</td><td colspan="3"></td></tr></tfoot>`:""}
+    </table></div>`;
+  bindCommissionDetailEvents();
+}
+async function saveCommissionField(commissionId,patch){
+  if(!commissionId)return;
+  try{const updated=await API.update(CONFIG.SHEETS.COMISSOES,commissionId,{...patch,atualizadoEm:new Date().toISOString()});const i=STATE.comissoes.findIndex(c=>String(c.id)===String(commissionId));if(i>=0)STATE.comissoes[i]={...STATE.comissoes[i],...updated};renderCommissionDetail();if(currentView==="comissoes")renderCommissions();toast("Comissão salva.")}
+  catch(e){toast(e.message||"Não foi possível salvar a comissão.","error")}
+}
+function bindCommissionDetailEvents(){
+  const periodSel=document.getElementById("commission-detail-period");if(periodSel){periodSel.value=commissionsDetailPeriod;periodSel.onchange=()=>{commissionsDetailPeriod=periodSel.value;renderCommissionDetail()}}
+  document.querySelectorAll(".commission-pct-input").forEach(inp=>{
+    inp.oninput=()=>{const tr=inp.closest("tr");const n=STATE.negociacoes.find(x=>String(x.id)===String(inp.dataset.dealId));const pct=Math.max(0,Math.min(100,Number(inp.value||0)));const cell=tr?.querySelector(".commission-value");if(cell)cell.textContent=money(Number(n?.valor||0)*pct/100)};
+  });
+  document.querySelectorAll(".commission-save-btn").forEach(btn=>{
+    btn.onclick=()=>withButtonLoading(btn,async()=>{
+      const tr=btn.closest("tr");
+      const pctInput=tr.querySelector(".commission-pct-input"),statusInput=tr.querySelector(".commission-status-input"),dateInput=tr.querySelector(".commission-date-input");
+      const n=STATE.negociacoes.find(x=>String(x.id)===String(pctInput.dataset.dealId));
+      const pct=Math.max(0,Math.min(100,Number(pctInput.value||0)));
+      await saveCommissionField(btn.dataset.commissionId,{percentual:pct,valorComissao:Number(n?.valor||0)*pct/100,status:statusInput.value,dataPagamento:dateInput.value});
+    });
+  });
+}
+
+
+/* =========================================================
+   CATÁLOGO DE PRODUTOS/SERVIÇOS
+   ========================================================= */
+function renderProducts(){
+  const items=[...(STATE.produtos||[])].sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||"")));
+  const isAdmin=SESSION?.perfil==="Administrador";
+  document.getElementById("products-body").innerHTML=`
+    <div class="commissions-toolbar">${isAdmin?`<button type="button" class="btn btn-primary" id="product-new-btn">+ Novo produto/serviço</button>`:""}</div>
+    <div class="panel">
+      <div class="table-scroll"><table><thead><tr><th>Nome</th><th>Categoria</th><th>Preço padrão</th><th>Status</th>${isAdmin?"<th></th>":""}</tr></thead>
+      <tbody>${items.length?items.map(p=>`<tr><td><strong>${esc(p.nome)}</strong></td><td>${esc(p.categoria||"—")}</td><td>${p.precoPadrao?money(p.precoPadrao):"—"}</td><td>${p.ativo!==false?"Ativo":"Inativo"}</td>${isAdmin?`<td><button type="button" class="text-btn" data-product-edit="${esc(p.id)}">Editar</button></td>`:""}</tr>`).join(""):`<tr><td colspan="${isAdmin?5:4}"><div class="empty">Nenhum produto/serviço cadastrado ainda. ${isAdmin?"Clique em \"+ Novo produto/serviço\" para começar.":""}</div></td></tr>`}</tbody></table></div>
+    </div>`;
+  const nb=document.getElementById("product-new-btn");if(nb)nb.onclick=()=>openProductModal();
+  document.querySelectorAll("[data-product-edit]").forEach(b=>b.onclick=()=>openProductModal(b.dataset.productEdit));
+}
+function openProductModal(id=""){
+  const p=id?(STATE.produtos||[]).find(x=>String(x.id)===String(id)):null;
+  document.getElementById("product-form").reset();
+  document.getElementById("product-id").value=p?.id||"";
+  document.getElementById("product-modal-title").textContent=p?"Editar produto/serviço":"Novo produto/serviço";
+  document.getElementById("product-name").value=p?.nome||"";
+  document.getElementById("product-category").value=p?.categoria||"";
+  document.getElementById("product-price").value=p?.precoPadrao??"";
+  document.getElementById("product-active").checked=p?.ativo!==false;
+  document.getElementById("product-delete").classList.toggle("hidden",!p);
+  document.getElementById("product-modal").showModal();
+}
+async function saveProduct(e){
+  e.preventDefault();
+  const id=val("product-id");
+  const data={nome:val("product-name").trim(),categoria:val("product-category").trim(),precoPadrao:val("product-price")?Number(val("product-price")):null,ativo:document.getElementById("product-active").checked};
+  if(!data.nome){toast("Informe o nome do produto/serviço.","error");return}
+  const btn=submitButtonOf(e);
+  await withButtonLoading(btn,async()=>{
+    try{
+      if(id){const updated=await API.update(CONFIG.SHEETS.PRODUTOS,id,data);const i=STATE.produtos.findIndex(x=>String(x.id)===String(id));if(i>=0)STATE.produtos[i]=updated}
+      else{const created=await API.create(CONFIG.SHEETS.PRODUTOS,data);STATE.produtos.push(created)}
+      document.getElementById("product-modal").close();renderProducts();toast(id?"Produto/serviço atualizado.":"Produto/serviço cadastrado.");
+    }catch(e){toast(e.message||"Não foi possível salvar.","error")}
+  });
+}
+async function deleteProduct(){
+  const id=val("product-id");const p=(STATE.produtos||[]).find(x=>String(x.id)===String(id));
+  if(!p||!confirm(`Excluir "${p.nome}" do catálogo?`))return;
+  const btn=document.getElementById("product-delete");
+  await withButtonLoading(btn,async()=>{
+    try{await API.remove(CONFIG.SHEETS.PRODUTOS,id);STATE.produtos=STATE.produtos.filter(x=>String(x.id)!==String(id));document.getElementById("product-modal").close();renderProducts();toast("Produto/serviço excluído.")}catch(e){toast(e.message||"Não foi possível excluir.","error")}
+  });
+}
+
+/* =========================================================
+   FINANCEIRO / FATURAMENTO
+   ========================================================= */
+let financePeriod=currentMonthKey();
+let financeStatusFilter="";
+function invoiceStatusLabel(v){return CONFIG.INVOICE_STATUS_LABELS?.[v]||v||"—"}
+function financePeriodOptions(selected){
+  const set=new Set((STATE.faturas||[]).map(f=>reportMonthKey(f.dataEmissao||f.criadoEm)).filter(Boolean));
+  set.add(currentMonthKey());
+  const keys=[...set].sort().reverse();
+  return `<option value="">Todos os períodos</option>`+keys.map(k=>`<option value="${k}" ${k===selected?"selected":""}>${esc(reportMonthLabel(k))}</option>`).join("");
+}
+function financeFilteredInvoices(){
+  let rows=[...(STATE.faturas||[])];
+  if(financePeriod)rows=rows.filter(f=>reportMonthKey(f.dataEmissao||f.criadoEm)===financePeriod);
+  if(financeStatusFilter)rows=rows.filter(f=>f.status===financeStatusFilter);
+  return rows.sort((a,b)=>String(b.dataEmissao||b.criadoEm||"").localeCompare(String(a.dataEmissao||a.criadoEm||"")));
+}
+function financeCashflowMarkup(){
+  const map={};
+  (STATE.faturas||[]).forEach(f=>{const k=reportMonthKey(f.dataEmissao||f.criadoEm);if(!k)return;map[k]=map[k]||{faturado:0,recebido:0};map[k].faturado+=Number(f.valor||0);map[k].recebido+=Number(f.valorPago||0)});
+  const rows=Object.entries(map).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6);
+  return `<table><thead><tr><th>Mês</th><th>Faturado</th><th>Recebido</th></tr></thead><tbody>${rows.length?rows.map(([k,v])=>`<tr><td>${esc(reportMonthLabel(k))}</td><td>${money(v.faturado)}</td><td>${money(v.recebido)}</td></tr>`).join(""):`<tr><td colspan="3"><div class="empty">Sem faturas registradas.</div></td></tr>`}</tbody></table>`;
+}
+function renderFinance(){
+  const rows=financeFilteredInvoices();
+  const faturado=rows.reduce((a,f)=>a+Number(f.valor||0),0);
+  const recebido=rows.reduce((a,f)=>a+Number(f.valorPago||0),0);
+  const emAberto=rows.filter(f=>!["pago","cancelado"].includes(f.status)).reduce((a,f)=>a+Math.max(0,Number(f.valor||0)-Number(f.valorPago||0)),0);
+  document.getElementById("finance-body").innerHTML=`
+    <div class="commissions-toolbar">
+      <select id="finance-period">${financePeriodOptions(financePeriod)}</select>
+      <select id="finance-status"><option value="">Todos os status</option>${CONFIG.INVOICE_STATUS.map(s=>`<option value="${s}" ${s===financeStatusFilter?"selected":""}>${esc(invoiceStatusLabel(s))}</option>`).join("")}</select>
+      <button type="button" class="btn btn-primary" id="finance-new-btn">+ Nova fatura</button>
+    </div>
+    <div class="report-summary">
+      ${reportCard("Faturado no período",money(faturado),`${rows.length} fatura${rows.length===1?"":"s"}`)}
+      ${reportCard("Recebido no período",money(recebido),faturado?`${(recebido/faturado*100).toFixed(0)}% do faturado`:"—")}
+      ${reportCard("Em aberto",money(emAberto),"Ainda não recebido")}
+    </div>
+    <div class="panel">
+      <div class="table-scroll"><table><thead><tr><th>Cliente</th><th>Número</th><th>Valor</th><th>Pago</th><th>Status</th><th>Vencimento</th><th></th></tr></thead>
+      <tbody>${rows.length?rows.map(f=>`<tr><td>${esc(clientById(f.clienteId)?.nome||"—")}</td><td>${esc(f.numero||"—")}</td><td>${money(f.valor)}</td><td>${money(f.valorPago)}</td><td>${esc(invoiceStatusLabel(f.status))}</td><td>${dateBR(f.dataVencimento)}</td><td><button type="button" class="text-btn" data-invoice-edit="${esc(f.id)}">Editar</button></td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">Nenhuma fatura no período.</div></td></tr>`}</tbody></table></div>
+    </div>
+    <div class="panel report-panel">
+      <div class="panel-head"><div><h2>Fluxo de caixa (últimos meses)</h2><p>Faturado vs. recebido por mês, com base na data de emissão.</p></div></div>
+      <div class="table-scroll">${financeCashflowMarkup()}</div>
+    </div>`;
+  bindFinanceEvents();
+}
+function bindFinanceEvents(){
+  const p=document.getElementById("finance-period");if(p){p.value=financePeriod;p.onchange=()=>{financePeriod=p.value;renderFinance()}}
+  const s=document.getElementById("finance-status");if(s){s.value=financeStatusFilter;s.onchange=()=>{financeStatusFilter=s.value;renderFinance()}}
+  const nb=document.getElementById("finance-new-btn");if(nb)nb.onclick=()=>openInvoiceModal();
+  document.querySelectorAll("[data-invoice-edit]").forEach(b=>b.onclick=()=>openInvoiceModal(b.dataset.invoiceEdit));
+}
+function fillInvoiceDealOptions(clienteId,selected=""){
+  const deals=STATE.negociacoes.filter(n=>String(n.clienteId)===String(clienteId));
+  document.getElementById("invoice-deal").innerHTML=`<option value="">Sem negociação vinculada</option>`+deals.map(n=>`<option value="${esc(n.id)}">${esc(n.produtoServico||"Negociação")} · ${money(n.valor)}</option>`).join("");
+  if(selected)document.getElementById("invoice-deal").value=selected;
+}
+function openInvoiceModal(id=""){
+  const f=id?(STATE.faturas||[]).find(x=>String(x.id)===String(id)):null;
+  document.getElementById("invoice-form").reset();
+  document.getElementById("invoice-id").value=f?.id||"";
+  document.getElementById("invoice-modal-title").textContent=f?"Editar fatura":"Nova fatura";
+  document.getElementById("invoice-client").innerHTML=STATE.clientes.map(c=>`<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join("");
+  document.getElementById("invoice-client").value=f?.clienteId||STATE.clientes[0]?.id||"";
+  fillInvoiceDealOptions(document.getElementById("invoice-client").value,f?.negociacaoId||"");
+  document.getElementById("invoice-client").onchange=()=>fillInvoiceDealOptions(document.getElementById("invoice-client").value);
+  document.getElementById("invoice-number").value=f?.numero||"";
+  document.getElementById("invoice-value").value=f?.valor??"";
+  document.getElementById("invoice-paid").value=f?.valorPago??0;
+  document.getElementById("invoice-status").innerHTML=CONFIG.INVOICE_STATUS.map(s=>`<option value="${s}" ${f?.status===s?"selected":""}>${esc(invoiceStatusLabel(s))}</option>`).join("");
+  document.getElementById("invoice-payment-method").value=f?.formaPagamento||"";
+  document.getElementById("invoice-due").value=f?.dataVencimento||"";
+  document.getElementById("invoice-paid-date").value=f?.dataPagamento||"";
+  document.getElementById("invoice-notes").value=f?.observacoes||"";
+  document.getElementById("invoice-delete").classList.toggle("hidden",!f||SESSION?.perfil!=="Administrador");
+  document.getElementById("invoice-modal").showModal();
+}
+async function saveInvoice(e){
+  e.preventDefault();
+  const id=val("invoice-id");
+  const data={clienteId:val("invoice-client"),negociacaoId:val("invoice-deal")||null,numero:val("invoice-number").trim(),valor:Number(val("invoice-value")||0),valorPago:Number(val("invoice-paid")||0),status:val("invoice-status")||"em_aberto",formaPagamento:val("invoice-payment-method").trim(),dataVencimento:val("invoice-due"),dataPagamento:val("invoice-paid-date"),observacoes:val("invoice-notes").trim(),atualizadoEm:new Date().toISOString()};
+  if(!data.clienteId||!data.valor){toast("Informe o cliente e o valor da fatura.","error");return}
+  if(!id){data.dataEmissao=new Date().toISOString().slice(0,10);data.criadoEm=new Date().toISOString();data.numero=data.numero||`FAT-${Date.now().toString().slice(-6)}`}
+  const btn=submitButtonOf(e);
+  await withButtonLoading(btn,async()=>{
+    try{
+      if(id){const updated=await API.update(CONFIG.SHEETS.FATURAS,id,data);const i=STATE.faturas.findIndex(x=>String(x.id)===String(id));if(i>=0)STATE.faturas[i]=updated}
+      else{const created=await API.create(CONFIG.SHEETS.FATURAS,data);STATE.faturas.push(created)}
+      document.getElementById("invoice-modal").close();renderFinance();toast(id?"Fatura atualizada.":"Fatura criada.");
+    }catch(e){toast(e.message||"Não foi possível salvar a fatura.","error")}
+  });
+}
+async function deleteInvoice(){
+  const id=val("invoice-id");if(!id||!confirm("Excluir esta fatura?"))return;
+  const btn=document.getElementById("invoice-delete");
+  await withButtonLoading(btn,async()=>{
+    try{await API.remove(CONFIG.SHEETS.FATURAS,id);STATE.faturas=STATE.faturas.filter(x=>String(x.id)!==String(id));document.getElementById("invoice-modal").close();renderFinance();toast("Fatura excluída.")}catch(e){toast(e.message||"Não foi possível excluir.","error")}
+  });
+}
+
+/* =========================================================
+   SATISFAÇÃO / NPS
+   ========================================================= */
+function renderSatisfaction(){
+  const rows=[...(STATE.pesquisas||[])].sort((a,b)=>String(b.criadoEm||"").localeCompare(String(a.criadoEm||"")));
+  const respondidas=rows.filter(r=>r.status==="respondida"&&r.nota!=null&&r.nota!=="");
+  const media=respondidas.length?respondidas.reduce((a,r)=>a+Number(r.nota||0),0)/respondidas.length:null;
+  document.getElementById("satisfaction-body").innerHTML=`
+    <div class="commissions-toolbar"><button type="button" class="btn btn-primary" id="satisfaction-new-btn">+ Registrar resposta</button></div>
+    <div class="report-summary">
+      ${reportCard("Nota média",media!=null?media.toFixed(1):"—","de 0 a 10")}
+      ${reportCard("Respondidas",respondidas.length,`${rows.length} no total`)}
+      ${reportCard("Pendentes",rows.filter(r=>r.status==="pendente").length,"aguardando resposta")}
+    </div>
+    <div class="panel">
+      <div class="table-scroll"><table><thead><tr><th>Cliente</th><th>Nota</th><th>Comentário</th><th>Status</th><th>Data</th></tr></thead>
+      <tbody>${rows.length?rows.map(r=>`<tr><td>${esc(clientById(r.clienteId)?.nome||"—")}</td><td>${r.nota!=null&&r.nota!==""?r.nota:"—"}</td><td>${esc(r.comentario||"—")}</td><td>${r.status==="respondida"?"Respondida":"Pendente"}</td><td>${dateBR(String(r.criadoEm||"").slice(0,10))}</td></tr>`).join(""):`<tr><td colspan="5"><div class="empty">Nenhuma pesquisa registrada ainda. Registre manualmente após falar com o cliente.</div></td></tr>`}</tbody></table></div>
+    </div>`;
+  const nb=document.getElementById("satisfaction-new-btn");if(nb)nb.onclick=()=>openSatisfactionModal();
+}
+function openSatisfactionModal(){
+  document.getElementById("satisfaction-form").reset();
+  document.getElementById("satisfaction-client").innerHTML=STATE.clientes.map(c=>`<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join("");
+  document.getElementById("satisfaction-modal").showModal();
+}
+async function saveSatisfaction(e){
+  e.preventDefault();
+  const data={clienteId:val("satisfaction-client"),nota:val("satisfaction-score")!==""?Number(val("satisfaction-score")):null,comentario:val("satisfaction-comment").trim(),canalEnvio:"Manual",status:"respondida",criadoEm:new Date().toISOString(),respondidoEm:new Date().toISOString()};
+  if(!data.clienteId||data.nota===null){toast("Selecione o cliente e a nota.","error");return}
+  const btn=submitButtonOf(e);
+  await withButtonLoading(btn,async()=>{
+    try{const created=await API.create(CONFIG.SHEETS.PESQUISAS,data);STATE.pesquisas.push(created);document.getElementById("satisfaction-modal").close();renderSatisfaction();toast("Resposta registrada.")}catch(e){toast(e.message||"Não foi possível registrar.","error")}
+  });
+}

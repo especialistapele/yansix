@@ -155,6 +155,38 @@ form-action 'self'">
       </a>
 
       <a
+        href="#comissoes"
+        class="nav-link"
+        data-view="comissoes">
+        <span class="nav-icon">%</span>
+        <span>Comissões</span>
+      </a>
+
+      <a
+        href="#produtos"
+        class="nav-link"
+        data-view="produtos">
+        <span class="nav-icon">▣</span>
+        <span>Produtos</span>
+      </a>
+
+      <a
+        href="#financeiro"
+        class="nav-link"
+        data-view="financeiro">
+        <span class="nav-icon">$</span>
+        <span>Financeiro</span>
+      </a>
+
+      <a
+        href="#satisfacao"
+        class="nav-link"
+        data-view="satisfacao">
+        <span class="nav-icon">♥</span>
+        <span>Satisfação</span>
+      </a>
+
+      <a
         href="#integracoes"
         class="nav-link"
         data-view="integracoes">
@@ -1394,7 +1426,149 @@ form-action 'self'">
 
           </div>
 
+
+          <div class="panel report-panel">
+
+            <div class="panel-head">
+
+              <div>
+
+                <h2>
+                  Motivos de perda
+                </h2>
+
+                <p>
+                  Por que as negociações marcadas como Perdido não fecharam, e de onde vinham esses leads.
+                </p>
+
+              </div>
+
+            </div>
+
+            <div
+              id="report-loss-reasons"
+              class="report-grid">
+            </div>
+
+          </div>
+
         </div>
+
+      </section>
+
+
+      <!-- ===================================================
+           COMISSÕES
+           Administrador e Gestor.
+      ==================================================== -->
+      <section
+        id="view-comissoes"
+        class="view">
+
+        <div class="page-head">
+
+          <div>
+
+            <h1>
+              Comissões
+            </h1>
+
+            <p>
+              Comissão de vendedores e gestores sobre as negociações fechadas no funil.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="agenda-tabs"
+          id="comissoes-tabs">
+
+          <button
+            type="button"
+            class="active"
+            data-commissions-tab="vendedores">
+            Vendedores
+          </button>
+
+          <button
+            type="button"
+            data-commissions-tab="gestores">
+            Gestores
+          </button>
+
+          <button
+            type="button"
+            data-commissions-tab="desempenho">
+            Desempenho
+          </button>
+
+        </div>
+
+
+        <div id="comissoes-body"></div>
+
+      </section>
+
+
+      <!-- ===================================================
+           PRODUTOS / SERVIÇOS
+           Catálogo — Administrador e Gestor.
+      ==================================================== -->
+      <section
+        id="view-produtos"
+        class="view">
+
+        <div class="page-head">
+          <div>
+            <h1>Produtos e Serviços</h1>
+            <p>Catálogo usado como origem do campo "Produto/Serviço" nas negociações.</p>
+          </div>
+        </div>
+
+        <div id="products-body"></div>
+
+      </section>
+
+
+      <!-- ===================================================
+           FINANCEIRO / FATURAMENTO
+           Administrador e Gestor.
+      ==================================================== -->
+      <section
+        id="view-financeiro"
+        class="view">
+
+        <div class="page-head">
+          <div>
+            <h1>Financeiro</h1>
+            <p>Faturas, status de pagamento e fluxo de caixa.</p>
+          </div>
+        </div>
+
+        <div id="finance-body"></div>
+
+      </section>
+
+
+      <!-- ===================================================
+           SATISFAÇÃO / NPS
+           Administrador e Gestor.
+      ==================================================== -->
+      <section
+        id="view-satisfacao"
+        class="view">
+
+        <div class="page-head">
+          <div>
+            <h1>Satisfação do Cliente</h1>
+            <p>Registro manual de nota e comentário após atendimento ou venda.</p>
+          </div>
+        </div>
+
+        <div id="satisfaction-body"></div>
 
       </section>
 
@@ -2118,6 +2292,215 @@ form-action 'self'">
       </dialog>
 
 
+      <!-- ===================================================
+           MODAL DETALHE DE COMISSÃO
+           Usado tanto para o vendedor quanto para o gestor.
+      ==================================================== -->
+      <dialog
+        id="commission-detail-modal"
+        class="modal modal-wide">
+
+        <div class="modal-card">
+
+          <div class="modal-head">
+
+            <div id="commission-detail-title"></div>
+
+            <button
+              type="button"
+              class="icon-button"
+              data-close-modal="commission-detail-modal">
+
+              ×
+
+            </button>
+
+          </div>
+
+
+          <div
+            id="commission-detail-body"
+            class="commission-detail-body">
+          </div>
+
+        </div>
+
+      </dialog>
+
+
+      <!-- ===================================================
+           MODAL PRODUTO/SERVIÇO
+      ==================================================== -->
+      <dialog
+        id="product-modal"
+        class="modal">
+
+        <form
+          id="product-form"
+          class="modal-card">
+
+          <div class="modal-head">
+            <div>
+              <p class="eyebrow">Catálogo</p>
+              <h3 id="product-modal-title">Novo produto/serviço</h3>
+            </div>
+            <button type="button" class="icon-button" data-close-modal="product-modal">×</button>
+          </div>
+
+          <input type="hidden" id="product-id">
+
+          <div class="form-grid">
+            <label>
+              Nome *
+              <input id="product-name" required placeholder="Ex.: Limpeza de pele">
+            </label>
+            <label>
+              Categoria
+              <input id="product-category" placeholder="Ex.: Estética facial">
+            </label>
+            <label>
+              Preço padrão
+              <input id="product-price" type="number" min="0" step="0.01">
+            </label>
+            <label class="checkbox-label">
+              <input id="product-active" type="checkbox" checked>
+              Ativo (aparece para escolha nas negociações)
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-danger-outline hidden" id="product-delete">Excluir</button>
+            <span></span>
+            <button type="button" class="btn btn-ghost" data-close-modal="product-modal">Cancelar</button>
+            <button class="btn btn-primary" type="submit" id="product-save-btn">Salvar</button>
+          </div>
+
+        </form>
+
+      </dialog>
+
+
+      <!-- ===================================================
+           MODAL FATURA
+      ==================================================== -->
+      <dialog
+        id="invoice-modal"
+        class="modal">
+
+        <form
+          id="invoice-form"
+          class="modal-card">
+
+          <div class="modal-head">
+            <div>
+              <p class="eyebrow">Financeiro</p>
+              <h3 id="invoice-modal-title">Nova fatura</h3>
+            </div>
+            <button type="button" class="icon-button" data-close-modal="invoice-modal">×</button>
+          </div>
+
+          <input type="hidden" id="invoice-id">
+
+          <div class="form-grid">
+            <label>
+              Cliente *
+              <select id="invoice-client" required></select>
+            </label>
+            <label>
+              Negociação vinculada
+              <select id="invoice-deal"></select>
+            </label>
+            <label>
+              Número
+              <input id="invoice-number" placeholder="Gerado automaticamente se vazio">
+            </label>
+            <label>
+              Valor *
+              <input id="invoice-value" type="number" min="0" step="0.01" required>
+            </label>
+            <label>
+              Valor já pago
+              <input id="invoice-paid" type="number" min="0" step="0.01">
+            </label>
+            <label>
+              Status
+              <select id="invoice-status"></select>
+            </label>
+            <label>
+              Forma de pagamento
+              <input id="invoice-payment-method" placeholder="Ex.: Pix, cartão, boleto">
+            </label>
+            <label>
+              Vencimento
+              <input id="invoice-due" type="date">
+            </label>
+            <label>
+              Data do pagamento
+              <input id="invoice-paid-date" type="date">
+            </label>
+            <label class="span-2">
+              Observações
+              <textarea id="invoice-notes" rows="2"></textarea>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-danger-outline hidden" id="invoice-delete">Excluir</button>
+            <span></span>
+            <button type="button" class="btn btn-ghost" data-close-modal="invoice-modal">Cancelar</button>
+            <button class="btn btn-primary" type="submit" id="invoice-save-btn">Salvar</button>
+          </div>
+
+        </form>
+
+      </dialog>
+
+
+      <!-- ===================================================
+           MODAL SATISFAÇÃO / NPS
+      ==================================================== -->
+      <dialog
+        id="satisfaction-modal"
+        class="modal">
+
+        <form
+          id="satisfaction-form"
+          class="modal-card">
+
+          <div class="modal-head">
+            <div>
+              <p class="eyebrow">Satisfação</p>
+              <h3>Registrar resposta</h3>
+            </div>
+            <button type="button" class="icon-button" data-close-modal="satisfaction-modal">×</button>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Cliente *
+              <select id="satisfaction-client" required></select>
+            </label>
+            <label>
+              Nota (0 a 10) *
+              <input id="satisfaction-score" type="number" min="0" max="10" step="1" required>
+            </label>
+            <label class="span-2">
+              Comentário
+              <textarea id="satisfaction-comment" rows="2"></textarea>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <span></span>
+            <button type="button" class="btn btn-ghost" data-close-modal="satisfaction-modal">Cancelar</button>
+            <button class="btn btn-primary" type="submit">Salvar</button>
+          </div>
+
+        </form>
+
+      </dialog>
+
+
     </main>
 
 
@@ -2302,8 +2685,10 @@ form-action 'self'">
         Produto / Serviço *
         <input
           id="deal-product"
+          list="deal-product-list"
           required
           placeholder="Ex.: Website estratégico">
+        <datalist id="deal-product-list"></datalist>
       </label>
 
 
@@ -2357,6 +2742,18 @@ form-action 'self'">
       <label>
         Prioridade
         <select id="deal-priority"></select>
+      </label>
+
+
+      <label
+        id="deal-loss-reason-wrap"
+        class="hidden">
+        Motivo da perda
+        <input
+          id="deal-loss-reason"
+          list="deal-loss-reason-list"
+          placeholder="Ex.: Preço, concorrência, timing...">
+        <datalist id="deal-loss-reason-list"></datalist>
       </label>
 
     </div>

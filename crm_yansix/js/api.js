@@ -40,7 +40,7 @@ const API={
     const sheets=Object.values(CONFIG.SHEETS);
     const values=await Promise.all(sheets.map(s=>this.get(s)));
     const out=Object.fromEntries(sheets.map((s,i)=>[s,values[i]]));
-    return {usuarios:out.USUARIOS||[],clientes:out.CLIENTES||[],negociacoes:out.NEGOCIACOES||[],interacoes:out.INTERACOES||[],tarefas:out.TAREFAS||[],propostas:out.PROPOSTAS||[],historico:out.HISTORICO||[],configuracoes:out.CONFIGURACOES||[],logs:out.LOGS||[]};
+    return {usuarios:out.USUARIOS||[],clientes:out.CLIENTES||[],negociacoes:out.NEGOCIACOES||[],interacoes:out.INTERACOES||[],tarefas:out.TAREFAS||[],propostas:out.PROPOSTAS||[],historico:out.HISTORICO||[],configuracoes:out.CONFIGURACOES||[],logs:out.LOGS||[],comissoes:out.COMISSOES||[],produtos:out.PRODUTOS||[],faturas:out.FATURAS||[],pesquisas:out.PESQUISAS||[]};
   },
   async create(sheet,data){
     if(sheet===CONFIG.SHEETS.USUARIOS){
