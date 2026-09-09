@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manual do Usuário — Yansix Cashback</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2B1B26;
+    --wine:#141B3C;
+    --wine-2:#1F2B63;
+    --gold:#2F6FED;
+    --gold-soft:#D9E6FF;
+    --cream:#FBF6F1;
+    --card:#FFFFFF;
+    --line:#EEE2D8;
+    --muted:#8A7A83;
+    --success:#3F7A5C;
+    --success-bg:#E7F2EC;
+    --danger:#B23A48;
+    --danger-bg:#FBE9EA;
+    --warn:#7A5A16;
+    --warn-bg:#FFF5DF;
+    --warn-line:#F1D69A;
+    --radius:14px;
+    --shadow: 0 1px 2px rgba(43,27,38,0.06), 0 8px 24px -12px rgba(43,27,38,0.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.01em;color:var(--wine);}
+  p{line-height:1.65;}
+  a{color:var(--gold);}
+  ::selection{background:var(--gold-soft);}
+
+  /* ---------- TOPO / HERO ---------- */
+  .site-header{
+    background:
+      radial-gradient(1200px 500px at 15% -20%, #3a2a68 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #241a4a 0%, transparent 55%),
+      linear-gradient(180deg,var(--wine) 0%, #101538 100%);
+    color:#fff;
+    padding:0;
+  }
+  .header-top{max-width:1180px;margin:0 auto;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{width:40px;height:40px;border-radius:11px;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:18px;}
+  .brand .name{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:#fff;}
+  .brand .name small{display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:#c9c0e0;margin-top:1px;letter-spacing:.02em;}
+  .header-tag{font-size:12.5px;color:#c9c0e0;background:rgba(255,255,255,.08);padding:7px 14px;border-radius:100px;border:1px solid rgba(255,255,255,.14);}
+
+  .hero{max-width:1180px;margin:0 auto;padding:38px 28px 64px;}
+  .hero h1{color:#fff;font-size:38px;margin:0 0 14px;max-width:680px;line-height:1.15;}
+  .hero p{color:#d8d2ea;font-size:16px;max-width:600px;margin:0;}
+
+  /* ---------- LAYOUT ---------- */
+  .shell{max-width:1180px;margin:-32px auto 0;padding:0 28px 80px;display:grid;grid-template-columns:260px 1fr;gap:28px;position:relative;z-index:2;}
+
+  .toc{
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);
+    padding:20px 18px;position:sticky;top:20px;align-self:start;max-height:calc(100vh - 40px);overflow-y:auto;
+  }
+  .toc-title{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:0 0 12px 4px;}
+  .toc a{display:block;padding:8px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13.5px;font-weight:500;margin-bottom:2px;}
+  .toc a:hover{background:var(--cream);}
+  .toc a.n{color:var(--muted);font-size:11px;font-weight:700;margin-right:4px;}
+
+  .content{min-width:0;}
+  section.block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:34px 38px;margin-bottom:22px;scroll-margin-top:20px;}
+  section.block h2{font-size:24px;margin:0 0 6px;display:flex;align-items:center;gap:12px;}
+  section.block h2 .num{width:34px;height:34px;border-radius:9px;background:var(--gold-soft);color:var(--wine);display:inline-flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;font-weight:700;flex:0 0 auto;}
+  section.block .lead{color:var(--muted);font-size:14.5px;margin:0 0 24px;padding-left:46px;}
+  section.block h3{font-size:16.5px;margin:26px 0 10px;}
+  section.block h4{font-size:14px;margin:18px 0 8px;color:var(--ink);font-family:'Inter',sans-serif;font-weight:700;}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:16px 0;}
+  .info-card{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .info-card .ic{font-size:20px;margin-bottom:8px;display:block;}
+  .info-card strong{display:block;font-size:14px;color:var(--wine);margin-bottom:4px;}
+  .info-card span{font-size:13px;color:var(--muted);line-height:1.5;}
+
+  .steps{counter-reset:step;list-style:none;margin:14px 0;padding:0;}
+  .steps li{counter-increment:step;position:relative;padding:0 0 18px 40px;font-size:14.5px;line-height:1.6;}
+  .steps li:last-child{padding-bottom:0;}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--wine);color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:12.5px;display:flex;align-items:center;justify-content:center;}
+  .steps li::after{content:'';position:absolute;left:13px;top:26px;bottom:0;width:1.5px;background:var(--line);}
+  .steps li:last-child::after{display:none;}
+  .steps li strong{color:var(--wine);}
+
+  .callout{border-radius:12px;padding:16px 18px;margin:16px 0;font-size:13.8px;line-height:1.6;border:1px solid;}
+  .callout .head{font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:13.5px;}
+  .callout.tip{background:var(--gold-soft);border-color:#c3d7fb;color:#1c3a7a;}
+  .callout.warn{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn);}
+  .callout.info{background:var(--success-bg);border-color:#cfe6da;color:var(--success);}
+  .callout.future{background:#F4F0FF;border-color:#DCD1F7;color:#4A2E8C;}
+
+  .path{display:inline-flex;align-items:center;gap:6px;background:var(--cream);border:1px solid var(--line);padding:4px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--wine);}
+  .path .sep{color:var(--muted);}
+
+  table{width:100%;border-collapse:collapse;font-size:13.8px;margin:14px 0;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;padding:0 12px 10px;border-bottom:1.5px solid var(--line);}
+  td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  .pill{display:inline-flex;padding:3px 10px;border-radius:100px;font-size:11.5px;font-weight:700;letter-spacing:.02em;}
+  .pill-master{background:#EDE7FF;color:#5B3DF5;}
+  .pill-estab{background:var(--gold-soft);color:#1c3a7a;}
+  .pill-prof{background:var(--success-bg);color:var(--success);}
+  .pill-cliente{background:#FBE9EA;color:#8c3040;}
+
+  .faq{border-bottom:1px solid var(--line);padding:16px 0;}
+  .faq:last-child{border-bottom:none;}
+  .faq .q{font-weight:700;color:var(--wine);font-size:14.5px;margin-bottom:6px;font-family:'Fraunces',serif;}
+  .faq .a{font-size:13.8px;color:var(--ink);line-height:1.6;margin:0;}
+
+  .mockup-nav{background:var(--wine);border-radius:12px;padding:14px 16px;font-size:12.5px;color:#e9dbe4;display:flex;flex-wrap:wrap;gap:6px;margin:14px 0;}
+  .mockup-nav span{background:rgba(255,255,255,.08);padding:6px 11px;border-radius:8px;}
+  .mockup-nav span.on{background:rgba(255,255,255,.18);color:#fff;font-weight:600;}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0;font-size:13px;font-weight:600;color:var(--wine);}
+  .flow .step{background:var(--cream);border:1px solid var(--line);border-radius:9px;padding:8px 13px;}
+  .flow .arrow{color:var(--muted);font-size:15px;}
+
+  footer.site-footer{background:var(--wine);color:#d8d2ea;padding:38px 28px;margin-top:10px;}
+  .footer-inner{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:13px;}
+  .footer-inner strong{color:#fff;}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;}
+    .toc{position:relative;top:0;max-height:none;margin-bottom:6px;}
+    section.block{padding:26px 20px;}
+    section.block .lead{padding-left:0;}
+    .hero h1{font-size:29px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="mark">Y</div>
+      <div class="name">YANSIX<small>Consultoria Digital · Sistemas e Plataformas</small></div>
+    </div>
+    <div class="header-tag">Manual do Usuário</div>
+  </div>
+  <div class="hero">
+    <h1>Manual do Usuário — Yansix Cashback</h1>
+    <p>Guia completo para conhecer, configurar e usar no dia a dia o programa de fidelidade e cashback desenvolvido pela YANSIX para o seu negócio.</p>
+  </div>
+</header>
+
+<div class="shell">
+
+  <nav class="toc">
+    <div class="toc-title">Neste manual</div>
+    <a href="#s1"><span class="n">01</span> Apresentação do sistema</a>
+    <a href="#s2"><span class="n">02</span> O que é o Cashback</a>
+    <a href="#s3"><span class="n">03</span> Para quem é destinado</a>
+    <a href="#s4"><span class="n">04</span> Como acessar</a>
+    <a href="#s5"><span class="n">05</span> Visão geral da interface</a>
+    <a href="#s6"><span class="n">06</span> Navegação pelo sistema</a>
+    <a href="#s7"><span class="n">07</span> Como utilizar cada funcionalidade</a>
+    <a href="#s8"><span class="n">08</span> Como configurar o Cashback</a>
+    <a href="#s9"><span class="n">09</span> Como interpretar os dados</a>
+    <a href="#s10"><span class="n">10</span> Principais operações, passo a passo</a>
+    <a href="#s11"><span class="n">11</span> Boas práticas de utilização</a>
+    <a href="#s12"><span class="n">12</span> Dúvidas e situações comuns</a>
+    <a href="#s13"><span class="n">13</span> Suporte</a>
+    <a href="#s14"><span class="n">14</span> Observações importantes</a>
+  </nav>
+
+  <main class="content">
+
+    <!-- 1 -->
+    <section class="block" id="s1">
+      <h2><span class="num">01</span> Apresentação do sistema</h2>
+      <p class="lead">O que é o Yansix Cashback e o que ele resolve para o seu negócio.</p>
+      <p>O <strong>Yansix Cashback</strong> é uma plataforma de fidelidade desenvolvida pela YANSIX para negócios de serviços — salões de beleza, barbearias, clínicas de estética, saúde, fitness, moda e alimentação. Ela permite transformar cada atendimento em pontos, cashback em dinheiro e recompensas reais para o cliente, enquanto o estabelecimento acompanha tudo em um painel centralizado.</p>
+      <p>O sistema é organizado em duas frentes que conversam entre si:</p>
+      <div class="card-grid">
+        <div class="info-card">
+          <span class="ic">◆</span>
+          <strong>Painel administrativo</strong>
+          <span>Onde a equipe do estabelecimento cadastra clientes, serviços, prêmios, registra pontuações, libera resgates e configura as regras do programa.</span>
+        </div>
+        <div class="info-card">
+          <span class="ic">⌂</span>
+          <strong>Página do cliente</strong>
+          <span>Um link pessoal que cada cliente recebe para acompanhar seu saldo de pontos, seu nível, seu cashback, avaliar o atendimento e indicar amigos.</span>
+        </div>
+      </div>
+      <p>Além disso, o sistema suporta redes com <strong>mais de um estabelecimento</strong>, com um nível de administração global (Admin Master) que enxerga e gerencia todas as unidades a partir de um único login.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="block" id="s2">
+      <h2><span class="num">02</span> O que é o Cashback</h2>
+      <p class="lead">O que é → Para que serve → Como funciona na prática.</p>
+      <p><strong>O que é:</strong> um programa de fidelidade que recompensa o cliente por continuar comprando com você. A cada atendimento registrado, o cliente acumula <strong>pontos</strong>, que podem ser trocados por <strong>prêmios</strong> cadastrados pelo estabelecimento — e, quando ativado, também acumula <strong>cashback em dinheiro (R$)</strong>, que funciona como desconto em uma próxima visita.</p>
+      <p><strong>Para que serve:</strong> aumentar a recorrência dos clientes, dar um motivo concreto para eles voltarem, e criar um relacionamento contínuo entre o estabelecimento e sua base de clientes.</p>
+      <p><strong>Como funciona:</strong> cada serviço tem um valor em reais. Por padrão, <strong>R$ 1 gasto gera 1 ponto</strong> (esse valor é configurável). Ao final do atendimento, a equipe registra a pontuação no painel; o sistema soma os pontos ao saldo do cliente automaticamente e atualiza o progresso dele até o próximo prêmio ou nível.</p>
+      <div class="flow">
+        <div class="step">Cliente é atendido</div><span class="arrow">→</span>
+        <div class="step">Equipe registra o serviço</div><span class="arrow">→</span>
+        <div class="step">Pontos e/ou cashback são creditados</div><span class="arrow">→</span>
+        <div class="step">Cliente acompanha pelo link</div><span class="arrow">→</span>
+        <div class="step">Cliente resgata um prêmio</div>
+      </div>
+      <p><strong>O que acontece depois:</strong> o cliente recebe (ou acessa) o link da sua página pessoal, onde vê o saldo, o progresso até o próximo prêmio, seu nível de fidelidade e, se o módulo estiver ativo, seu saldo de cashback.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="block" id="s3">
+      <h2><span class="num">03</span> Para quem o sistema é destinado</h2>
+      <p class="lead">Quatro perfis de acesso, cada um com uma visão adequada ao seu papel.</p>
+      <table>
+        <thead><tr><th>Perfil</th><th>Quem é</th><th>O que enxerga no painel</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="pill pill-master">Admin Master</span></td>
+            <td>A equipe YANSIX ou a gestão central de uma rede com várias unidades.</td>
+            <td>Visão global: cria estabelecimentos, cria administradores, acompanha consumo/limites de todas as unidades e pode entrar em qualquer unidade individualmente.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-estab">Admin do Estabelecimento</span></td>
+            <td>O dono ou gerente de uma unidade específica (ex: o salão).</td>
+            <td>Tudo referente à própria unidade: clientes, serviços, prêmios, níveis, configurações, equipe e histórico.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-prof">Profissional</span></td>
+            <td>Quem realiza o atendimento (cabeleireiro, barbeiro, esteticista etc).</td>
+            <td>Um painel com foco no próprio trabalho: registrar pontuação, ver os próprios atendimentos e clientes vinculados.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-cliente">Cliente final</span></td>
+            <td>Quem é atendido no estabelecimento.</td>
+            <td>Não acessa o painel — recebe um link pessoal para a Página do cliente, com saldo, nível, cashback, avaliação e indicação de amigos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 4 -->
+    <section class="block" id="s4">
+      <h2><span class="num">04</span> Como acessar</h2>
+      <p class="lead">Dois pontos de entrada distintos, para dois públicos diferentes.</p>
+      <h3>Acesso da equipe (Painel)</h3>
+      <ol class="steps">
+        <li>Abra o endereço do painel administrativo fornecido pela YANSIX.</li>
+        <li>Informe o <strong>e-mail</strong> e a <strong>senha</strong> cadastrados para o seu usuário.</li>
+        <li>Clique em <strong>Entrar</strong>. Se as credenciais estiverem corretas, o sistema identifica automaticamente seu perfil (Admin Master, Admin do Estabelecimento ou Profissional) e libera o menu correspondente.</li>
+      </ol>
+      <div class="callout warn"><div class="head">⚠ Atenção</div>Se o e-mail e a senha estiverem corretos mas aparecer o aviso <em>"Este usuário ainda não tem um perfil configurado"</em>, significa que a conta existe, mas ainda não foi vinculada a nenhuma unidade — nesse caso, é preciso que um Admin Master ou o Admin do Estabelecimento finalize o cadastro do profissional ou administrador.</div>
+      <h3>Acesso do cliente (Página do cliente)</h3>
+      <p>O cliente não faz login com senha. Ele recebe um <strong>link pessoal</strong> (enviado por WhatsApp, por exemplo), no formato <span class="path">…/cliente/?c=<span class="sep">código do cliente</span></span>. Ao abrir esse link em qualquer celular, o sistema carrega automaticamente o saldo, o nível e o histórico daquele cliente — sem necessidade de instalar aplicativo.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="block" id="s5">
+      <h2><span class="num">05</span> Visão geral da interface</h2>
+      <p class="lead">Como o painel é organizado visualmente.</p>
+      <div class="card-grid">
+        <div class="info-card"><span class="ic">▤</span><strong>Menu lateral</strong><span>Fica fixo à esquerda, com o nome do estabelecimento no topo e a lista de telas disponíveis para o seu perfil.</span></div>
+        <div class="info-card"><span class="ic">▭</span><strong>Cabeçalho da tela</strong><span>Cada tela tem um título, uma breve descrição do que ela faz e, quando aplicável, um botão de ação principal (ex: "＋ Novo cliente").</span></div>
+        <div class="info-card"><span class="ic">▦</span><strong>Cartões e painéis</strong><span>Indicadores numéricos aparecem em cartões; listas e formulários ficam dentro de painéis com cantos arredondados.</span></div>
+        <div class="info-card"><span class="ic">▥</span><strong>Tabelas</strong><span>Listas de clientes, serviços, prêmios e histórico aparecem em formato de tabela, com ações de editar/excluir na última coluna.</span></div>
+        <div class="info-card"><span class="ic">▢</span><strong>Janelas (modais)</strong><span>Cadastro e edição de itens abrem em uma janela sobreposta, sem sair da tela em que você está.</span></div>
+        <div class="info-card"><span class="ic">✓</span><strong>Avisos rápidos (toasts)</strong><span>Uma pequena mensagem aparece no canto da tela confirmando que uma ação deu certo ou explicando o que deu errado.</span></div>
+      </div>
+      <p>Em telas menores (tablet e celular), o menu lateral se transforma em uma barra horizontal rolável no topo, para manter a mesma navegação em qualquer aparelho.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="block" id="s6">
+      <h2><span class="num">06</span> Navegação pelo sistema</h2>
+      <p class="lead">Os itens do menu variam conforme o seu perfil de acesso.</p>
+      <h3>Menu padrão (todos os perfis do painel)</h3>
+      <div class="mockup-nav">
+        <span>◆ Painel</span><span>◈ Clientes</span><span>✂ Serviços</span><span>＋ Registrar Pontuação</span>
+        <span>✦ Prêmios</span><span>♛ Níveis</span><span>✓ Liberar Prêmio</span><span>⌗ Validar Cupom</span>
+        <span>↺ Histórico</span><span>★ Avaliações</span><span>✉ Marketing</span><span>⚙ Configurações</span>
+      </div>
+      <h3>Itens exclusivos do Admin Master</h3>
+      <div class="mockup-nav">
+        <span class="on">◆ Estabelecimentos</span><span class="on">♟ Administradores</span><span class="on">▥ Consumo / Limites</span><span class="on">＋ Novo Profissional</span>
+      </div>
+      <p style="margin-top:10px;">Esses itens aparecem acima de "Painel" e permitem criar novas unidades, criar administradores, acompanhar o consumo de cada unidade e cadastrar profissionais em qualquer estabelecimento da rede.</p>
+      <h3>Itens exclusivos do Admin do Estabelecimento</h3>
+      <div class="mockup-nav">
+        <span class="on">＋ Novo Profissional</span><span class="on">♟ Equipe</span>
+      </div>
+      <p style="margin-top:10px;">Permitem cadastrar profissionais da própria unidade e consultar/editar a equipe, incluindo os atendimentos e clientes de cada profissional.</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="block" id="s7">
+      <h2><span class="num">07</span> Como utilizar cada funcionalidade</h2>
+      <p class="lead">O que é → para que serve → como utilizar, tela por tela.</p>
+
+      <h3>◆ Painel (Dashboard)</h3>
+      <p>É a tela inicial após o login. Mostra indicadores gerais — para o Admin Master, um panorama de todas as unidades; para o Admin do Estabelecimento, os números da própria unidade (clientes, pontos, resgates); para o Profissional, um resumo dos próprios atendimentos, clientes atendidos e faturamento gerado, com a lista dos últimos atendimentos realizados.</p>
+
+      <h3>◈ Clientes</h3>
+      <p>Cadastro e consulta de todos os clientes da unidade. É possível buscar por nome ou telefone, ver o telefone, CPF, unidade/nível e data de aniversário de cada um, e cadastrar um novo cliente pelo botão <strong>"＋ Novo cliente"</strong>. O Admin Master pode filtrar a lista por unidade.</p>
+
+      <h3>✂ Serviços</h3>
+      <p>Cadastro dos serviços oferecidos (corte, coloração, manicure etc.), com o valor cobrado, os pontos que aquele serviço gera e se ele também gera cashback em dinheiro. A regra padrão é <strong>R$ 1 = 1 ponto</strong>, arredondado para baixo. Cada serviço pode ser ativado ou desativado sem precisar ser excluído.</p>
+
+      <h3>＋ Registrar Pontuação</h3>
+      <p>É a tela usada no dia a dia, logo após atender um cliente. Busca-se o cliente por nome ou telefone, escolhe-se o profissional que atendeu, o serviço realizado e — se o cliente tiver saldo de cashback disponível — é possível marcar a opção de usar esse saldo como desconto naquele atendimento. O sistema mostra uma prévia dos pontos que serão gerados antes de confirmar.</p>
+
+      <h3>✦ Prêmios</h3>
+      <p>Catálogo de recompensas que os clientes podem resgatar com os pontos acumulados. Cada prêmio tem uma quantidade de pontos necessária e um controle de estoque. Prêmios podem ser ativados, desativados ou excluídos pelo botão <strong>"＋ Novo prêmio"</strong> e pelas ações da tabela.</p>
+
+      <h3>♛ Níveis</h3>
+      <p>É a jornada de fidelidade do cliente, baseada no total de pontos acumulados ao longo do tempo (não apenas no saldo atual). Cada nível tem um nome, uma pontuação necessária para alcançá-lo e benefícios associados, que aparecem para o cliente na própria página dele.</p>
+
+      <h3>✓ Liberar Prêmio</h3>
+      <p>Usada no balcão, no momento em que o cliente pede para trocar os pontos por um prêmio. O atendente digita o telefone do cliente em um teclado numérico na tela, o sistema localiza o cliente e mostra os prêmios que ele já tem pontos suficientes para resgatar, liberando a entrega.</p>
+
+      <h3>⌗ Validar Cupom</h3>
+      <p>Usada quando um novo cliente chega até o estabelecimento com um cupom de indicação recebido de outro cliente. Basta digitar o código do cupom e confirmar; o sistema aplica o desconto de indicação e credita os pontos correspondentes a quem indicou.</p>
+
+      <h3>↺ Histórico</h3>
+      <p>Central de consulta e auditoria de tudo o que acontece no sistema: pontuações, resgates, alterações de cadastro e exclusões. O Admin Master tem filtros completos (unidade, profissional, cliente, tipo de evento e período). Nas demais contas, a consulta pode ser feita por cliente ou por profissional.</p>
+
+      <h3>★ Avaliações</h3>
+      <p>Mostra as respostas de satisfação (de 😡 a 😍) que os próprios clientes registram na Página do cliente depois de um atendimento, junto com indicadores gerais de satisfação da unidade.</p>
+
+      <h3>✉ Marketing</h3>
+      <p>Lista as mensagens geradas automaticamente a partir das regras configuradas (ver seção 8) — por exemplo, avisos de inatividade ou lembretes de que falta pouco para resgatar um prêmio. O botão <strong>"↻ Gerar mensagens agora"</strong> atualiza a lista com base na situação atual dos clientes; cada mensagem pode ser enviada diretamente por WhatsApp.</p>
+
+      <h3>⚙ Configurações</h3>
+      <p>Onde ficam todas as regras do programa de fidelidade e os dados da unidade. Está detalhada na íntegra na próxima seção.</p>
+
+      <h3>◆ Estabelecimentos <span class="pill pill-master" style="margin-left:6px;">Admin Master</span></h3>
+      <p>Permite criar uma nova unidade, informando nome, área de atuação, documento, contato, endereço, horário de funcionamento e os dados do administrador responsável — tudo em uma única operação, já com o login provisório desse administrador.</p>
+
+      <h3>♟ Administradores <span class="pill pill-master" style="margin-left:6px;">Admin Master</span></h3>
+      <p>Consulta e gestão dos administradores de cada unidade da rede.</p>
+
+      <h3>▥ Consumo / Limites <span class="pill pill-master" style="margin-left:6px;">Admin Master</span></h3>
+      <p>Mostra, para cada unidade, o quanto já foi utilizado dos limites contratados. As barras de consumo mudam de cor conforme se aproximam do limite, para sinalizar quando uma unidade precisa de atenção.</p>
+
+      <h3>♟ Equipe <span class="pill pill-estab" style="margin-left:6px;">Admin do Estabelecimento</span></h3>
+      <p>Lista os profissionais da unidade. Ao clicar no nome de um profissional, é possível ver os clientes vinculados a ele e seus atendimentos.</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="block" id="s8">
+      <h2><span class="num">08</span> Como configurar o Cashback</h2>
+      <p class="lead">Tela ⚙ Configurações — onde o programa de fidelidade é ajustado à realidade do seu negócio.</p>
+      <p>Um Admin Master que administra várias unidades primeiro escolhe, no topo da tela, <strong>qual unidade</strong> receberá as configurações a seguir. Depois disso, os blocos abaixo ficam disponíveis:</p>
+
+      <h4>Identidade e dados da unidade</h4>
+      <p>Nome, documento, telefone, WhatsApp, e-mail, horário de funcionamento, endereço, site, Instagram, logo e uma descrição curta da unidade.</p>
+
+      <h4>Desconto para aniversariante</h4>
+      <p>Ativa um desconto em porcentagem que o cliente recebe automaticamente no dia do próprio aniversário.</p>
+
+      <h4>Marketing boca a boca (indicação)</h4>
+      <p>Define o desconto que o novo cliente recebe ao usar um cupom de indicação e quantos pontos o cliente que indicou ganha em troca. Aceita uma observação livre sobre a regra.</p>
+
+      <h4>Avaliação de clientes (NPS)</h4>
+      <p>Ativa ou desativa o pedido de avaliação de satisfação na Página do cliente. Quando desativado, a aba "Avaliações" simplesmente não aparece para o cliente.</p>
+
+      <h4>Validade dos pontos</h4>
+      <p>Define por quanto tempo os pontos ficam valendo, de "sem validade" até 2 anos. Pontos expirados deixam de contar para resgate de prêmios.</p>
+
+      <h4>Conversão de dinheiro em pontos</h4>
+      <p>Define a cada quantos reais gastos o cliente ganha 1 ponto. O padrão é R$ 1 = 1 ponto; para uma regra do tipo "a cada R$ 50, 1 ponto", basta informar 50.</p>
+
+      <h4>Pontuação máxima por serviço</h4>
+      <p>Um limite opcional de quantos pontos um único atendimento pode gerar, mesmo que o valor cobrado seja alto.</p>
+
+      <h4>Cashback em dinheiro real</h4>
+      <p>Ativa o módulo de cashback em R$. O percentual de cashback é definido serviço a serviço (na tela Serviços); aqui se define apenas em quantos dias o saldo em dinheiro expira.</p>
+
+      <h4>Aparência</h4>
+      <p>Cor de destaque usada na Página do cliente daquela unidade, para manter a identidade visual do estabelecimento.</p>
+
+      <h4>Marketing automático</h4>
+      <p>Três regras que alimentam a tela ✉ Marketing: aviso de cliente inativo (após X dias sem visita), lembrete de resgate (quando faltam poucos pontos para um prêmio) e cupom de reativação para indicados que sumiram, com o desconto correspondente.</p>
+
+      <div class="callout future">
+        <div class="head">🔧 Botão "Abrir o chamado" — recurso previsto para a versão de produção</div>
+        Na seção de Configurações, a versão definitiva do Yansix Cashback contará com o botão <strong>"Abrir o chamado"</strong>, para que o administrador da unidade possa solicitar suporte diretamente da YANSIX sempre que precisar de ajuda para configurar ou ajustar alguma regra do programa. Na versão do sistema analisada para a construção deste manual, esse botão <strong>ainda não está implementado</strong> — o que não representa um erro do sistema, apenas um recurso que chegará com a versão de produção.
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="block" id="s9">
+      <h2><span class="num">09</span> Como interpretar os dados e informações apresentados</h2>
+      <p class="lead">Entendendo os números que o painel mostra.</p>
+      <div class="card-grid">
+        <div class="info-card"><span class="ic">◆</span><strong>Cartões do Painel</strong><span>Cada cartão mostra um indicador isolado (ex: total de clientes, pontos concedidos). No Admin Master, os cartões trazem uma visão somada de toda a rede.</span></div>
+        <div class="info-card"><span class="ic">▥</span><strong>Barras de consumo</strong><span>Em "Consumo / Limites", a barra fica na cor padrão até certo ponto, muda para amarelo perto do limite e para vermelho ao se aproximar do esgotamento.</span></div>
+        <div class="info-card"><span class="ic">↺</span><strong>Eventos do Histórico</strong><span>Cada registro é classificado como Criação, Alteração ou Exclusão, o que ajuda a auditar quem fez o quê e quando.</span></div>
+        <div class="info-card"><span class="ic">＋／－</span><strong>Pontos no histórico do cliente</strong><span>Na Página do cliente, movimentações positivas (ganho de pontos) aparecem em verde com "+"; resgates aparecem em vermelho com "−".</span></div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="block" id="s10">
+      <h2><span class="num">10</span> Principais operações, passo a passo</h2>
+      <p class="lead">Os fluxos mais usados no dia a dia do estabelecimento.</p>
+
+      <h3>Cadastrar um novo cliente</h3>
+      <ol class="steps">
+        <li>Acesse <span class="path">Clientes <span class="sep">→</span> ＋ Novo cliente</span>.</li>
+        <li>Preencha nome, telefone, CPF (opcional), gênero e data de aniversário.</li>
+        <li>Salve o cadastro. O cliente já pode ser encontrado nas telas de pontuação e liberação de prêmios.</li>
+      </ol>
+
+      <h3>Registrar a pontuação de um atendimento</h3>
+      <ol class="steps">
+        <li>Acesse <span class="path">Registrar Pontuação</span>.</li>
+        <li>Busque o cliente pelo nome ou telefone e selecione-o na lista de resultados.</li>
+        <li>Escolha o profissional que realizou o atendimento e o serviço executado.</li>
+        <li>Se o cliente tiver saldo de cashback e quiser usá-lo como desconto, marque a opção correspondente.</li>
+        <li>Confira a prévia de pontos e confirme o lançamento.</li>
+      </ol>
+
+      <h3>Liberar um prêmio no balcão</h3>
+      <ol class="steps">
+        <li>Acesse <span class="path">Liberar Prêmio</span>.</li>
+        <li>Digite o telefone do cliente no teclado numérico exibido na tela.</li>
+        <li>Toque em <strong>Continuar</strong> — o sistema mostra os prêmios que o cliente já pode resgatar com o saldo atual.</li>
+        <li>Confirme a entrega do prêmio escolhido.</li>
+      </ol>
+
+      <h3>Validar um cupom de indicação</h3>
+      <ol class="steps">
+        <li>Acesse <span class="path">Validar Cupom</span>.</li>
+        <li>Digite o código apresentado pelo novo cliente.</li>
+        <li>Confirme a validação — o desconto de indicação é aplicado e os pontos de quem indicou são creditados.</li>
+      </ol>
+
+      <h3>Como o cliente acompanha e avalia pelo link pessoal</h3>
+      <p>Ao abrir sua página pessoal, o cliente encontra quatro abas na barra inferior:</p>
+      <table>
+        <thead><tr><th>Aba</th><th>O que mostra</th></tr></thead>
+        <tbody>
+          <tr><td><strong>⌂ Início</strong></td><td>Saldo de pontos, nível de fidelidade com barra de progresso, saldo de cashback (se ativo) e o progresso até cada prêmio disponível.</td></tr>
+          <tr><td><strong>★ Avaliações</strong></td><td>Permite avaliar o último atendimento de 😡 a 😍 e indicar qual profissional o atendeu.</td></tr>
+          <tr><td><strong>☺ Indique</strong></td><td>Mostra o cupom pessoal do cliente e um botão para compartilhá-lo direto no WhatsApp de um amigo.</td></tr>
+          <tr><td><strong>↺ Histórico</strong></td><td>Lista de movimentações de pontos, com data e valor de cada uma.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 11 -->
+    <section class="block" id="s11">
+      <h2><span class="num">11</span> Boas práticas de utilização</h2>
+      <div class="card-grid">
+        <div class="info-card"><span class="ic">✓</span><strong>Registre na hora</strong><span>Lance a pontuação logo após o atendimento, para que o cliente veja o saldo atualizado ainda no salão.</span></div>
+        <div class="info-card"><span class="ic">✓</span><strong>Mantenha os serviços atualizados</strong><span>Desative serviços que saíram de linha em vez de excluí-los, para preservar o histórico de atendimentos já registrados.</span></div>
+        <div class="info-card"><span class="ic">✓</span><strong>Revise os prêmios periodicamente</strong><span>Ajuste o estoque e a pontuação necessária conforme a demanda, para manter o catálogo atrativo.</span></div>
+        <div class="info-card"><span class="ic">✓</span><strong>Compartilhe o link certo</strong><span>Envie a Página do cliente sempre pelo link pessoal dele, para que o saldo mostrado seja o correto.</span></div>
+        <div class="info-card"><span class="ic">✓</span><strong>Use o Histórico para conferências</strong><span>Em caso de dúvida sobre um lançamento, consulte o Histórico antes de fazer qualquer ajuste manual.</span></div>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="block" id="s12">
+      <h2><span class="num">12</span> Dúvidas e situações comuns</h2>
+      <div class="faq"><p class="q">O cliente não encontra o próprio saldo no link enviado.</p><p class="a">Confirme se o link enviado é o pessoal daquele cliente (contém o código dele na URL) e se a conexão do celular não está bloqueando o carregamento — nesse caso, a própria página sugere abrir em outro navegador, fora do WhatsApp.</p></div>
+        <div class="faq"><p class="q">Fiz login e não aparece nenhum estabelecimento.</p><p class="a">Isso indica que seu usuário ainda não foi vinculado a nenhuma unidade. Procure o Admin Master ou o Admin do Estabelecimento para concluir esse vínculo.</p></div>
+        <div class="faq"><p class="q">O cliente diz que tinha mais pontos do que aparece.</p><p class="a">Verifique a regra de validade dos pontos em Configurações — pontos além do prazo definido deixam de contar para resgate. O Histórico mostra todos os créditos e resgates daquele cliente.</p></div>
+        <div class="faq"><p class="q">Preciso alterar um serviço sem perder o histórico de quem já foi atendido com ele.</p><p class="a">Edite o serviço em vez de excluí-lo, ou desative-o quando ele não for mais oferecido — os atendimentos já registrados continuam no histórico normalmente.</p></div>
+        <div class="faq"><p class="q">Não encontro o botão para abrir um chamado de suporte na tela de Configurações.</p><p class="a">Esse botão faz parte da versão de produção do sistema e ainda não está presente na versão atual. Veja a seção 8 e a seção 13 (Suporte) para mais detalhes.</p></div>
+    </section>
+
+    <!-- 13 -->
+    <section class="block" id="s13">
+      <h2><span class="num">13</span> Suporte</h2>
+      <p class="lead">Como pedir ajuda enquanto o canal integrado ainda não está disponível.</p>
+      <p>Na versão de produção do Yansix Cashback, o suporte poderá ser solicitado diretamente pela tela de Configurações, através do botão <strong>"Abrir o chamado"</strong>. Até essa funcionalidade estar disponível, o suporte da YANSIX pode ser acionado pelos canais de contato oficiais informados pela equipe no momento da implantação do sistema.</p>
+      <div class="callout tip"><div class="head">💡 Dica</div>Ao entrar em contato, informe o nome do estabelecimento, o perfil do usuário (Admin Master, Admin do Estabelecimento ou Profissional) e uma descrição objetiva da situação — isso agiliza o atendimento.</div>
+    </section>
+
+    <!-- 14 -->
+    <section class="block" id="s14">
+      <h2><span class="num">14</span> Observações importantes</h2>
+      <ul style="font-size:14.5px;line-height:1.8;padding-left:20px;margin:0;">
+        <li>Este manual descreve o sistema exatamente como ele foi analisado para esta entrega, incluindo diferenças pontuais em relação à versão de produção — a única identificada até o momento é o botão <strong>"Abrir o chamado"</strong> (seção 8), previsto para a versão final.</li>
+        <li>Os perfis de acesso (Admin Master, Admin do Estabelecimento e Profissional) determinam quais telas e ações ficam visíveis — não é uma falha caso alguns itens de menu não apareçam para o seu usuário.</li>
+        <li>A regra de conversão padrão do sistema é R$ 1 gasto = 1 ponto, mas é totalmente ajustável em Configurações para cada unidade.</li>
+        <li>Dúvidas técnicas adicionais podem ser esclarecidas diretamente com a equipe YANSIX responsável pela implantação.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>YANSIX</strong> — Estratégia, Tecnologia e Inteligência Artificial</div>
+    <div>Manual do Usuário · Yansix Cashback</div>
+  </div>
+</footer>
+
+</body>
+</html>

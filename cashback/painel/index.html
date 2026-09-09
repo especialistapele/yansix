@@ -276,6 +276,8 @@
         <div class="nav-item" data-view="avaliacoes"><span class="nav-icon">★</span> Avaliações</div>
         <div class="nav-item" data-view="marketing"><span class="nav-icon">✉</span> Marketing</div>
         <div class="nav-item" data-view="configuracoes"><span class="nav-icon">⚙</span> Configurações</div>
+        <a class="nav-item" id="nav-abrir-chamado" href="https://admin.yansix.tech/chamado.html?origem=cashback&produto=cashback" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:flex;align-items:center;text-decoration:none;"><span class="nav-icon">🎫</span> Abrir Chamado</a>
+        <a class="nav-item" id="nav-link-manual" href="manualcash.html" onclick="event.stopPropagation()" style="display:flex;align-items:center;text-decoration:none;"><span class="nav-icon">🔗</span> Link Manual</a>
       </nav>
       <div class="side-footer">
         <span id="user-email"></span>
@@ -1109,6 +1111,8 @@ const areaLabels={beleza:'Beleza',barbearia:'Barbearia',estetica:'Estética',sau
 
 async function bootApp(session){
   document.getElementById('user-email').textContent = session.user.email;
+  const navChamado = document.getElementById('nav-abrir-chamado');
+  if (navChamado) navChamado.href = `https://admin.yansix.tech/chamado.html?origem=cashback&produto=cashback&email=${encodeURIComponent(session.user.email||'')}`;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   MEU_ID = session.user.id;
