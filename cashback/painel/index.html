@@ -1488,7 +1488,32 @@ const NOTA_LABELS = {
   1: {emoji:'😡', texto:'Péssimo'}
 };
 async function renderAvaliacoes(){
-  const lista = AVALIACOES;
+  const body = document.getElementById('avaliacoes-lista');
+  body.innerHTML = `<p class="subtle">Carregando…</p>`;
+
+  const modoGlobal = MEU_PAPEL === 'admin_master' && !ESTAB_ID;
+  let lista, nomesCliente = {}, nomesEstab = {}, nomesProf = {};
+
+  if(modoGlobal){
+    // Visão sem unidade selecionada: busca em todas as unidades de uma vez
+    // (RLS permite pro admin_master) em vez de depender do ESTAB_ID.
+    const {data} = await sb.from('avaliacoes').select('*').order('created_at',{ascending:false}).limit(300);
+    lista = data || [];
+    const clienteIds = [...new Set(lista.map(a=>a.cliente_id))];
+    const estabIds = [...new Set(lista.map(a=>a.estabelecimento_id))];
+    const profIds = [...new Set(lista.map(a=>a.profissional_id).filter(Boolean))];
+    const [{data:cls},{data:ests},{data:profs}] = await Promise.all([
+      clienteIds.length ? sb.from('clientes').select('id,nome').in('id',clienteIds) : Promise.resolve({data:[]}),
+      estabIds.length ? sb.from('estabelecimentos').select('id,nome').in('id',estabIds) : Promise.resolve({data:[]}),
+      profIds.length ? sb.from('perfis').select('id,nome').in('id',profIds) : Promise.resolve({data:[]})
+    ]);
+    (cls||[]).forEach(c=>nomesCliente[c.id]=c.nome);
+    (ests||[]).forEach(e=>nomesEstab[e.id]=e.nome);
+    (profs||[]).forEach(p=>nomesProf[p.id]=p.nome);
+  } else {
+    lista = AVALIACOES;
+  }
+
   const media = lista.length ? (lista.reduce((s,a)=>s+a.nota,0)/lista.length) : 0;
 
   document.getElementById('avaliacoes-stats').innerHTML = [
@@ -1501,27 +1526,31 @@ async function renderAvaliacoes(){
       <div class="value">${val} ${suf?`<small>${suf}</small>`:''}</div>
     </div>`).join('');
 
-  const body = document.getElementById('avaliacoes-lista');
   if(!lista.length){ body.innerHTML = emptyState('Nenhuma avaliação recebida ainda.'); return; }
 
   // Profissional só vê as próprias (RLS já garante isso nos dados), então não faz
   // sentido mostrar a coluna pra ele — pra admin_master/admin_estabelecimento mostramos
   // quem atendeu, buscando os nomes da equipe uma única vez.
   const mostrarProfissional = MEU_PAPEL !== 'profissional';
-  if(mostrarProfissional && !window.EQUIPE_LOCAL){
+  if(mostrarProfissional && !modoGlobal && !window.EQUIPE_LOCAL){
     window.EQUIPE_LOCAL = await carregarProfissionaisUnidade(ESTAB_ID);
   }
 
-  body.innerHTML = `<table><thead><tr><th>Cliente</th><th>Avaliação</th>${mostrarProfissional?'<th>Profissional</th>':''}<th>Data</th></tr></thead><tbody>` +
+  body.innerHTML = `<table><thead><tr><th>Cliente</th>${modoGlobal?'<th>Unidade</th>':''}<th>Avaliação</th>${mostrarProfissional?'<th>Profissional</th>':''}<th>Data</th></tr></thead><tbody>` +
     lista.map(a=>{
-      const cliente = CLIENTES.find(c=>c.id===a.cliente_id);
+      const nomeCliente = modoGlobal ? (nomesCliente[a.cliente_id]||'—') : (CLIENTES.find(c=>c.id===a.cliente_id)?.nome || '—');
       const rotulo = NOTA_LABELS[a.nota] || {emoji:'', texto:a.nota};
       let profNome = '—';
       if(mostrarProfissional){
-        const p = (window.EQUIPE_LOCAL||[]).find(x=>x.id===a.profissional_id);
-        profNome = p ? p.nome : (a.profissional_id ? '—' : 'Não identificado');
+        if(modoGlobal){
+          profNome = a.profissional_id ? (nomesProf[a.profissional_id] || '—') : 'Não identificado';
+        } else {
+          const p = (window.EQUIPE_LOCAL||[]).find(x=>x.id===a.profissional_id);
+          profNome = p ? p.nome : (a.profissional_id ? '—' : 'Não identificado');
+        }
       }
-      return `<tr><td>${cliente?.nome || '—'}</td><td>${rotulo.emoji} ${rotulo.texto}</td>${mostrarProfissional?`<td>${profNome}</td>`:''}<td>${fmtDate(a.created_at)}</td></tr>`;
+      return `<tr><td>${nomeCliente}</td>${modoGlobal?`<td>${nomesEstab[a.estabelecimento_id]||'—'}</td>`:''}<td>${rotulo.emoji} ${rotulo.texto}</td>${mostrarProfissional?`<td>${profNome}</td>`:''}<td>${fmtDate(a.created_at)}</td></tr>`;
+
     }).join('') + `</tbody></table>`;
 }
 
