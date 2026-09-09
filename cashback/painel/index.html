@@ -1099,6 +1099,16 @@ document.getElementById('login-form').addEventListener('submit', async (e)=>{
   await bootApp(data.session);
 });
 
+// Ao carregar a página, verifica se já existe uma sessão salva (login anterior)
+// e, se houver, entra direto no painel sem pedir e-mail/senha novamente.
+// Isso permite, por exemplo, voltar do manual do usuário direto para o sistema.
+(async ()=>{
+  const { data } = await sb.auth.getSession();
+  if (data?.session) {
+    await bootApp(data.session);
+  }
+})();
+
 document.getElementById('logout-btn').addEventListener('click', async ()=>{
   await sb.auth.signOut();
   window.location.reload();
