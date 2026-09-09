@@ -273,6 +273,7 @@
         <div class="nav-item" data-view="liberar"><span class="nav-icon">✓</span> Liberar Prêmio</div>
         <div class="nav-item" data-view="cupom"><span class="nav-icon">⌗</span> Validar Cupom</div>
         <div class="nav-item" data-view="historico"><span class="nav-icon">↺</span> Histórico</div>
+        <div class="nav-item" data-view="avaliacoes"><span class="nav-icon">★</span> Avaliações</div>
         <div class="nav-item" data-view="marketing"><span class="nav-icon">✉</span> Marketing</div>
         <div class="nav-item" data-view="configuracoes"><span class="nav-icon">⚙</span> Configurações</div>
       </nav>
@@ -525,6 +526,13 @@
           </div>
         </div>
         <div id="historico-detalhe"></div>
+      </section>
+
+      <!-- AVALIAÇÕES -->
+      <section id="view-avaliacoes" class="view hidden">
+        <div class="topbar"><div><h2>Avaliações</h2><div class="sub">O que os clientes responderam depois do atendimento</div></div></div>
+        <div class="grid-cards" id="avaliacoes-stats" style="margin-bottom:16px;"></div>
+        <div class="panel"><div class="panel-body" id="avaliacoes-lista"></div></div>
       </section>
 
       <!-- VALIDAR CUPOM -->
@@ -819,7 +827,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_CtfOabxYTa17BqfZ-ap48A_T097PlEo";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let ESTAB_ID = null;
-let CLIENTES = [], SERVICOS = [], PREMIOS = [], PONTUACOES = [], RESGATES = [];
+let CLIENTES = [], SERVICOS = [], PREMIOS = [], PONTUACOES = [], RESGATES = [], AVALIACOES = [];
 let liberarPhoneBuffer = "";
 let pontuarClienteSelecionado = null;
 
@@ -1471,7 +1479,52 @@ async function abrirClientesProfissional(profissionalId, nomeProf){
     + (qtdQualquer>0 ? `<p class="subtle" style="margin-top:12px;">+ ${qtdQualquer} cliente(s) da unidade podem ser atendidos por qualquer profissional (regra "Qualquer profissional").</p>` : '');
 }
 
-// ---------- DASHBOARD ----------
+// ---------- AVALIAÇÕES ----------
+const NOTA_LABELS = {
+  5: {emoji:'😍', texto:'Muito satisfeito'},
+  4: {emoji:'🙂', texto:'Satisfeito'},
+  3: {emoji:'😐', texto:'Regular'},
+  2: {emoji:'🙁', texto:'Ruim'},
+  1: {emoji:'😡', texto:'Péssimo'}
+};
+async function renderAvaliacoes(){
+  const lista = AVALIACOES;
+  const media = lista.length ? (lista.reduce((s,a)=>s+a.nota,0)/lista.length) : 0;
+
+  document.getElementById('avaliacoes-stats').innerHTML = [
+    ['Avaliações recebidas', lista.length, ''],
+    ['Nota média', lista.length ? media.toFixed(1) : '—', lista.length?'de 5':''],
+    ['Muito satisfeitos', lista.filter(a=>a.nota===5).length, `de ${lista.length}`]
+  ].map(([label,val,suf])=>`
+    <div class="card stat-card">
+      <div class="label">${label}</div>
+      <div class="value">${val} ${suf?`<small>${suf}</small>`:''}</div>
+    </div>`).join('');
+
+  const body = document.getElementById('avaliacoes-lista');
+  if(!lista.length){ body.innerHTML = emptyState('Nenhuma avaliação recebida ainda.'); return; }
+
+  // Profissional só vê as próprias (RLS já garante isso nos dados), então não faz
+  // sentido mostrar a coluna pra ele — pra admin_master/admin_estabelecimento mostramos
+  // quem atendeu, buscando os nomes da equipe uma única vez.
+  const mostrarProfissional = MEU_PAPEL !== 'profissional';
+  if(mostrarProfissional && !window.EQUIPE_LOCAL){
+    window.EQUIPE_LOCAL = await carregarProfissionaisUnidade(ESTAB_ID);
+  }
+
+  body.innerHTML = `<table><thead><tr><th>Cliente</th><th>Avaliação</th>${mostrarProfissional?'<th>Profissional</th>':''}<th>Data</th></tr></thead><tbody>` +
+    lista.map(a=>{
+      const cliente = CLIENTES.find(c=>c.id===a.cliente_id);
+      const rotulo = NOTA_LABELS[a.nota] || {emoji:'', texto:a.nota};
+      let profNome = '—';
+      if(mostrarProfissional){
+        const p = (window.EQUIPE_LOCAL||[]).find(x=>x.id===a.profissional_id);
+        profNome = p ? p.nome : (a.profissional_id ? '—' : 'Não identificado');
+      }
+      return `<tr><td>${cliente?.nome || '—'}</td><td>${rotulo.emoji} ${rotulo.texto}</td>${mostrarProfissional?`<td>${profNome}</td>`:''}<td>${fmtDate(a.created_at)}</td></tr>`;
+    }).join('') + `</tbody></table>`;
+}
+
 async function renderDashboard(){
   if(MEU_PAPEL==='admin_master' && !ESTAB_ID){ await renderDashboardGlobal(); return; }
   if(MEU_PAPEL==='admin_estabelecimento'){ await renderDashboardLocal(); return; }
@@ -1487,7 +1540,7 @@ async function renderDashboard(){
   const novosMes = CLIENTES.filter(c=> new Date(c.created_at) >= inicioMes).length;
   const pontosDistribuidos = PONTUACOES.reduce((s,p)=>s+p.pontos,0);
   const pontosResgatados = RESGATES.reduce((s,r)=>s+r.pontos_utilizados,0);
-  const avaliacoesMedia = '5.0'; // dado ilustrativo do ambiente demo
+  const avaliacoesMedia = AVALIACOES.length ? (AVALIACOES.reduce((s,a)=>s+a.nota,0)/AVALIACOES.length).toFixed(1) : '—';
 
   const stats = [
     ['Clientes cadastrados', CLIENTES.length, ''],
@@ -1632,16 +1685,18 @@ async function salvarPermissoesAdmin(id){
 
 // ---------- CLIENTES ----------
 async function carregarTudo(){
-  const [c,s,pr,pt,rg,at,cb]=await Promise.all([
+  const [c,s,pr,pt,rg,at,cb,av]=await Promise.all([
     sb.from('clientes').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
     sb.from('servicos').select('*').eq('estabelecimento_id',ESTAB_ID).order('nome'),
     sb.from('premios').select('*').eq('estabelecimento_id',ESTAB_ID).order('pontos_necessarios'),
     sb.from('pontuacoes').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
     sb.from('resgates').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
     sb.from('atendimentos').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}).limit(200),
-    sb.from('cashback_lancamentos').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false})
+    sb.from('cashback_lancamentos').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false}),
+    sb.from('avaliacoes').select('*').eq('estabelecimento_id',ESTAB_ID).order('created_at',{ascending:false})
   ]);
-  CLIENTES=c.data||[]; SERVICOS=s.data||[]; PREMIOS=pr.data||[]; PONTUACOES=pt.data||[]; RESGATES=rg.data||[]; window.ATENDIMENTOS_LOCAL=at.data||[]; window.CASHBACK_LOCAL=cb.data||[];
+  CLIENTES=c.data||[]; SERVICOS=s.data||[]; PREMIOS=pr.data||[]; PONTUACOES=pt.data||[]; RESGATES=rg.data||[]; window.ATENDIMENTOS_LOCAL=at.data||[]; window.CASHBACK_LOCAL=cb.data||[]; AVALIACOES=av.data||[];
+  // RLS já filtra: profissional só recebe aqui as próprias avaliações; admin_estabelecimento recebe todas da unidade.
 }
 // Navega para a tela "Administradores/Equipe" já mostrando a equipe de uma unidade
 // específica, sem que showView() dispare renderAdministradores() (visão de escolha de
@@ -1669,6 +1724,7 @@ function showView(view, skipAutoLoad){
   if(view==='historico'&&MEU_PAPEL==='admin_master') prepararFiltrosHistorico();
   if(view==='historico'&&MEU_PAPEL==='admin_estabelecimento') prepararHistoricoLocal();
   if(view==='historico'&&MEU_PAPEL==='profissional') prepararHistoricoProfissional();
+  if(view==='avaliacoes') renderAvaliacoes();
 }
 const sideNav=document.querySelector('nav.side-nav');
 if(sideNav) sideNav.addEventListener('click',(e)=>{
