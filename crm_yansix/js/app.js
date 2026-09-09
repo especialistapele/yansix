@@ -105,7 +105,7 @@ function showView(view){
 function applyPermissions(){
   document.querySelectorAll(".nav-link").forEach(el=>{el.classList.toggle("permission-hidden",!hasPermission(el.dataset.view));});
   document.querySelectorAll(".admin-only,.admin-only-view").forEach(el=>el.classList.toggle("permission-hidden",SESSION?.perfil!=="Administrador"));
-  const badge=document.getElementById("session-user");if(badge&&SESSION)badge.innerHTML=`<strong>${esc(SESSION.nome)}</strong> · ${esc(SESSION.perfil)} <button class="logout-button" id="logout-button" type="button">Sair</button>`;
+  const badge=document.getElementById("session-user");if(badge&&SESSION){const chamadoUrl=`${CONFIG.SUPORTE_CHAMADO_URL}?origem=crm&produto=crm&nome=${encodeURIComponent(SESSION.nome||"")}&email=${encodeURIComponent(SESSION.email||"")}`;badge.innerHTML=`<strong>${esc(SESSION.nome)}</strong> · ${esc(SESSION.perfil)} <a class="ticket-link" href="${chamadoUrl}" target="_blank" rel="noopener" title="Abrir chamado de suporte">Abrir chamado</a> <button class="logout-button" id="logout-button" type="button">Sair</button>`;}
   const welcomeName=document.getElementById("welcome-name");if(welcomeName&&SESSION?.nome)welcomeName.textContent=SESSION.nome.trim().split(" ")[0];
   document.getElementById("logout-button")?.addEventListener("click",logout);
 }

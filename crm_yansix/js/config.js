@@ -18,6 +18,7 @@ const CONFIG={
   DEFAULT_USER_ROLE:"Administrador",
   USER_PROVISIONING_MODE:"supabase_edge_function",
   ADMIN_USER_FUNCTION_URL:"https://zxeupenncextzrqgthqx.supabase.co/functions/v1/admin-create-user",
+  SUPORTE_CHAMADO_URL:"https://admin.yansix.tech/chamado.html",
   RELATIONAL_ACCESS_READY:true,
   SHEETS:{LOGS:"LOGS",USUARIOS:"USUARIOS",CLIENTES:"CLIENTES",NEGOCIACOES:"NEGOCIACOES",INTERACOES:"INTERACOES",TAREFAS:"TAREFAS",PROPOSTAS:"PROPOSTAS",HISTORICO:"HISTORICO",CONFIGURACOES:"CONFIGURACOES",COMISSOES:"COMISSOES",PRODUTOS:"PRODUTOS",FATURAS:"FATURAS",PESQUISAS:"PESQUISAS"},
   DB_TABLES:{LOGS:"logs",USUARIOS:"usuarios",CLIENTES:"clientes",NEGOCIACOES:"negociacoes",INTERACOES:"interacoes",TAREFAS:"tarefas",PROPOSTAS:"propostas",HISTORICO:"historico",CONFIGURACOES:"configuracoes",COMISSOES:"comissoes",PRODUTOS:"produtos_servicos",FATURAS:"faturas",PESQUISAS:"pesquisas_satisfacao"},

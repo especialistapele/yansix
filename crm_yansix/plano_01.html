@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#5B3DF5">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<meta http-equiv="Content-Security-Policy"
+content="default-src 'self';
+script-src 'none';
+style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data:;
+connect-src 'none';
+object-src 'none';
+base-uri 'self';
+form-action 'self'">
+
+<title>Ecossistema YANSIX · Produtos e serviços</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --void:#0E0C1B; --panel:#161329; --panel-alt:#1C1836; --line:rgba(255,255,255,0.08);
+    --purple:#5B3DF5; --purple-bright:#9B8CFF; --text:#F5F3FC; --muted:#9B96B8; --muted-dim:#6E6A8A;
+    --green:#3FDBA0; --green-dim:#173A2C; --amber:#F5B04A; --amber-dim:#3A2A0F;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--void);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;margin:0;letter-spacing:-0.01em}
+  .mono{font-family:'JetBrains Mono',monospace;letter-spacing:0.02em}
+  a{color:inherit;text-decoration:none}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px 32px;background:rgba(14,12,27,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px}
+  .brand-dot{width:9px;height:9px;border-radius:50%;background:var(--purple);box-shadow:0 0 0 4px rgba(91,61,245,0.18)}
+  .topbar .links{display:flex;gap:10px}
+  .topbar .back{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;transition:border-color .15s,color .15s}
+  .topbar .back:hover{border-color:rgba(155,140,255,0.5);color:var(--text)}
+
+  .hero{padding:72px 32px 48px;max-width:1180px;margin:0 auto}
+  .hero-eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:var(--purple-bright);margin-bottom:18px}
+  .hero h1{font-size:42px;line-height:1.15;max-width:22ch;margin-bottom:18px}
+  .hero h1 span{color:var(--purple-bright)}
+  .hero p.lede{font-size:16px;color:var(--muted);max-width:56ch;margin-bottom:0}
+
+  .catalog{max-width:1180px;margin:0 auto;padding:0 32px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .catalog a{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--muted);transition:border-color .15s,color .15s}
+  .catalog a:hover{border-color:rgba(155,140,255,0.5);color:var(--text)}
+  .catalog a strong{display:block;color:var(--text);font-size:13.5px;margin-bottom:2px}
+
+  .modules{max-width:1180px;margin:0 auto;padding:0 32px 40px;display:flex;flex-direction:column;gap:20px}
+  .module{scroll-margin-top:78px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;display:grid;grid-template-columns:1fr 1.6fr;gap:28px}
+  .module:target{border-color:rgba(155,140,255,0.55)}
+  .module-num{font-size:12px;color:var(--muted-dim)}
+  .module h2{font-size:22px;margin:6px 0 12px}
+  .module .desc{color:var(--muted);font-size:14px;max-width:38ch}
+  .module ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .module li{display:flex;gap:10px;font-size:13.5px;color:var(--text);padding:10px 0;border-top:1px solid var(--line)}
+  .module li:first-child{border-top:0}
+  .module li .mark{color:var(--green);flex:none}
+
+  .cta{max-width:1180px;margin:0 auto 90px;padding:40px 32px;background:var(--panel);border:1px solid var(--line);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .cta h3{font-size:20px;margin-bottom:6px}
+  .cta p{color:var(--muted);font-size:13.5px;margin:0;max-width:48ch}
+  .cta-buttons{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;font-size:13.5px;font-weight:600;border:1px solid var(--line)}
+  .btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
+  .btn-ghost{color:var(--text)}
+  .btn-ghost:hover{border-color:rgba(155,140,255,0.5)}
+
+  @media(max-width:900px){
+    .catalog{grid-template-columns:1fr 1fr}
+    .module{grid-template-columns:1fr}
+  }
+  @media(max-width:600px){
+    .hero h1{font-size:32px}
+    .catalog{grid-template-columns:1fr}
+    .module{padding:22px}
+    .cta{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-dot"></span> YANSIX</div>
+  <div class="links">
+    <a class="back" href="planos.html">Funcionalidades do CRM</a>
+    <a class="back" href="index.html">Voltar ao CRM ↩</a>
+  </div>
+</header>
+
+<section class="hero">
+  <p class="hero-eyebrow">Ecossistema YANSIX</p>
+  <h1>Um único parceiro para <span>tecnologia, marca e operação</span>.</h1>
+  <p class="lede">Nove frentes que trabalham juntas — do CRM que organiza suas vendas até o sistema sob medida que ninguém mais tem. Veja o que cada uma resolve.</p>
+</section>
+
+<nav class="catalog">
+  <a href="#crm"><strong>CRM</strong>Funil de vendas e relacionamento</a>
+  <a href="#website"><strong>Website</strong>Sites institucionais</a>
+  <a href="#landpage"><strong>Landpage</strong>Páginas de conversão</a>
+  <a href="#showroom"><strong>Showroom</strong>Vitrine digital de produtos</a>
+  <a href="#cashback"><strong>Cashback</strong>Fidelidade e recompensas</a>
+  <a href="#estoque"><strong>Estoque</strong>Controle de produtos e giro</a>
+  <a href="#branding"><strong>Branding</strong>Identidade de marca</a>
+  <a href="#consultoria"><strong>Consultoria</strong>Estratégia comercial e digital</a>
+  <a href="#sistema_personalizado"><strong>Sistema Personalizado</strong>Software feito sob medida</a>
+</nav>
+
+<div class="modules">
+
+  <article class="module" id="crm">
+    <div>
+      <p class="module-num mono">01 / 09</p>
+      <h2>CRM</h2>
+      <p class="desc">O centro de comando comercial: funil, tarefas, propostas e relatórios num só lugar, com login por perfil.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Funil Kanban com etapas e probabilidade por negociação</li>
+      <li><span class="mark">＋</span> Propostas numeradas, com aprovação automática ligada ao funil</li>
+      <li><span class="mark">＋</span> Automação de follow-up e recuperação de oportunidades</li>
+      <li><span class="mark">＋</span> Usuários com perfis Administrador, Gestor e Vendedor</li>
+    </ul>
+  </article>
+
+  <article class="module" id="website">
+    <div>
+      <p class="module-num mono">02 / 09</p>
+      <h2>Website</h2>
+      <p class="desc">Sites institucionais com identidade própria — para apresentar uma marca, um profissional ou um negócio.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Design alinhado ao manual de marca do cliente</li>
+      <li><span class="mark">＋</span> Estrutura responsiva para desktop, tablet e celular</li>
+      <li><span class="mark">＋</span> Formulários de contato e captação integrados</li>
+    </ul>
+  </article>
+
+  <article class="module" id="landpage">
+    <div>
+      <p class="module-num mono">03 / 09</p>
+      <h2>Landpage</h2>
+      <p class="desc">Páginas focadas em uma única conversão — lançamento, campanha ou oferta específica.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Estrutura orientada a uma chamada para ação</li>
+      <li><span class="mark">＋</span> Pronta para tráfego pago e orgânico</li>
+      <li><span class="mark">＋</span> Compatível com pixels e webhooks de lead</li>
+    </ul>
+  </article>
+
+  <article class="module" id="showroom">
+    <div>
+      <p class="module-num mono">04 / 09</p>
+      <h2>Showroom</h2>
+      <p class="desc">Vitrine digital de produtos para marcas que vendem catálogo — moda, acessórios e afins.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Catálogo navegável por categoria</li>
+      <li><span class="mark">＋</span> Fichas de produto com fotos e variações</li>
+      <li><span class="mark">＋</span> Integração com o módulo de Estoque quando aplicável</li>
+    </ul>
+  </article>
+
+  <article class="module" id="cashback">
+    <div>
+      <p class="module-num mono">05 / 09</p>
+      <h2>Cashback</h2>
+      <p class="desc">Programa de fidelidade com pontuação, prêmios e cashback em dinheiro para reter clientes.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Cadastro de clientes, serviços e prêmios</li>
+      <li><span class="mark">＋</span> Regras de pontuação e validade configuráveis</li>
+      <li><span class="mark">＋</span> Painel para a equipe registrar atendimentos e resgates</li>
+    </ul>
+  </article>
+
+  <article class="module" id="estoque">
+    <div>
+      <p class="module-num mono">06 / 09</p>
+      <h2>Estoque</h2>
+      <p class="desc">Controle de produtos, entradas e saídas para quem revende ou fabrica.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Cadastro de produtos e variações</li>
+      <li><span class="mark">＋</span> Movimentações de entrada e saída</li>
+      <li><span class="mark">＋</span> Alertas de reposição</li>
+    </ul>
+  </article>
+
+  <article class="module" id="branding">
+    <div>
+      <p class="module-num mono">07 / 09</p>
+      <h2>Branding</h2>
+      <p class="desc">Identidade visual e verbal consistente — para uma marca nova ou para reorganizar uma existente.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Manual de marca: paleta, tipografia e uso do logo</li>
+      <li><span class="mark">＋</span> Aplicação consistente em site, redes e materiais</li>
+      <li><span class="mark">＋</span> Linguagem visual coerente entre todos os produtos contratados</li>
+    </ul>
+  </article>
+
+  <article class="module" id="consultoria">
+    <div>
+      <p class="module-num mono">08 / 09</p>
+      <h2>Consultoria</h2>
+      <p class="desc">Apoio estratégico em vendas, processos e presença digital — para quem precisa de direção, não só de ferramenta.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Diagnóstico do funil e da operação comercial atual</li>
+      <li><span class="mark">＋</span> Plano de ação priorizado</li>
+      <li><span class="mark">＋</span> Acompanhamento de indicadores após a implementação</li>
+    </ul>
+  </article>
+
+  <article class="module" id="sistema_personalizado">
+    <div>
+      <p class="module-num mono">09 / 09</p>
+      <h2>Sistema Personalizado</h2>
+      <p class="desc">Quando nenhum produto de prateleira resolve: software construído sob medida para uma necessidade específica.</p>
+    </div>
+    <ul>
+      <li><span class="mark">＋</span> Levantamento de requisitos e arquitetura dedicada</li>
+      <li><span class="mark">＋</span> Integrações com os demais produtos do ecossistema quando fizer sentido</li>
+      <li><span class="mark">＋</span> Evolução contínua conforme a necessidade cresce</li>
+    </ul>
+  </article>
+
+</div>
+
+<section class="cta">
+  <div>
+    <h3>Precisa de ajuda com algum destes produtos?</h3>
+    <p>Abra um chamado e conte o que está acontecendo — nossa equipe responde de acordo com a prioridade indicada.</p>
+  </div>
+  <div class="cta-buttons">
+    <a class="btn btn-primary" href="https://admin.yansix.tech/chamado.html">Abrir chamado</a>
+    <a class="btn btn-ghost" href="planos.html">Ver funcionalidades do CRM</a>
+  </div>
+</section>
+
+</body>
+</html>
