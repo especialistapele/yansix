@@ -122,6 +122,12 @@
           <div class="emoji-opt" data-n="2">🙁<span class="lbl">Ruim</span></div>
           <div class="emoji-opt" data-n="1">😡<span class="lbl">Péssimo</span></div>
         </div>
+        <div id="profissional-picker" style="display:none;margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px;">Quem te atendeu?</label>
+          <select id="profissional-select" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);font-size:14.5px;background:#fff;color:var(--ink);">
+            <option value="">Selecione…</option>
+          </select>
+        </div>
         <button class="btn btn-primary" id="btn-avaliar" onclick="enviarAvaliacao()">Enviar avaliação</button>
         <p id="avaliacao-msg" style="text-align:center;color:#3F7A5C;font-size:13.5px;margin-top:12px;display:none;">Obrigado pela sua avaliação!</p>
       </div>
@@ -224,6 +230,19 @@ async function init(){
   loadCupom();
   loadHistorico();
   loadCashback();
+  montarSeletorProfissional(data.profissionais || []);
+}
+
+function montarSeletorProfissional(lista){
+  const wrap = document.getElementById('profissional-picker');
+  const sel = document.getElementById('profissional-select');
+  if(!lista.length){ wrap.style.display = 'none'; return; }
+  sel.innerHTML = '<option value="">Selecione…</option>' +
+    lista.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  // só um profissional já atendeu? deixa pré-selecionado, mas o cliente ainda
+  // consegue trocar se achar que foi outra pessoa.
+  if(lista.length === 1){ sel.value = lista[0].id; }
+  wrap.style.display = 'block';
 }
 
 async function loadCashback(){
@@ -269,7 +288,13 @@ document.getElementById('emoji-row').addEventListener('click', (e)=>{
 });
 async function enviarAvaliacao(){
   if(!notaSelecionada){ return; }
-  const { data } = await sb.rpc('cliente_publico_avaliar', { p_cliente_id: CLIENTE_ID, p_nota: notaSelecionada });
+  const picker = document.getElementById('profissional-picker');
+  const profissionalId = document.getElementById('profissional-select').value || null;
+  if(picker.style.display !== 'none' && !profissionalId){
+    document.getElementById('profissional-select').style.borderColor = '#D9534F';
+    return;
+  }
+  const { data } = await sb.rpc('cliente_publico_avaliar', { p_cliente_id: CLIENTE_ID, p_nota: notaSelecionada, p_profissional_id: profissionalId });
   if(data){
     document.getElementById('avaliacao-msg').style.display='block';
     document.getElementById('btn-avaliar').disabled = true;
