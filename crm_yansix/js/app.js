@@ -89,7 +89,7 @@ async function renderCrmStatus(){
 }
 
 function initNav(){
-  document.querySelectorAll(".nav-link").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showView(a.dataset.view);document.getElementById("sidebar").classList.remove("open")}));
+  document.querySelectorAll(".nav-link").forEach(a=>a.addEventListener("click",e=>{if(!a.dataset.view)return;e.preventDefault();showView(a.dataset.view);document.getElementById("sidebar").classList.remove("open")}));
   document.querySelectorAll("[data-go-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.goView)));
   document.getElementById("mobile-menu").onclick=()=>document.getElementById("sidebar").classList.toggle("open");
 }
@@ -103,7 +103,7 @@ function showView(view){
   if(view==="produtos")renderProducts();if(view==="financeiro")renderFinance();if(view==="satisfacao")renderSatisfaction();
 }
 function applyPermissions(){
-  document.querySelectorAll(".nav-link").forEach(el=>{el.classList.toggle("permission-hidden",!hasPermission(el.dataset.view));});
+  document.querySelectorAll(".nav-link").forEach(el=>{if(!el.dataset.view)return;el.classList.toggle("permission-hidden",!hasPermission(el.dataset.view));});
   document.querySelectorAll(".admin-only,.admin-only-view").forEach(el=>el.classList.toggle("permission-hidden",SESSION?.perfil!=="Administrador"));
   const badge=document.getElementById("session-user");if(badge&&SESSION){const chamadoUrl=`${CONFIG.SUPORTE_CHAMADO_URL}?origem=crm&produto=crm&nome=${encodeURIComponent(SESSION.nome||"")}&email=${encodeURIComponent(SESSION.email||"")}`;badge.innerHTML=`<strong>${esc(SESSION.nome)}</strong> · ${esc(SESSION.perfil)} <a class="ticket-link" href="${chamadoUrl}" target="_blank" rel="noopener" title="Abrir chamado de suporte">Abrir chamado</a> <button class="logout-button" id="logout-button" type="button">Sair</button>`;}
   const welcomeName=document.getElementById("welcome-name");if(welcomeName&&SESSION?.nome)welcomeName.textContent=SESSION.nome.trim().split(" ")[0];
@@ -311,7 +311,7 @@ function visibleClientIds(){
   if(!SESSION||SESSION.perfil==="Administrador")return new Set((STATE.clientes||[]).map(c=>String(c.id)));
   const me=String(SESSION.id),allowedUsers=new Set([me]);
   if(SESSION.perfil==="Gestor")for(const u of STATE.usuarios||[]){if(u.ativo!==false&&u.perfil==="Vendedor"&&String(u.gestorId||"")===me)allowedUsers.add(String(u.id))}
-  return new Set((STATE.clientes||[]).filter(c=>allowedUsers.has(ownerIdForClient(c))).map(c=>String(c.id)));
+  return new Set((STATE.clientes||[]).filter(c=>allowedUsers.has(ownerIdForClient(c))||allowedUsers.has(String(c?.segundoResponsavel||""))).map(c=>String(c.id)));
 }
 function filterVisibleState(){
   const ids=visibleClientIds();
@@ -386,7 +386,7 @@ function reportWindow(){
 function inReportPeriod(value,w){const d=reportDate(value);return !!d&&(!w.start||d>=w.start)&&d<=w.end}
 function reportMonthKey(value){const d=reportDate(value);return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:""}
 function reportMonthLabel(key){if(!key)return"—";const [y,m]=key.split("-");return new Date(Number(y),Number(m)-1,1).toLocaleDateString("pt-BR",{month:"short",year:"2-digit"}).replace(".","")}
-function reportDealDate(n){return n.previsaoFechamento||n.previsao||n.criadoEm}
+function reportDealDate(n){return n.dataFechamento||n.previsaoFechamento||n.previsao||n.criadoEm}
 function reportDealValue(n){return Number(n.valor||0)}
 function reportProposalValue(p){return Number(p.total||0)>0?Number(p.total):Number(p.valorUnitario||0)*Math.max(1,Number(p.quantidade||1))-Number(p.desconto||0)}
 function renderReports(){
@@ -408,9 +408,9 @@ function reportCard(label,value,meta){return`<div class="report-card"><span>${es
 function reportTop(list,fn){const map={};list.forEach(x=>{const k=String(fn(x)||"Não informado");map[k]=(map[k]||0)+1});return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5)}
 function renderReportSources(clients){const rows=reportTop(clients,c=>c.origem||"Não informado"),max=Math.max(1,...rows.map(x=>x[1]));document.getElementById("report-source-chart").innerHTML=rows.length?rows.map(([k,v])=>`<div class="report-bar-row"><div><span>${esc(k)}</span><strong>${v}</strong></div><div class="bar-track"><i class="pct-${Math.round(v/max*100)}"></i></div></div>`).join(""):"<div class='empty'>Sem leads no período.</div>"}
 function renderReportStages(deals){const rows=CONFIG.PIPELINE_STAGES.map(s=>{const ds=deals.filter(n=>n.etapa===s.id);return{s,count:ds.length,value:ds.reduce((a,n)=>a+reportDealValue(n),0)}});const max=Math.max(1,...rows.map(x=>x.count));document.getElementById("report-stage-chart").innerHTML=rows.map(x=>`<div class="report-stage-row"><div class="report-stage-label"><span>${esc(x.s.label)}</span><b>${x.count}</b></div><div class="report-stage-track"><i class="pct-${Math.round(x.count/max*100)}"></i></div><small>${money(x.value)}</small></div>`).join("")}
-function renderReportRevenue(wins){const map={};wins.forEach(n=>{const k=reportMonthKey(n.criadoEm||n.previsaoFechamento||n.previsao);if(k)map[k]=(map[k]||0)+reportDealValue(n)});const rows=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12),max=Math.max(1,...rows.map(x=>x[1]));document.getElementById("report-revenue-chart").innerHTML=rows.length?rows.map(([k,v])=>`<div class="report-bar-row"><div><span>${esc(reportMonthLabel(k))}</span><strong>${money(v)}</strong></div><div class="bar-track"><i class="pct-${Math.round(v/max*100)}"></i></div></div>`).join(""):"<div class='empty'>Sem vendas no período.</div>"}
+function renderReportRevenue(wins){const map={};wins.forEach(n=>{const k=reportMonthKey(n.dataFechamento||n.criadoEm||n.previsaoFechamento||n.previsao);if(k)map[k]=(map[k]||0)+reportDealValue(n)});const rows=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12),max=Math.max(1,...rows.map(x=>x[1]));document.getElementById("report-revenue-chart").innerHTML=rows.length?rows.map(([k,v])=>`<div class="report-bar-row"><div><span>${esc(reportMonthLabel(k))}</span><strong>${money(v)}</strong></div><div class="bar-track"><i class="pct-${Math.round(v/max*100)}"></i></div></div>`).join(""):"<div class='empty'>Sem vendas no período.</div>"}
 function renderReportPerformance(wins,topSource,topService){const source=topSource[0],service=topService[0];document.getElementById("report-performance").innerHTML=`<div class="rank-item"><span>Melhor origem</span><strong>${esc(source?.[0]||"—")}</strong><small>${source?.[1]||0} lead${source?.[1]===1?"":"s"}</small></div><div class="rank-item"><span>Melhor serviço / oportunidade</span><strong>${esc(service?.[0]||"—")}</strong><small>${service?.[1]||0} venda${service?.[1]===1?"":"s"}</small></div><div class="rank-list"><h4>Top origens</h4>${topSource.map(([k,v])=>`<div><span>${esc(k)}</span><b>${v}</b></div>`).join("")||"<small>Sem dados.</small>"}</div>`}
-function renderReportHistory(w,clients,deals,wins,losses,proposals){const months={};const add=(date,type,value=1)=>{const k=reportMonthKey(date);if(!k)return;(months[k]??={leads:0,oportunidades:0,vendas:0,valor:0});months[k][type]+=value};clients.forEach(c=>add(c.criadoEm,"leads"));deals.forEach(n=>add(n.criadoEm||n.previsaoFechamento||n.previsao,"oportunidades"));wins.forEach(n=>{add(n.criadoEm||n.previsaoFechamento||n.previsao,"vendas");add(n.criadoEm||n.previsaoFechamento||n.previsao,"valor",reportDealValue(n))});const rows=Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,8);document.getElementById("report-history").innerHTML=`<div class="history-kpis"><span>Perdas <b>${losses.length}</b></span><span>Propostas <b>${proposals.length}</b></span></div><div class="history-table"><div class="history-head"><span>Mês</span><span>Leads</span><span>Oport.</span><span>Vendas</span><span>Faturamento</span></div>${rows.map(([k,v])=>`<div class="history-row"><span>${esc(reportMonthLabel(k))}</span><span>${v.leads}</span><span>${v.oportunidades}</span><span>${v.vendas}</span><span>${money(v.valor)}</span></div>`).join("")||"<div class='empty'>Sem histórico suficiente.</div>"}</div>`}
+function renderReportHistory(w,clients,deals,wins,losses,proposals){const months={};const add=(date,type,value=1)=>{const k=reportMonthKey(date);if(!k)return;(months[k]??={leads:0,oportunidades:0,vendas:0,valor:0});months[k][type]+=value};clients.forEach(c=>add(c.criadoEm,"leads"));deals.forEach(n=>add(n.criadoEm||n.previsaoFechamento||n.previsao,"oportunidades"));wins.forEach(n=>{add(n.dataFechamento||n.criadoEm||n.previsaoFechamento||n.previsao,"vendas");add(n.dataFechamento||n.criadoEm||n.previsaoFechamento||n.previsao,"valor",reportDealValue(n))});const rows=Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,8);document.getElementById("report-history").innerHTML=`<div class="history-kpis"><span>Perdas <b>${losses.length}</b></span><span>Propostas <b>${proposals.length}</b></span></div><div class="history-table"><div class="history-head"><span>Mês</span><span>Leads</span><span>Oport.</span><span>Vendas</span><span>Faturamento</span></div>${rows.map(([k,v])=>`<div class="history-row"><span>${esc(reportMonthLabel(k))}</span><span>${v.leads}</span><span>${v.oportunidades}</span><span>${v.vendas}</span><span>${money(v.valor)}</span></div>`).join("")||"<div class='empty'>Sem histórico suficiente.</div>"}</div>`}
 function reportSalesCycle(wins){const values=wins.map(n=>{const start=reportDate(n.criadoEm);const end=reportDate(n.dataFechamento||n.fechadoEm||n.previsaoFechamento);if(!start||!end||end<start)return null;return(end-start)/86400000}).filter(x=>x!==null);return values.length?values.reduce((a,b)=>a+b,0)/values.length:null}
 function renderReportLossReasons(losses){
   const reasons=reportTop(losses,n=>n.motivoPerda||"Não informado");
@@ -465,7 +465,7 @@ function renderKanban(){
     return `<div class="kanban-column" data-stage="${esc(stage.id)}"><div class="kanban-head"><div><strong>${esc(stage.label)}</strong><small>${deals.length} · ${money(stageValue)}</small></div><span>${deals.length}</span></div><div class="kanban-cards">${deals.length?deals.map(n=>{const c=clientById(n.clienteId);return `<article class="deal-card priority-${esc(n.prioridade||'média')}" draggable="true" data-deal="${esc(n.id)}"><div class="deal-card-top"><span class="deal-priority">${esc(priorityLabel(n.prioridade))}</span><span>${Number(n.probabilidade||0)}%</span></div><strong>${esc(c?.nome||"Cliente removido")}</strong><div class="deal-product">${esc(n.produtoServico||"Produto/serviço não informado")}</div><div class="deal-value">${money(n.valor)}</div><div class="deal-meta"><span>Fechamento<br><b>${dateBR(n.previsaoFechamento||n.previsao)}</b></span><span>Origem<br><b>${esc(n.origem||"—")}</b></span></div><div class="deal-footer"><small>${esc(ownerName(n.responsavel)||"Sem responsável")}</small>${c?`<a class="wa-mini" target="_blank" rel="noopener" href="${waLink(c.whatsapp||c.contato,`Olá, ${c.nome}! Estou acompanhando nossa negociação.`)}">WhatsApp ↗</a>`:""}</div></article>`}).join(""):`<div class="empty">Solte aqui</div>`}</div></div>`
   }).join("");
   document.querySelectorAll(".deal-card").forEach(card=>{card.addEventListener("click",e=>{if(!e.target.closest("a"))openDealModal(card.dataset.deal)});card.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",card.dataset.deal))});
-  document.querySelectorAll(".kanban-column").forEach(col=>{col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drag-over")});col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));col.addEventListener("drop",async e=>{e.preventDefault();col.classList.remove("drag-over");const id=e.dataTransfer.getData("text/plain"),n=STATE.negociacoes.find(x=>String(x.id)===String(id));if(!n||n.etapa===col.dataset.stage)return;const old=n.etapa;const patch={etapa:col.dataset.stage};if(col.dataset.stage==="perdido"){const motivo=prompt("Motivo da perda:","");if(motivo===null)return;patch.motivoPerda=motivo.trim()}try{await API.update(CONFIG.SHEETS.NEGOCIACOES,id,patch);await auditChange(n.clienteId,"NEGOCIACOES",id,"Mudança de etapa",`Etapa: ${stageLabel(old)} → ${stageLabel(col.dataset.stage)}`+(patch.motivoPerda?` · Motivo: ${patch.motivoPerda}`:""));await syncAll({silent:true});toast(`Negociação movida para ${stageLabel(col.dataset.stage)}.`)}catch(err){toast(err.message,"error")}})});
+  document.querySelectorAll(".kanban-column").forEach(col=>{col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drag-over")});col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));col.addEventListener("drop",async e=>{e.preventDefault();col.classList.remove("drag-over");const id=e.dataTransfer.getData("text/plain"),n=STATE.negociacoes.find(x=>String(x.id)===String(id));if(!n||n.etapa===col.dataset.stage)return;const old=n.etapa;const patch={etapa:col.dataset.stage};if(col.dataset.stage==="fechado"&&old!=="fechado")patch.dataFechamento=new Date().toISOString().slice(0,10);if(col.dataset.stage==="perdido"){const motivo=prompt("Motivo da perda:","");if(motivo===null)return;patch.motivoPerda=motivo.trim()}try{await API.update(CONFIG.SHEETS.NEGOCIACOES,id,patch);await auditChange(n.clienteId,"NEGOCIACOES",id,"Mudança de etapa",`Etapa: ${stageLabel(old)} → ${stageLabel(col.dataset.stage)}`+(patch.motivoPerda?` · Motivo: ${patch.motivoPerda}`:""));await syncAll({silent:true});toast(`Negociação movida para ${stageLabel(col.dataset.stage)}.`)}catch(err){toast(err.message,"error")}})});
 }
 function stageLabel(id){return CONFIG.PIPELINE_STAGES.find(x=>x.id===id)?.label||id}
 function renderTasks(){
@@ -522,21 +522,23 @@ function getResponsavelOptions(){
   if(SESSION.perfil==="Gestor")return all.filter(u=>String(u.id)===String(SESSION.id)||(u.perfil==="Vendedor"&&String(u.gestorId||"")===String(SESSION.id)));
   return all.filter(u=>String(u.id)===String(SESSION.id));
 }
-function populateResponsavelSelect(el,currentValue){
+function populateResponsavelSelect(el,currentValue,{optional=false,lockForSeller=true}={}){
   if(!el)return;
   const options=getResponsavelOptions(),currentId=resolveUserId(currentValue);
-  el.innerHTML='<option value="">Selecione um responsável</option>'+options.map(u=>`<option value="${esc(u.id)}">${esc(u.nome)}${u.perfil?` · ${esc(u.perfil)}`:""}</option>`).join("");
-  el.value=options.some(u=>String(u.id)===currentId)?currentId:(SESSION?.id||"");
-  el.disabled=SESSION?.perfil==="Vendedor";
+  const emptyLabel=optional?"Nenhum":"Selecione um responsável";
+  el.innerHTML=`<option value="">${esc(emptyLabel)}</option>`+options.map(u=>`<option value="${esc(u.id)}">${esc(u.nome)}${u.perfil?` · ${esc(u.perfil)}`:""}</option>`).join("");
+  if(options.some(u=>String(u.id)===currentId))el.value=currentId;
+  else el.value=optional?"":(SESSION?.id||"");
+  el.disabled=lockForSeller&&SESSION?.perfil==="Vendedor";
 }
 function buildClientForm(){
   const wrap=document.getElementById("client-form-sections");
-  const fieldMap={pessoais:["nome","cpfCnpj","contato","whatsapp","email","dataNascimento"],comerciais:["empresa","cargo","segmento","porte","origem","responsavel","status","potencial"],endereco:["cep","rua","numero","complemento","bairro","cidade","estado"],digital:["instagram","facebook","linkedin","site"],interno:["tags","preferencias","observacoes"]};
+  const fieldMap={pessoais:["nome","cpfCnpj","contato","whatsapp","email","dataNascimento"],comerciais:["empresa","cargo","segmento","porte","origem","responsavel","segundoResponsavel","status","potencial"],endereco:["cep","rua","numero","complemento","bairro","cidade","estado"],digital:["instagram","facebook","linkedin","site"],interno:["tags","preferencias","observacoes"]};
   wrap.innerHTML=CONFIG.CLIENT_SECTIONS.map((section,idx)=>`<section class="form-section"><div class="form-section-head"><p class="eyebrow">${String(idx+1).padStart(2,"0")}</p><h4>${esc(section.label)}</h4></div><div class="form-grid">${(fieldMap[section.id]||[]).map(id=>fieldHtml(CONFIG.CLIENT_FIELDS.find(f=>f.id===id))).join("")}</div></section>`).join("");
 }
 function fieldHtml(f){
   if(!f)return"";const req=f.required?"required":"";
-  if(f.id==="responsavel")return`<label>${esc(f.label)}<select id="client-${f.id}"></select></label>`;
+  if(f.id==="responsavel"||f.id==="segundoResponsavel")return`<label>${esc(f.label)}<select id="client-${f.id}"></select></label>`;
   if(f.type==="textarea")return`<label class="span-2">${esc(f.label)}<textarea id="client-${f.id}" rows="${f.id==="observacoes"?4:3}" ${req}></textarea></label>`;
   if(f.type==="select")return`<label>${esc(f.label)}<select id="client-${f.id}" ${req}><option value="">Selecione</option>${f.options.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select></label>`;
   return`<label>${esc(f.label)}${f.required?" *":""}<input id="client-${f.id}" type="${f.type}" ${req}></label>`;
@@ -544,13 +546,15 @@ function fieldHtml(f){
 function openClientModal(id=""){
   const form=document.getElementById("client-form");form.reset();document.getElementById("client-id").value=id||"";
   const c=id?clientById(id):null;document.getElementById("client-modal-title").textContent=c?"Editar cliente":"Novo cliente / lead";document.getElementById("client-save-btn").textContent=c?"Salvar alterações":"Salvar cliente";
-  CONFIG.CLIENT_FIELDS.forEach(f=>{if(f.id==="responsavel")return;const el=document.getElementById(`client-${f.id}`);if(!el)return;el.value=c?String(c[f.id]??""):String(CONFIG.CLIENT_DEFAULTS[f.id]??"")});
+  CONFIG.CLIENT_FIELDS.forEach(f=>{if(f.id==="responsavel"||f.id==="segundoResponsavel")return;const el=document.getElementById(`client-${f.id}`);if(!el)return;el.value=c?String(c[f.id]??""):String(CONFIG.CLIENT_DEFAULTS[f.id]??"")});
   populateResponsavelSelect(document.getElementById("client-responsavel"),c?c.responsavel:"");
+  populateResponsavelSelect(document.getElementById("client-segundoResponsavel"),c?c.segundoResponsavel:"",{optional:true,lockForSeller:false});
   document.getElementById("client-modal").showModal();
 }
 async function saveClient(e){
   e.preventDefault();const id=val("client-id"),data={};CONFIG.CLIENT_FIELDS.forEach(f=>{const el=document.getElementById(`client-${f.id}`);if(el)data[f.id]=el.value.trim()});
   const selectedOwnerId=resolveUserId(data.responsavel)||String(SESSION?.id||""); if(selectedOwnerId){data.responsavel=selectedOwnerId;}
+  data.segundoResponsavel=resolveUserId(data.segundoResponsavel)||null;
   if(!data.nome){toast("Informe o nome do cliente.","error");return}
   const btn=submitButtonOf(e)||document.getElementById("client-save-btn");
   await withButtonLoading(btn,async()=>{
@@ -567,8 +571,8 @@ function auditChange(clienteId,entidade,registroId,acao,alteracao){return API.au
 function openDetail(id){
   const c=clientById(id);if(!c)return;const deals=dealByClient(id),tasks=tasksByClient(id),ints=STATE.interacoes.filter(x=>String(x.clienteId)===String(id)).sort((a,b)=>String(b.data).localeCompare(String(a.data))),history=STATE.historico.filter(x=>String(x.clienteId)===String(id)).sort((a,b)=>String(b.dataHora).localeCompare(String(a.dataHora)));
   document.getElementById("detail-heading").innerHTML=`<p class="eyebrow">Ficha do cliente</p><h3>${esc(c.nome)}</h3>`;
-  const fieldMap={pessoais:["nome","cpfCnpj","contato","whatsapp","email","dataNascimento"],comerciais:["empresa","cargo","segmento","porte","origem","responsavel","status","potencial"],endereco:["cep","rua","numero","complemento","bairro","cidade","estado"],digital:["instagram","facebook","linkedin","site"],interno:["tags","preferencias","observacoes"]};
-  const sections=CONFIG.CLIENT_SECTIONS.map(s=>`<div class="detail-section"><h4>${esc(s.label)}</h4>${(fieldMap[s.id]||[]).map(fid=>{const f=CONFIG.CLIENT_FIELDS.find(x=>x.id===fid);let v=c[fid];if(fid==="responsavel")v=ownerName(c.responsavelId||c.responsavel);if(fid==="dataNascimento")v=dateBR(v);if(f.type==="url"&&v)v=`<a class="detail-link" href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a>`;else v=esc(v||"—");return`<div class="detail-row"><span>${esc(f.label)}</span><strong>${v}</strong></div>`}).join("")}</div>`).join("");
+  const fieldMap={pessoais:["nome","cpfCnpj","contato","whatsapp","email","dataNascimento"],comerciais:["empresa","cargo","segmento","porte","origem","responsavel","segundoResponsavel","status","potencial"],endereco:["cep","rua","numero","complemento","bairro","cidade","estado"],digital:["instagram","facebook","linkedin","site"],interno:["tags","preferencias","observacoes"]};
+  const sections=CONFIG.CLIENT_SECTIONS.map(s=>`<div class="detail-section"><h4>${esc(s.label)}</h4>${(fieldMap[s.id]||[]).map(fid=>{const f=CONFIG.CLIENT_FIELDS.find(x=>x.id===fid);let v=c[fid];if(fid==="responsavel")v=ownerName(c.responsavelId||c.responsavel);if(fid==="segundoResponsavel")v=c.segundoResponsavel?ownerName(c.segundoResponsavel):"Nenhum";if(fid==="dataNascimento")v=dateBR(v);if(f.type==="url"&&v)v=`<a class="detail-link" href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a>`;else v=esc(v||"—");return`<div class="detail-row"><span>${esc(f.label)}</span><strong>${v}</strong></div>`}).join("")}</div>`).join("");
   document.getElementById("client-detail").innerHTML=`<div class="detail-grid"><div class="detail-card"><h4>Contato principal</h4><p>${esc(c.whatsapp||c.contato||"—")}</p><p>${esc(c.email||"—")}</p></div><div class="detail-card"><h4>Comercial</h4><p>${esc(c.empresa||"Sem empresa")}</p><p>${esc(c.segmento||"Sem segmento")}</p></div><div class="detail-card"><h4>Status</h4><p>${esc(c.status||"lead")} · potencial ${esc(c.potencial||"—")}</p><a class="btn btn-ghost" href="${waLink(c.whatsapp||c.contato,`Olá, ${c.nome}! Tudo bem?`)}" target="_blank" rel="noopener">WhatsApp</a></div></div>
     <div class="detail-actions"><button class="btn btn-primary" id="detail-edit">✎ Editar cliente</button><button class="btn btn-danger-outline" id="detail-delete">Excluir cliente</button><button class="btn btn-ghost" id="detail-task">＋ Nova tarefa</button><button class="btn btn-ghost" id="detail-interaction">＋ Registrar atividade</button></div>${sections}
     <div class="detail-section"><h4>Negociações vinculadas</h4>${deals.length?deals.map(n=>`<div class="detail-row"><span>${esc(n.produtoServico||"Produto/serviço")} · ${esc(stageLabel(n.etapa))} · ${dateBR(n.previsaoFechamento||n.previsao)}<br><small>${Number(n.probabilidade||0)}% · ${esc(priorityLabel(n.prioridade))} · ${esc(n.responsavel||"Sem responsável")}</small></span><strong>${money(n.valor)} <button class="text-btn" data-detail-deal="${esc(n.id)}">Editar</button></strong></div>`).join(""):`<div class="empty">Nenhuma negociação.</div>`}</div>
@@ -614,13 +618,16 @@ function openDealModal(id=""){
 }
 async function saveDeal(e){
   e.preventDefault();
-  const id=val("deal-id"),prob=Math.max(0,Math.min(100,Number(val("deal-probability")||0))),data={clienteId:val("deal-client"),produtoServico:val("deal-product").trim(),etapa:val("deal-stage"),valor:Number(val("deal-value")||0),probabilidade:prob,previsaoFechamento:val("deal-date"),responsavel:val("deal-owner").trim()||CONFIG.CURRENT_USER,origem:val("deal-origin"),prioridade:val("deal-priority")||"média",motivoPerda:val("deal-stage")==="perdido"?val("deal-loss-reason").trim():"",criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()};
+  const id=val("deal-id"),prob=Math.max(0,Math.min(100,Number(val("deal-probability")||0)));
+  const old=id?STATE.negociacoes.find(x=>String(x.id)===String(id)):null;
+  const data={clienteId:val("deal-client"),produtoServico:val("deal-product").trim(),etapa:val("deal-stage"),valor:Number(val("deal-value")||0),probabilidade:prob,previsaoFechamento:val("deal-date"),responsavel:val("deal-owner").trim()||CONFIG.CURRENT_USER,origem:val("deal-origin"),prioridade:val("deal-priority")||"média",motivoPerda:val("deal-stage")==="perdido"?val("deal-loss-reason").trim():"",criadoEm:new Date().toISOString(),atualizadoEm:new Date().toISOString()};
   data.previsao=data.previsaoFechamento;
+  if(data.etapa==="fechado"&&old?.etapa!=="fechado")data.dataFechamento=new Date().toISOString().slice(0,10);
   if(!data.clienteId||!data.produtoServico){toast("Informe cliente e produto/serviço.","error");return}
   if(data.etapa==="perdido"&&!data.motivoPerda){toast("Informe o motivo da perda.","error");return}
   const btn=submitButtonOf(e);
   await withButtonLoading(btn,async()=>{
-  try{if(id){const old=STATE.negociacoes.find(x=>String(x.id)===String(id));await API.update(CONFIG.SHEETS.NEGOCIACOES,id,data);const changes=diffDeal(old,data);if(changes)await auditChange(data.clienteId,"NEGOCIACOES",id,"Edição",changes)}else{const n=await API.create(CONFIG.SHEETS.NEGOCIACOES,data);await auditChange(data.clienteId,"NEGOCIACOES",n.id,"Criação",`Negociação criada · ${data.produtoServico} · ${money(data.valor)} · ${stageLabel(data.etapa)}`)}document.getElementById("deal-modal").close();await syncAll({silent:true});toast(id?"Negociação atualizada.":"Negociação criada.");}catch(e){toast(e.message,"error")}
+  try{if(id){await API.update(CONFIG.SHEETS.NEGOCIACOES,id,data);const changes=diffDeal(old,data);if(changes)await auditChange(data.clienteId,"NEGOCIACOES",id,"Edição",changes)}else{const n=await API.create(CONFIG.SHEETS.NEGOCIACOES,data);await auditChange(data.clienteId,"NEGOCIACOES",n.id,"Criação",`Negociação criada · ${data.produtoServico} · ${money(data.valor)} · ${stageLabel(data.etapa)}`)}document.getElementById("deal-modal").close();await syncAll({silent:true});toast(id?"Negociação atualizada.":"Negociação criada.");}catch(e){toast(e.message,"error")}
   });
 }
 function diffDeal(o,n){const p=[];if(o.etapa!==n.etapa)p.push(`Etapa: ${stageLabel(o.etapa)} → ${stageLabel(n.etapa)}`);if(String(o.produtoServico||"")!==String(n.produtoServico||""))p.push(`Produto/serviço: "${o.produtoServico||"—"}" → "${n.produtoServico||"—"}"`);if(Number(o.valor)!==Number(n.valor))p.push(`Valor: ${money(o.valor)} → ${money(n.valor)}`);if(Number(o.probabilidade)!==Number(n.probabilidade))p.push(`Probabilidade: ${Number(o.probabilidade||0)}% → ${Number(n.probabilidade||0)}%`);if((o.previsaoFechamento||o.previsao)!==n.previsaoFechamento)p.push(`Fechamento: ${dateBR(o.previsaoFechamento||o.previsao)} → ${dateBR(n.previsaoFechamento)}`);if(o.responsavel!==n.responsavel)p.push(`Responsável: ${o.responsavel||"—"} → ${n.responsavel||"—"}`);if(o.origem!==n.origem)p.push(`Origem: ${o.origem||"—"} → ${n.origem||"—"}`);if(o.prioridade!==n.prioridade)p.push(`Prioridade: ${priorityLabel(o.prioridade)} → ${priorityLabel(n.prioridade)}`);return p.join(" · ")||"Negociação editada"}
@@ -670,7 +677,7 @@ async function saveProposal(e){
   const btn=submitButtonOf(e)||document.getElementById("proposal-save-btn");
   await withButtonLoading(btn,async()=>{
   try{let saved;if(id){const old=proposalById(id);await API.update(CONFIG.SHEETS.PROPOSTAS,id,data);saved={...old,...data};const changes=proposalDiff(old,saved);if(changes)await auditChange(data.clienteId,"PROPOSTAS",id,"Edição",changes)}else{data.criadoEm=new Date().toISOString();saved=await API.create(CONFIG.SHEETS.PROPOSTAS,data);await auditChange(data.clienteId,"PROPOSTAS",saved.id,"Criação",`Proposta criada · ${saved.numero} · ${money(saved.total)}`)}
-    if(saved.status==="aprovada"&&saved.negociacaoId){const deal=STATE.negociacoes.find(n=>String(n.id)===String(saved.negociacaoId));if(deal&&deal.etapa!=="fechado"){await API.update(CONFIG.SHEETS.NEGOCIACOES,deal.id,{etapa:"fechado",probabilidade:100});await auditChange(deal.clienteId,"NEGOCIACOES",deal.id,"Edição",`Proposta ${saved.numero} aprovada → negócio ganho`);}}
+    if(saved.status==="aprovada"&&saved.negociacaoId){const deal=STATE.negociacoes.find(n=>String(n.id)===String(saved.negociacaoId));if(deal&&deal.etapa!=="fechado"){await API.update(CONFIG.SHEETS.NEGOCIACOES,deal.id,{etapa:"fechado",probabilidade:100,dataFechamento:new Date().toISOString().slice(0,10)});await auditChange(deal.clienteId,"NEGOCIACOES",deal.id,"Edição",`Proposta ${saved.numero} aprovada → negócio ganho`);}}
     document.getElementById("proposal-modal").close();await syncAll({silent:true});toast(id?"Proposta atualizada.":"Proposta criada.");
   }catch(err){toast(err.message||"Não foi possível salvar a proposta.","error")}
   });
@@ -722,6 +729,7 @@ function commissionRow(negociacaoId,papel){return STATE.comissoes.find(c=>String
 function commissionValue(row,deal){const base=Number(deal?.valor??row?.valorVenda??0);return Math.max(0,base*Number(row?.percentual||0)/100)}
 function commissionStatusLabel(v){return CONFIG.COMMISSION_STATUS_LABELS?.[v]||v||"Pendente"}
 function sellerClosedDeals(sellerId){return STATE.negociacoes.filter(n=>n.etapa==="fechado"&&resolveUserId(n.responsavel)===String(sellerId))}
+function sellerSecondResponsavelDeals(sellerId){return STATE.negociacoes.filter(n=>n.etapa==="fechado"&&String(clientById(n.clienteId)?.segundoResponsavel||"")===String(sellerId))}
 function managerClosedDeals(managerId){const ids=new Set(teamMembers(managerId).map(u=>String(u.id)));return STATE.negociacoes.filter(n=>n.etapa==="fechado"&&ids.has(resolveUserId(n.responsavel)))}
 function filterDealsByPeriod(deals,period){return period?deals.filter(n=>reportMonthKey(reportDealDate(n))===period):deals}
 function sellerSoldInPeriod(sellerId,period){return filterDealsByPeriod(sellerClosedDeals(sellerId),period).reduce((a,n)=>a+Number(n.valor||0),0)}
@@ -745,6 +753,10 @@ async function ensureCommissionRecords(){
     if(gestorId&&!commissionRow(n.id,"gestor")){
       try{const rec=await API.create(CONFIG.SHEETS.COMISSOES,{negociacaoId:n.id,clienteId:n.clienteId,usuarioId:gestorId,papel:"gestor",valorVenda:Number(n.valor||0),percentual:null,valorComissao:0,status:"pendente",dataPagamento:"",criadoEm:new Date().toISOString()});STATE.comissoes.push(rec)}catch(e){console.warn("Comissão (gestor):",e)}
     }
+    const cliente=clientById(n.clienteId),segundoId=cliente?.segundoResponsavel?resolveUserId(cliente.segundoResponsavel):"";
+    if(segundoId&&!commissionRow(n.id,"segundo_responsavel")){
+      try{const rec=await API.create(CONFIG.SHEETS.COMISSOES,{negociacaoId:n.id,clienteId:n.clienteId,usuarioId:segundoId,papel:"segundo_responsavel",valorVenda:Number(n.valor||0),percentual:null,valorComissao:0,status:"pendente",dataPagamento:"",criadoEm:new Date().toISOString()});STATE.comissoes.push(rec)}catch(e){console.warn("Comissão (segundo responsável):",e)}
+    }
   }
 }
 function availableCommissionPeriods(){const set=new Set(STATE.negociacoes.filter(n=>n.etapa==="fechado").map(n=>reportMonthKey(reportDealDate(n))).filter(Boolean));set.add(currentMonthKey());return[...set].sort().reverse()}
@@ -761,11 +773,11 @@ function renderCommissions(){
 }
 function commissionsSellersMarkup(){
   const sellers=allSellers().filter(u=>!commissionsTeamFilter||String(u.gestorId||"")===commissionsTeamFilter);
-  const rows=sellers.map(u=>{const deals=filterDealsByPeriod(sellerClosedDeals(u.id),commissionsPeriod);const totalVendido=deals.reduce((a,n)=>a+Number(n.valor||0),0);const totalComissao=deals.reduce((a,n)=>a+commissionValue(commissionRow(n.id,"vendedor"),n),0);const pago=deals.filter(n=>commissionRow(n.id,"vendedor")?.status==="pago").length;return{u,deals,totalVendido,totalComissao,pago}}).sort((a,b)=>b.totalVendido-a.totalVendido);
+  const rows=sellers.map(u=>{const deals=filterDealsByPeriod(sellerClosedDeals(u.id),commissionsPeriod);const totalVendido=deals.reduce((a,n)=>a+Number(n.valor||0),0);const totalComissao=deals.reduce((a,n)=>a+commissionValue(commissionRow(n.id,"vendedor"),n),0);const pago=deals.filter(n=>commissionRow(n.id,"vendedor")?.status==="pago").length;const dealsSegundo=filterDealsByPeriod(sellerSecondResponsavelDeals(u.id),commissionsPeriod);const totalComissaoSegundo=dealsSegundo.reduce((a,n)=>a+commissionValue(commissionRow(n.id,"segundo_responsavel"),n),0);return{u,deals,totalVendido,totalComissao,pago,dealsSegundo,totalComissaoSegundo}}).sort((a,b)=>b.totalVendido-a.totalVendido);
   return`<div class="panel commissions-panel">
     <div class="commissions-toolbar"><select id="commissions-period">${commissionPeriodOptions(commissionsPeriod)}</select><select id="commissions-team-filter">${commissionTeamOptions(commissionsTeamFilter)}</select></div>
-    <div class="table-scroll"><table><thead><tr><th>Vendedor</th><th>Gestor</th><th>Vendas</th><th>Valor vendido</th><th>Comissão</th><th>Pagas</th><th></th></tr></thead>
-    <tbody>${rows.length?rows.map(r=>`<tr><td><strong>${esc(r.u.nome)}</strong></td><td>${esc(gestorNome(r.u.gestorId))}</td><td>${r.deals.length}</td><td>${money(r.totalVendido)}</td><td>${money(r.totalComissao)}</td><td>${r.pago}/${r.deals.length}</td><td><button type="button" class="text-btn" data-commission-seller="${esc(r.u.id)}">Ver vendas →</button></td></tr>`).join(""):`<tr><td colspan="7"><div class="empty">Nenhum vendedor encontrado para este filtro.</div></td></tr>`}</tbody></table></div>
+    <div class="table-scroll"><table><thead><tr><th>Vendedor</th><th>Gestor</th><th>Vendas</th><th>Valor vendido</th><th>Comissão</th><th>Pagas</th><th>Como 2º responsável</th><th></th></tr></thead>
+    <tbody>${rows.length?rows.map(r=>`<tr><td><strong>${esc(r.u.nome)}</strong></td><td>${esc(gestorNome(r.u.gestorId))}</td><td>${r.deals.length}</td><td>${money(r.totalVendido)}</td><td>${money(r.totalComissao)}</td><td>${r.pago}/${r.deals.length}</td><td>${r.dealsSegundo.length?`${r.dealsSegundo.length} venda${r.dealsSegundo.length===1?"":"s"} · ${money(r.totalComissaoSegundo)}`:"—"}</td><td><button type="button" class="text-btn" data-commission-seller="${esc(r.u.id)}">Ver vendas →</button>${r.dealsSegundo.length?` <button type="button" class="text-btn" data-commission-seller-segundo="${esc(r.u.id)}">Ver 2º resp. →</button>`:""}</td></tr>`).join(""):`<tr><td colspan="8"><div class="empty">Nenhum vendedor encontrado para este filtro.</div></td></tr>`}</tbody></table></div>
   </div>`;
 }
 function commissionsManagersMarkup(){
@@ -911,21 +923,22 @@ function bindCommissionsEvents(){
   document.querySelectorAll(".commission-goal-input").forEach(inp=>inp.onchange=()=>updateCommissionGoal(inp.dataset.goalKind,inp.dataset.goalId,inp.value));
   document.querySelectorAll("[data-commission-seller]").forEach(b=>b.onclick=()=>openCommissionDetail(b.dataset.commissionSeller,"vendedor"));
   document.querySelectorAll("[data-commission-manager]").forEach(b=>b.onclick=()=>openCommissionDetail(b.dataset.commissionManager,"gestor"));
+  document.querySelectorAll("[data-commission-seller-segundo]").forEach(b=>b.onclick=()=>openCommissionDetail(b.dataset.commissionSellerSegundo,"segundo_responsavel"));
 }
 function openCommissionDetail(userId,papel){commissionsDetailContext={userId,papel};commissionsDetailPeriod=currentMonthKey();renderCommissionDetail();document.getElementById("commission-detail-modal").showModal()}
 function renderCommissionDetail(){
   if(!commissionsDetailContext)return;
   const{userId,papel}=commissionsDetailContext,user=userById(userId);
-  const allDeals=papel==="vendedor"?sellerClosedDeals(userId):managerClosedDeals(userId);
+  const allDeals=papel==="vendedor"?sellerClosedDeals(userId):papel==="gestor"?managerClosedDeals(userId):sellerSecondResponsavelDeals(userId);
   const deals=filterDealsByPeriod(allDeals,commissionsDetailPeriod).sort((a,b)=>String(reportDealDate(b)||"").localeCompare(String(reportDealDate(a)||"")));
   const totalVendido=deals.reduce((a,n)=>a+Number(n.valor||0),0),totalComissao=deals.reduce((a,n)=>a+commissionValue(commissionRow(n.id,papel),n),0);
-  const isGestor=papel==="gestor";
-  document.getElementById("commission-detail-title").innerHTML=`<p class="eyebrow">${isGestor?"Vendas da equipe":"Vendas do vendedor"}</p><h3>${esc(user?.nome||"—")}</h3>`;
+  const isGestor=papel==="gestor",isSegundo=papel==="segundo_responsavel",showOwnerCol=isGestor||isSegundo;
+  document.getElementById("commission-detail-title").innerHTML=`<p class="eyebrow">${isGestor?"Vendas da equipe":isSegundo?"Vendas como segundo responsável":"Vendas do vendedor"}</p><h3>${esc(user?.nome||"—")}</h3>`;
   document.getElementById("commission-detail-body").innerHTML=`
     <div class="commissions-toolbar"><select id="commission-detail-period">${commissionPeriodOptions(commissionsDetailPeriod)}</select></div>
-    <div class="table-scroll"><table class="commission-table"><thead><tr><th>Cliente</th>${isGestor?"<th>Vendedor</th>":""}<th>Produto/serviço</th><th>Fechamento</th><th>Valor da venda</th><th>%</th><th>Comissão</th><th>Status</th><th>Data pagamento</th><th></th></tr></thead>
-    <tbody>${deals.length?deals.map(n=>{const row=commissionRow(n.id,papel),c=clientById(n.clienteId),v=commissionValue(row,n);const vendedorNome=isGestor?esc(userById(resolveUserId(n.responsavel))?.nome||"—"):"";return`<tr><td>${esc(c?.nome||"—")}</td>${isGestor?`<td>${vendedorNome}</td>`:""}<td>${esc(n.produtoServico||"—")}</td><td>${dateBR(reportDealDate(n))}</td><td>${money(n.valor)}</td><td><input type="number" min="0" max="100" step="0.01" class="commission-pct-input" value="${row?.percentual??""}" data-deal-id="${esc(n.id)}"></td><td class="commission-value">${money(v)}</td><td><select class="commission-status-input">${CONFIG.COMMISSION_STATUS.map(s=>`<option value="${s}" ${row?.status===s?"selected":""}>${esc(commissionStatusLabel(s))}</option>`).join("")}</select></td><td><input type="date" class="commission-date-input" value="${row?.dataPagamento||""}"></td><td><button type="button" class="text-btn commission-save-btn" data-commission-id="${esc(row?.id||"")}">Salvar</button></td></tr>`}).join(""):`<tr><td colspan="${isGestor?10:9}"><div class="empty">Nenhuma venda fechada neste período.</div></td></tr>`}</tbody>
-    ${deals.length?`<tfoot><tr class="commission-total-row"><td colspan="${isGestor?4:3}">Total geral</td><td>${money(totalVendido)}</td><td></td><td>${money(totalComissao)}</td><td colspan="3"></td></tr></tfoot>`:""}
+    <div class="table-scroll"><table class="commission-table"><thead><tr><th>Cliente</th>${showOwnerCol?"<th>Primeiro responsável</th>":""}<th>Produto/serviço</th><th>Fechamento</th><th>Valor da venda</th><th>%</th><th>Comissão</th><th>Status</th><th>Data pagamento</th><th></th></tr></thead>
+    <tbody>${deals.length?deals.map(n=>{const row=commissionRow(n.id,papel),c=clientById(n.clienteId),v=commissionValue(row,n);const vendedorNome=showOwnerCol?esc(userById(resolveUserId(n.responsavel))?.nome||"—"):"";return`<tr><td>${esc(c?.nome||"—")}</td>${showOwnerCol?`<td>${vendedorNome}</td>`:""}<td>${esc(n.produtoServico||"—")}</td><td>${dateBR(reportDealDate(n))}</td><td>${money(n.valor)}</td><td><input type="number" min="0" max="100" step="0.01" class="commission-pct-input" value="${row?.percentual??""}" data-deal-id="${esc(n.id)}"></td><td class="commission-value">${money(v)}</td><td><select class="commission-status-input">${CONFIG.COMMISSION_STATUS.map(s=>`<option value="${s}" ${row?.status===s?"selected":""}>${esc(commissionStatusLabel(s))}</option>`).join("")}</select></td><td><input type="date" class="commission-date-input" value="${row?.dataPagamento||""}"></td><td><button type="button" class="text-btn commission-save-btn" data-commission-id="${esc(row?.id||"")}">Salvar</button></td></tr>`}).join(""):`<tr><td colspan="${showOwnerCol?10:9}"><div class="empty">Nenhuma venda fechada neste período.</div></td></tr>`}</tbody>
+    ${deals.length?`<tfoot><tr class="commission-total-row"><td colspan="${showOwnerCol?4:3}">Total geral</td><td>${money(totalVendido)}</td><td></td><td>${money(totalComissao)}</td><td colspan="3"></td></tr></tfoot>`:""}
     </table></div>`;
   bindCommissionDetailEvents();
 }

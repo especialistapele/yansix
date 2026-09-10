@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual do Usuário — YANSIX CRM</title>
+<link rel="icon" href="assets/yansix-logo-192.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body{background:var(--bg)}
+  .docs-shell{min-height:100vh;display:grid;grid-template-columns:270px minmax(0,1fr)}
+  .docs-toc{background:#fff;border-right:1px solid var(--border);padding:24px 16px;position:sticky;top:0;height:100vh;overflow:auto}
+  .docs-toc .brand{height:54px;display:flex;align-items:center;padding:0 8px;margin-bottom:18px}
+  .docs-toc .brand img{width:170px;height:auto;object-fit:contain}
+  .docs-toc h5{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 8px 8px}
+  .docs-toc a{display:block;padding:8px 10px;border-radius:9px;color:var(--text);font-size:12.5px;font-weight:500;margin-bottom:2px}
+  .docs-toc a:hover{background:#F5F3FF;color:var(--primary)}
+  .docs-content{padding:40px 48px 90px;max-width:920px}
+  .docs-header{margin-bottom:32px}
+  .docs-header .eyebrow{color:var(--primary);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .docs-header h1{font-size:32px;margin:6px 0 8px;letter-spacing:-.5px}
+  .docs-header p{color:var(--muted);margin:0;font-size:14px}
+  .docs-section{margin-bottom:44px;scroll-margin-top:20px}
+  .docs-section h2{font-size:20px;margin:0 0 6px;padding-top:6px;border-top:1px solid var(--border);padding-top:26px}
+  .docs-section:first-of-type h2{border-top:0;padding-top:0}
+  .docs-section .docs-lede{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .docs-card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px}
+  .docs-card h3{font-size:14px;margin:0 0 8px;color:var(--text)}
+  .docs-card h3 .nav-icon{color:var(--secondary);margin-right:6px;font-size:15px}
+  .docs-card ol,.docs-card ul{margin:8px 0 0;padding-left:19px;font-size:13px;line-height:1.65;color:var(--text)}
+  .docs-card ol li,.docs-card ul li{margin-bottom:4px}
+  .docs-perm-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  .docs-perm-table th,.docs-perm-table td{text-align:left;padding:9px 10px;border-bottom:1px solid #F0F1F7}
+  .docs-perm-table th{color:var(--muted);font-weight:600;background:#FCFCFE}
+  .docs-badge{display:inline-block;padding:3px 9px;border-radius:20px;background:#F0EDFF;color:var(--primary);font-size:10.5px;font-weight:700}
+  .docs-badge.admin{background:#FFF0F3;color:var(--danger)}
+  .docs-badge.gestor{background:#EAF3FF;color:#2563EB}
+  .docs-badge.vendedor{background:#E9FAF4;color:#138D6D}
+  .docs-note{border-left:3px solid var(--highlight);background:#FAF9FF;padding:11px 14px;border-radius:0 9px 9px 0;font-size:12.5px;color:var(--text);margin-top:10px}
+  .docs-note strong{color:var(--primary)}
+  .docs-toc-mobile{display:none}
+  .docs-topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;padding:16px 22px 0}
+  .docs-back{font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border:1px solid var(--border);border-radius:9px;background:#fff;font-weight:600;transition:.15s}
+  .docs-back:hover{border-color:var(--highlight);color:var(--primary)}
+  @media(max-width:900px){
+    .docs-shell{grid-template-columns:1fr}
+    .docs-toc{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--border)}
+    .docs-content{padding:28px 20px 70px}
+  }
+</style>
+</head>
+<body>
+<div class="docs-shell">
+
+  <aside class="docs-toc">
+    <div class="brand"><img src="assets/yansix-logo.png" alt="YANSIX CRM"></div>
+    <h5>Comece por aqui</h5>
+    <a href="#introducao">Introdução e login</a>
+    <a href="#perfis">Perfis e permissões</a>
+    <h5>Módulos do CRM</h5>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#clientes">Clientes</a>
+    <a href="#segundo-responsavel">Segundo Responsável</a>
+    <a href="#funil">Funil / Negociações</a>
+    <a href="#tarefas">Tarefas</a>
+    <a href="#interacoes">Atividades / Interações</a>
+    <a href="#calendario">Agenda / Follow-up</a>
+    <a href="#propostas">Propostas e Orçamentos</a>
+    <a href="#relatorios">Relatórios e Analytics</a>
+    <a href="#comissoes">Comissões</a>
+    <a href="#produtos">Produtos e Serviços</a>
+    <a href="#financeiro">Financeiro</a>
+    <a href="#satisfacao">Satisfação do Cliente</a>
+    <a href="#integracoes">Integrações</a>
+    <a href="#configuracoes">Status do CRM</a>
+    <a href="#usuarios">Usuários e Permissões</a>
+    <h5>Precisa de ajuda?</h5>
+    <a href="#suporte">Abrir chamado de suporte</a>
+  </aside>
+
+  <main class="docs-content">
+
+    <div class="docs-topbar">
+      <a class="docs-back" href="index.html">← Voltar ao CRM</a>
+    </div>
+
+    <div class="docs-header">
+      <p class="eyebrow">Manual do usuário</p>
+      <h1>YANSIX CRM</h1>
+      <p>Guia completo de todos os módulos, perfis de acesso e fluxos comerciais do CRM.</p>
+    </div>
+
+    <section class="docs-section" id="introducao">
+      <h2>Introdução e login</h2>
+      <p class="docs-lede">O YANSIX CRM organiza toda a jornada comercial: da captação do lead até o fechamento, comissão e pós-venda.</p>
+      <div class="docs-card">
+        <h3><span class="nav-icon">➜</span>Como entrar</h3>
+        <ol>
+          <li>Acesse o endereço do CRM fornecido pela sua empresa.</li>
+          <li>Informe seu e-mail e senha cadastrados pelo Administrador.</li>
+          <li>Após o login, o menu lateral mostra apenas os módulos que o seu perfil pode acessar.</li>
+        </ol>
+        <div class="docs-note">Esqueceu a senha ou não recebeu seu acesso? Fale com o Administrador da sua conta ou abra um chamado de suporte (veja a seção <a href="#suporte">Abrir chamado</a>).</div>
+      </div>
+    </section>
+
+    <section class="docs-section" id="perfis">
+      <h2>Perfis e permissões</h2>
+      <p class="docs-lede">Existem três perfis de usuário. O que cada um vê e faz no CRM depende exclusivamente do perfil e da hierarquia (quem é gestor de quem).</p>
+      <div class="docs-card">
+        <table class="docs-perm-table">
+          <thead><tr><th>Perfil</th><th>O que enxerga</th><th>Módulos exclusivos</th></tr></thead>
+          <tbody>
+            <tr><td><span class="docs-badge admin">Administrador</span></td><td>Todos os clientes, negociações e dados da empresa, sem restrição.</td><td>Usuários, Integrações + todos os demais</td></tr>
+            <tr><td><span class="docs-badge gestor">Gestor</span></td><td>Seus próprios clientes/negociações + os de todos os Vendedores da sua equipe (vinculados pelo campo "gestor" do vendedor).</td><td>Relatórios, Comissões, Produtos, Financeiro, Satisfação, Status do CRM</td></tr>
+            <tr><td><span class="docs-badge vendedor">Vendedor</span></td><td>Apenas os clientes onde é <strong>Primeiro Responsável</strong> ou <strong>Segundo Responsável</strong>.</td><td>Dashboard, Clientes, Funil, Tarefas, Atividades, Agenda, Propostas</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-note">Um Vendedor nunca vê a carteira de outro Vendedor, a não ser que tenha sido adicionado como <strong>Segundo Responsável</strong> daquele cliente específico (veja a seção dedicada abaixo).</div>
+      </div>
+    </section>
+
+    <section class="docs-section" id="dashboard">
+      <h2>Dashboard</h2>
+      <p class="docs-lede">Visão geral do funil e das atividades pendentes, assim que você entra no CRM.</p>
+      <div class="docs-card">
+        <h3><span class="nav-icon">⌂</span>O que você encontra aqui</h3>
+        <ul>
+          <li>Indicadores rápidos: negociações abertas, valor em pipeline, tarefas do dia, taxa de conversão.</li>
+          <li>Mini-Kanban do funil, com os cards mais recentes por etapa.</li>
+          <li>Lista de atividades recentes e origem dos leads.</li>
+          <li>Gráfico de valores por etapa do funil.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="docs-section" id="clientes">
+      <h2>Clientes</h2>
+      <p class="docs-lede">Gerencie sua base comercial e abra a ficha completa de cada cliente.</p>
+      <div class="docs-card">
+        <h3><span class="nav-icon">＋</span>Cadastrar um cliente</h3>
+        <ol>
+          <li>Clique em <strong>"＋ Novo cliente"</strong>, no canto superior direito.</li>
+          <li>Preencha os dados pessoais, comerciais (empresa, segmento, origem do lead), endereço e presença digital.</li>
+          <li>No campo <strong>Primeiro Responsável</strong>, selecione o vendedor dono do cliente (por padrão, o próprio usuário logado).</li>
+          <li>Clique em <strong>Salvar cliente</strong>.</li>
+        </ol>
+        <h3 style="margin-top:16px"><span class="nav-icon">☰</span>Ficha do cliente</h3>
+        <ul>
+          <li>Clique no nome do cliente na listagem para abrir a ficha completa.</li>
+          <li>Veja negociações vinculadas, tarefas, atividades e o histórico de alterações.</li>
+          <li>Use os botões de atalho para editar, excluir, criar tarefa ou registrar uma atividade direto da ficha.</li>
+        </ul>
+        <h3 style="margin-top:16px"><span class="nav-icon">⚲</span>Filtros e busca</h3>
+        <p style="font-size:13px;margin:6px 0 0">Use a barra de busca global (topo) ou os filtros da listagem para localizar clientes por nome, status, origem ou responsável.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="segundo-responsavel">
+      <h2>Segundo Responsável (SDR + Fechamento)</h2>
+      <p class="docs-lede">Permite que dois vendedores trabalhem o mesmo cliente: quem qualifica (Primeiro Responsável) e quem conduz a reunião/fechamento (Segundo Responsável).</p>
+      <div class="docs-card">
+        <h3><span class="nav-icon">✎</span>Como adicionar um segundo responsável</h3>
+        <ol>
+          <li>Abra a ficha do cliente e clique em <strong>Editar cliente</strong> (ou já defina na criação).</li>
+          <li>Na seção "Dados comerciais", preencha o campo <strong>Segundo Responsável</strong> com o vendedor que vai conduzir a reunião/fechamento.</li>
+          <li>Deixe em branco ("Nenhum") se o cliente ainda não tiver um segundo responsável — o campo é sempre opcional.</li>
+          <li>Salve. A partir desse momento, o vendedor selecionado passa a enxergar o cliente (ficha, tarefas, atividades, negociações, propostas e Kanban).</li>
+        </ol>
+        <div class="docs-note">
+          <strong>Regras importantes:</strong>
+          <ul style="margin-top:6px">
+            <li>O Primeiro Responsável <strong>nunca</strong> é substituído — os dois convivem ao mesmo tempo.</li>
+            <li>O Segundo Responsável só ganha acesso ao cliente a partir do momento em que é adicionado (não é retroativo).</li>
+            <li>Qualquer vendedor pode ser Primeiro ou Segundo Responsável — não existe um "cargo" separado de SDR/Closer no sistema, são só os dois papéis que qualquer vendedor pode ocupar.</li>
+            <li>Um Administrador pode preencher os dois campos desde a criação do cliente, sem precisar esperar o Primeiro Responsável agir.</li>
+          </ul>
+        </div>
+        <h3 style="margin-top:16px"><span class="nav-icon">%</span>Comissão dos dois vendedores</h3>
+        <p style="font-size:13px;margin:6px 0 0">Quando a negociação fecha, se o cliente tiver os dois responsáveis preenchidos, o CRM cria automaticamente uma linha de comissão para cada um deles na aba <a href="#comissoes">Comissões</a>. O percentual de cada um é sempre definido manualmente — não existe divisão automática.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="funil">
+      <h2>Funil / Negociações</h2>
+      <p class="docs-lede">Pipeline comercial em formato Kanban, com cards detalhados e movimentação por etapa.</p>
+      <div class="docs-card">
+        <h3><span class="nav-icon">▥</span>Como usar</h3>
+        <ul>
+          <li>Clique em <strong>"＋ Nova negociação"</strong> para abrir um card vinculado a um cliente.</li>
+          <li>Arraste o card entre as colunas para avançar/retroceder a etapa (ex.: qualificação → reunião → proposta → fechado).</li>
+          <li>Clique no card para editar valor, produto/serviço, probabilidade, prioridade e responsável da negociação.</li>
+          <li>Use o botão <strong>"Configurar etapas"</strong> para personalizar as colunas do funil, se disponível para o seu perfil.</li>
+        </ul>
+        <div class="docs-note">O Segundo Responsável do cliente também enxerga as negociações desse cliente no Kanban, mesmo sem estar marcado como responsável direto da negociação.</div>
+      </div>
+    </section>
+
+    <section class="docs-section" id="tarefas">
+      <h2>Tarefas</h2>
+      <p class="docs-lede">Acompanhe follow-ups e atividades pendentes.</p>
+      <div class="docs-card">
+        <ol>
+          <li>Clique em <strong>"＋ Nova tarefa"</strong>, escolha o cliente vinculado, o título, a data e a prioridade.</li>
+          <li>Marque a tarefa como concluída clicando no círculo ao lado dela.</li>
+          <li>Tarefas atrasadas ficam sinalizadas e também aparecem na <a href="#calendario">Agenda</a>.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="docs-section" id="interacoes">
+      <h2>Atividades / Interações</h2>
+      <p class="docs-lede">Registre contatos comerciais e mantenha o histórico de follow-up de cada cliente.</p>
+      <div class="docs-card">
+        <ol>
+          <li>Clique em <strong>"＋ Nova atividade"</strong>.</li>
+          <li>Escolha o cliente, o tipo de contato (ligação, WhatsApp, e-mail, reunião) e escreva um resumo.</li>
+          <li>O histórico fica disponível tanto aqui quanto na ficha do cliente.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="docs-section" id="calendario">
+      <h2>Agenda / Follow-up</h2>
+      <p class="docs-lede">Veja tarefas atrasadas, de hoje, próximas e concluídas em um só lugar.</p>
+      <div class="docs-card">
+        <p style="font-size:13px;margin:0">Use os separadores (abas) para alternar entre "Atrasadas", "Hoje", "Próximas" e "Concluídas". Clique em uma tarefa para abrir os detalhes ou marcá-la como feita.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="propostas">
+      <h2>Propostas e Orçamentos</h2>
+      <p class="docs-lede">Crie, acompanhe e converta propostas comerciais em negócios ganhos.</p>
+      <div class="docs-card">
+        <ol>
+          <li>Clique em <strong>"＋ Nova proposta"</strong>, vinculando a um cliente (e, se aplicável, a uma negociação em aberto).</li>
+          <li>Preencha os itens, valores e validade da proposta.</li>
+          <li>Acompanhe o status (enviada, aceita, recusada) e converta em negociação fechada quando aprovada.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="docs-section" id="relatorios">
+      <h2>Relatórios e Analytics</h2>
+      <p class="docs-lede">Visão analítica do desempenho comercial, pipeline, conversão e vendas.</p>
+      <div class="docs-card">
+        <ul>
+          <li>Filtre por período no seletor do topo da página.</li>
+          <li>Veja ranking de vendedores, taxa de conversão por etapa e evolução do valor vendido.</li>
+          <li>Disponível para Gestores e Administradores.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="docs-section" id="comissoes">
+      <h2>Comissões</h2>
+      <p class="docs-lede">Comissão de vendedores e gestores sobre as negociações fechadas no funil.</p>
+      <div class="docs-card">
+        <h3><span class="nav-icon">%</span>Abas disponíveis</h3>
+        <ul>
+          <li><strong>Vendedores</strong> — total vendido, comissão e vendas onde o usuário aparece como Segundo Responsável (coluna "Como 2º responsável").</li>
+          <li><strong>Gestores</strong> — comissão da equipe, calculada sobre as vendas dos vendedores subordinados.</li>
+          <li><strong>Desempenho</strong> — ranking, metas e comparativos por período.</li>
+        </ul>
+        <h3 style="margin-top:16px"><span class="nav-icon">✎</span>Lançar o percentual</h3>
+        <ol>
+          <li>Clique em <strong>"Ver vendas →"</strong> (ou <strong>"Ver 2º resp. →"</strong>) ao lado do vendedor.</li>
+          <li>Informe o percentual da comissão em cada venda — o valor é calculado automaticamente.</li>
+          <li>Marque o status (pendente/pago) e a data de pagamento, depois clique em <strong>Salvar</strong>.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="docs-section" id="produtos">
+      <h2>Produtos e Serviços</h2>
+      <p class="docs-lede">Catálogo usado como origem do campo "Produto/Serviço" nas negociações.</p>
+      <div class="docs-card">
+        <p style="font-size:13px;margin:0">Cadastre aqui os produtos/serviços que sua empresa vende, para que apareçam como opção ao criar uma negociação ou proposta.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="financeiro">
+      <h2>Financeiro</h2>
+      <p class="docs-lede">Faturas, status de pagamento e fluxo de caixa.</p>
+      <div class="docs-card">
+        <p style="font-size:13px;margin:0">Acompanhe as faturas geradas a partir de negociações fechadas, com status de pagamento e vencimento.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="satisfacao">
+      <h2>Satisfação do Cliente</h2>
+      <p class="docs-lede">Registro manual de nota e comentário após atendimento ou venda.</p>
+      <div class="docs-card">
+        <p style="font-size:13px;margin:0">Use esta área para registrar a nota de satisfação (NPS) e comentários do cliente após o fechamento ou um atendimento importante.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="integracoes">
+      <h2>Integrações</h2>
+      <p class="docs-lede">Conecte os canais externos ao CRM sem quebrar a arquitetura atual.</p>
+      <div class="docs-card">
+        <p style="font-size:13px;margin:0">Configure e-mail, WhatsApp Business, Google Agenda e webhooks do site. Disponível apenas para Administradores.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="configuracoes">
+      <h2>Status do CRM</h2>
+      <p class="docs-lede">Saúde do sistema e utilização do seu plano atual.</p>
+      <div class="docs-card">
+        <p style="font-size:13px;margin:0">Acompanhe limites do plano (usuários, clientes, armazenamento) e configure regras de automação, como prazos de follow-up.</p>
+      </div>
+    </section>
+
+    <section class="docs-section" id="usuarios">
+      <h2>Usuários e Permissões</h2>
+      <p class="docs-lede">Gerencie acessos, perfis e status dos usuários do CRM.</p>
+      <div class="docs-card">
+        <ol>
+          <li>Clique em <strong>"＋ Novo usuário"</strong>.</li>
+          <li>Defina nome, e-mail, perfil (Administrador, Gestor ou Vendedor) e, se for Vendedor, o Gestor responsável por ele.</li>
+          <li>Ative/desative o acesso a qualquer momento pela listagem.</li>
+        </ol>
+        <div class="docs-note">Disponível apenas para o perfil Administrador.</div>
+      </div>
+    </section>
+
+    <section class="docs-section" id="suporte">
+      <h2>Precisa de ajuda?</h2>
+      <p class="docs-lede">Se encontrar um problema ou tiver uma dúvida que este manual não respondeu, abra um chamado direto com o suporte YANSIX.</p>
+      <div class="docs-card">
+        <ol>
+          <li>No CRM, clique em <strong>"Abrir chamado"</strong>, ao lado do seu nome no topo da tela.</li>
+          <li>Uma nova aba abre já com seu nome e e-mail preenchidos.</li>
+          <li>Descreva o problema ou a dúvida e envie.</li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>
