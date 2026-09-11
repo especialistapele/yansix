@@ -1589,6 +1589,304 @@ footer ul li a:hover{
 
 }
 
+
+/* ================= POP-UP SISTEMAS YANSIX ================= */
+.sistemas-popup-overlay{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(13,10,31,.68);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .35s ease, visibility .35s ease;
+}
+.sistemas-popup-overlay.is-visible{
+  opacity:1;
+  visibility:visible;
+}
+.sistemas-popup{
+  position:relative;
+  width:min(900px,100%);
+  min-height:490px;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:28px;
+  background:linear-gradient(135deg,#171334 0%,#241b59 55%,#3b2ca0 100%);
+  box-shadow:0 30px 90px rgba(0,0,0,.42);
+  transform:translateY(24px) scale(.97);
+  transition:transform .45s cubic-bezier(.22,.61,.36,1);
+  color:#fff;
+}
+.sistemas-popup-overlay.is-visible .sistemas-popup{
+  transform:translateY(0) scale(1);
+}
+.sistemas-popup::before{
+  content:"";
+  position:absolute;
+  width:330px;
+  height:330px;
+  right:-120px;
+  top:-150px;
+  border-radius:50%;
+  background:rgba(91,61,245,.32);
+  filter:blur(4px);
+}
+.sistemas-popup-content{
+  position:relative;
+  z-index:2;
+  padding:54px 42px 44px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.sistemas-popup-kicker{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  margin-bottom:16px;
+  padding:7px 12px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+  color:#d9d4ff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.sistemas-popup h2{
+  margin:0 0 14px;
+  color:#fff;
+  font-size:clamp(30px,4vw,48px);
+  line-height:1.04;
+  letter-spacing:-.035em;
+}
+.sistemas-popup-lead{
+  max-width:470px;
+  margin:0 0 24px;
+  color:rgba(255,255,255,.78);
+  font-size:16px;
+  line-height:1.6;
+}
+.sistemas-popup-price{
+  margin:0 0 8px;
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.sistemas-popup-price strong{
+  display:block;
+  margin-top:3px;
+  color:#fff;
+  font-size:31px;
+  line-height:1.1;
+  letter-spacing:-.03em;
+  text-transform:none;
+}
+.sistemas-popup-note{
+  margin:0 0 26px;
+  color:rgba(255,255,255,.58);
+  font-size:12px;
+}
+.sistemas-popup-cta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:max-content;
+  min-height:50px;
+  padding:0 22px;
+  border-radius:12px;
+  background:#fff;
+  color:#171326;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.04em;
+  box-shadow:0 10px 28px rgba(0,0,0,.2);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.sistemas-popup-cta:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 34px rgba(0,0,0,.28);
+}
+.sistemas-popup-close{
+  position:absolute;
+  z-index:20;
+  top:16px;
+  right:16px;
+  width:38px;
+  height:38px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:50%;
+  background:rgba(0,0,0,.16);
+  color:#fff;
+  cursor:pointer;
+  font-size:23px;
+  line-height:1;
+  transition:background .2s ease, transform .2s ease;
+}
+.sistemas-popup-close:hover{
+  background:rgba(255,255,255,.14);
+  transform:rotate(90deg);
+}
+
+/* Vitrine dinâmica com as capas reais de solucoes-sistemas.html */
+.sistemas-popup-visual{
+  position:relative;
+  min-height:490px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:26px 24px 44px;
+  background:radial-gradient(circle at 50% 45%,rgba(111,91,255,.4),rgba(15,11,40,.12) 62%);
+}
+.sistemas-popup-visual::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:5;
+  background:linear-gradient(90deg,#171334 0%,transparent 24%,transparent 100%);
+  pointer-events:none;
+}
+.sistemas-popup-slides{
+  position:relative;
+  z-index:2;
+  width:88%;
+  aspect-ratio:16 / 9;
+  height:auto;
+  border-radius:16px;
+  overflow:visible;
+  transform:perspective(1000px) rotateY(-7deg) rotateX(2deg) rotateZ(1deg);
+  animation:sistemasPopupFloat 5s ease-in-out infinite;
+}
+.sistemas-popup-slide{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  visibility:hidden;
+  transform:scale(1.035);
+  transition:opacity .7s ease, transform 1.2s ease, visibility .7s ease;
+}
+.sistemas-popup-slide.is-active{
+  opacity:1;
+  visibility:visible;
+  transform:scale(1);
+}
+.sistemas-popup-slide img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  padding:0;
+  box-sizing:border-box;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.2);
+  background:#fff;
+  box-shadow:0 24px 55px rgba(0,0,0,.38);
+}
+.sistemas-popup-tag{
+  position:absolute;
+  z-index:8;
+  right:30px;
+  bottom:43px;
+  padding:11px 14px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:12px;
+  background:rgba(20,16,53,.78);
+  backdrop-filter:blur(8px);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+  transition:opacity .25s ease, transform .25s ease;
+}
+.sistemas-popup-dots{
+  position:absolute;
+  z-index:9;
+  left:50%;
+  bottom:17px;
+  display:flex;
+  gap:6px;
+  transform:translateX(-50%);
+}
+.sistemas-popup-dot{
+  width:7px;
+  height:7px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.35);
+  cursor:pointer;
+  transition:transform .2s ease, background .2s ease;
+}
+.sistemas-popup-dot.is-active{
+  transform:scale(1.35);
+  background:#fff;
+}
+@keyframes sistemasPopupFloat{
+  0%,100%{transform:perspective(1000px) rotateY(-7deg) rotateX(2deg) rotateZ(1deg) translateY(0)}
+  50%{transform:perspective(1000px) rotateY(-7deg) rotateX(2deg) rotateZ(1deg) translateY(-9px)}
+}
+@media(max-width:720px){
+  .sistemas-popup-overlay{padding:16px}
+  .sistemas-popup{
+    width:min(520px,100%);
+    min-height:0;
+    grid-template-columns:1fr;
+  }
+  .sistemas-popup-content{
+    padding:46px 28px 30px;
+    order:1;
+  }
+  .sistemas-popup h2{font-size:32px}
+  .sistemas-popup-lead{font-size:14px;margin-bottom:20px}
+  .sistemas-popup-price strong{font-size:28px}
+  .sistemas-popup-visual{
+    order:2;
+    min-height:225px;
+    padding:12px 18px 38px;
+  }
+  .sistemas-popup-slides{
+    width:82%;
+    aspect-ratio:16 / 9;
+    height:auto;
+    transform:none;
+    animation:none;
+  }
+  .sistemas-popup-visual::after{
+    background:linear-gradient(0deg,#171334 0%,transparent 45%);
+  }
+  .sistemas-popup-tag{
+    right:22px;
+    bottom:38px;
+  }
+}
+@media(max-width:430px){
+  .sistemas-popup-content{padding:42px 22px 26px}
+  .sistemas-popup-kicker{font-size:9px}
+  .sistemas-popup h2{font-size:29px}
+  .sistemas-popup-cta{width:100%}
+  .sistemas-popup-visual{min-height:195px}
+  .sistemas-popup-slides{width:84%;aspect-ratio:16 / 9;height:auto}
+}
+@media(prefers-reduced-motion:reduce){
+  .sistemas-popup-slides{animation:none}
+  .sistemas-popup-slide{transition:none}
+  .sistemas-popup,
+  .sistemas-popup-overlay{transition:none}
+}
 </style>
 
 </head>
@@ -2883,6 +3181,70 @@ footer ul li a:hover{
 </footer>
 
 
+
+<!-- ================= POP-UP COMERCIAL — SISTEMAS YANSIX ================= -->
+<div class="sistemas-popup-overlay" id="sistemasPopup" aria-hidden="true">
+  <div class="sistemas-popup" role="dialog" aria-modal="true" aria-labelledby="sistemasPopupTitle">
+
+    <button class="sistemas-popup-close" id="sistemasPopupClose"
+      type="button" aria-label="Fechar">×</button>
+
+    <div class="sistemas-popup-content">
+
+      <span class="sistemas-popup-kicker">Sistemas YANSIX</span>
+
+      <h2 id="sistemasPopupTitle">
+        Sua empresa pode ser mais organizada.
+      </h2>
+
+      <p class="sistemas-popup-lead">
+        Menos planilhas. Menos trabalho manual. Mais controle da sua operação.
+        Conheça nossas soluções para gestão, clientes, estoque e fidelização.
+      </p>
+
+      <p class="sistemas-popup-price">
+        Assinaturas a partir de
+        <strong>R$ 80/mês</strong>
+      </p>
+
+      <p class="sistemas-popup-note">
+        Consulte os planos e valores de cada sistema.
+      </p>
+
+      <a class="sistemas-popup-cta" href="solucoes-sistemas.html">
+        CONHECER AS SOLUÇÕES&nbsp; →
+      </a>
+
+    </div>
+
+    <div class="sistemas-popup-visual" aria-label="Prévia dos sistemas YANSIX">
+      <div class="sistemas-popup-slides">
+        <div class="sistemas-popup-slide is-active">
+          <img src="images/sistemas/crm-capa.webp" alt="YANSIX CRM" loading="lazy" decoding="async">
+        </div>
+        <div class="sistemas-popup-slide">
+          <img src="images/sistemas/cashback-capa.webp" alt="Cashback e Pontuação YANSIX" loading="lazy" decoding="async">
+        </div>
+        <div class="sistemas-popup-slide">
+          <img src="images/sistemas/estoque-capa.webp" alt="Controle de Estoque YANSIX" loading="lazy" decoding="async">
+        </div>
+        <div class="sistemas-popup-slide">
+          <img src="images/sistemas/painel-capa.webp" alt="Painel Profissional e Paciente YANSIX" loading="lazy" decoding="async">
+        </div>
+      </div>
+      <span class="sistemas-popup-tag" id="sistemasPopupTag">YANSIX CRM</span>
+      <div class="sistemas-popup-dots" aria-label="Sistemas em destaque">
+        <button class="sistemas-popup-dot is-active" type="button" aria-label="Ver YANSIX CRM"></button>
+        <button class="sistemas-popup-dot" type="button" aria-label="Ver Cashback e Pontuação"></button>
+        <button class="sistemas-popup-dot" type="button" aria-label="Ver Controle de Estoque"></button>
+        <button class="sistemas-popup-dot" type="button" aria-label="Ver Painel Profissional e Paciente"></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 <!-- ================= JAVASCRIPT ================= -->
 
 <script>
@@ -2988,6 +3350,94 @@ document.querySelectorAll('.flip-card').forEach(function(card){
     card.classList.toggle('is-flipped');
   });
 });
+
+
+/* ================= POP-UP SISTEMAS YANSIX ================= */
+(function(){
+  const popup = document.getElementById('sistemasPopup');
+  const close = document.getElementById('sistemasPopupClose');
+  if(!popup || !close) return;
+
+  const storageKey = 'yansix_sistemas_popup_v1';
+
+  /* Carrossel: utiliza as mesmas capas exibidas em solucoes-sistemas.html */
+  const slides = Array.from(popup.querySelectorAll('.sistemas-popup-slide'));
+  const dots = Array.from(popup.querySelectorAll('.sistemas-popup-dot'));
+  const tag = document.getElementById('sistemasPopupTag');
+  const names = ['YANSIX CRM','Cashback & Pontuação','Controle de Estoque','Painel Profissional & Paciente'];
+  let slideIndex = 0;
+  let slideTimer = null;
+  let carouselStarted = false;
+
+  function showSlide(nextIndex){
+    if(!slides.length) return;
+    slideIndex = (nextIndex + slides.length) % slides.length;
+    slides.forEach((slide,i) => slide.classList.toggle('is-active', i === slideIndex));
+    dots.forEach((dot,i) => dot.classList.toggle('is-active', i === slideIndex));
+    if(tag) tag.textContent = names[slideIndex] || 'Soluções YANSIX';
+  }
+
+  function stopCarousel(){
+    if(slideTimer) {
+      clearInterval(slideTimer);
+      slideTimer = null;
+    }
+  }
+
+  function startCarousel(){
+    stopCarousel();
+    if(slides.length < 2) return;
+    carouselStarted = true;
+    slideTimer = setInterval(() => showSlide(slideIndex + 1), 3800);
+  }
+
+  dots.forEach((dot,i) => {
+    dot.addEventListener('click', () => {
+      showSlide(i);
+      startCarousel();
+    });
+  });
+
+  function openPopup(){
+    popup.classList.add('is-visible');
+    popup.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    startCarousel();
+    close.focus();
+  }
+
+  function closePopup(){
+    popup.classList.remove('is-visible');
+    popup.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+    stopCarousel();
+    try { localStorage.setItem(storageKey, Date.now().toString()); } catch(e){}
+  }
+
+  close.addEventListener('click', closePopup);
+
+  popup.addEventListener('click', function(e){
+    if(e.target === popup) closePopup();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && popup.classList.contains('is-visible')){
+      closePopup();
+    }
+  });
+
+  let shouldShow = true;
+  try {
+    const lastShown = Number(localStorage.getItem(storageKey) || 0);
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    shouldShow = !lastShown || (Date.now() - lastShown > sevenDays);
+  } catch(e){}
+
+  if(shouldShow){
+    setTimeout(openPopup, 5500);
+  }
+})();
+
 
 </script>
 
