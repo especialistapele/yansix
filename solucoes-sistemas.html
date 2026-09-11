@@ -54,6 +54,338 @@
 }
 </script>
 
+<style>
+
+/* ==========================================================
+   PRODUTOS YANSIX — conteúdo incorporado ao layout existente
+   ========================================================== */
+.sistemas-produtos-intro{
+  max-width:760px;
+  margin:-20px auto 44px;
+  text-align:center;
+  color:var(--text-muted);
+  font-size:15px;
+  line-height:1.7;
+}
+
+.sistemas-produtos-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:24px;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+.sistema-produto-card{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  padding:0;
+  overflow:hidden;
+  text-align:left;
+  font-family:inherit;
+  color:inherit;
+  background:var(--white);
+  border:0;
+  border-radius:var(--radius-lg);
+  box-shadow:0 10px 26px rgba(30,20,80,.06);
+  cursor:pointer;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+
+.sistema-produto-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 16px 34px rgba(30,20,80,.10);
+}
+
+.sistema-produto-card:focus-visible{
+  outline:3px solid var(--purple);
+  outline-offset:3px;
+}
+
+.sistema-produto-capa{
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  background:var(--bg-soft);
+}
+
+.sistema-produto-corpo{
+  padding:26px 28px 28px;
+}
+
+.sistema-produto-tag{
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--purple) !important;
+  margin:0 0 8px !important;
+}
+
+.sistema-produto-corpo h3{
+  font-size:19px;
+  font-weight:700;
+  color:var(--ink);
+  margin:0 0 8px;
+}
+
+.sistema-produto-corpo > p:not(.sistema-produto-tag){
+  font-size:14px;
+  color:var(--text-muted);
+  line-height:1.6;
+  margin:0 0 16px;
+}
+
+.sistema-produto-corpo > span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+  font-weight:600;
+  color:var(--purple);
+}
+
+.sistema-produto-corpo > span span{
+  transition:transform .15s ease;
+}
+
+.sistema-produto-card:hover .sistema-produto-corpo > span span{
+  transform:translateX(3px);
+}
+
+.sistemas-modal{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(13,10,31,.76);
+}
+
+.sistemas-modal.aberto{
+  display:flex;
+}
+
+.sistemas-modal-caixa{
+  position:relative;
+  width:100%;
+  max-width:880px;
+  max-height:92vh;
+  overflow-y:auto;
+  background:var(--white);
+  border-radius:var(--radius-lg);
+  box-shadow:0 24px 80px rgba(13,10,31,.28);
+}
+
+.sistemas-modal-fechar{
+  position:absolute;
+  top:16px;
+  right:16px;
+  z-index:2;
+  width:38px;
+  height:38px;
+  border:1px solid #e3e1f0;
+  border-radius:50%;
+  background:var(--white);
+  color:var(--ink);
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.sistemas-modal-fechar:hover{
+  background:var(--bg-soft);
+}
+
+.sistemas-modal-topo{
+  padding:30px 30px 0;
+}
+
+.sistemas-modal-topo h3{
+  font-size:24px;
+  color:var(--ink);
+  margin:0 0 10px;
+  padding-right:44px;
+}
+
+.sistemas-modal-topo > p:not(.sistema-produto-tag){
+  max-width:680px;
+  margin:0 0 20px;
+  font-size:15px;
+  line-height:1.65;
+  color:var(--text-muted);
+}
+
+.sistemas-modal-abas{
+  display:none;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:0 0 18px;
+}
+
+.sistemas-modal-abas.visivel{
+  display:flex;
+}
+
+.sistemas-aba-btn{
+  padding:8px 16px;
+  border:1px solid #e3e1f0;
+  border-radius:999px;
+  background:var(--white);
+  color:var(--text-muted);
+  font-size:13.5px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.sistemas-aba-btn.ativa{
+  border-color:var(--purple);
+  background:var(--purple);
+  color:var(--white);
+}
+
+.sistemas-modal-galeria{
+  position:relative;
+  margin:0 30px;
+  overflow:hidden;
+  border-radius:var(--radius-md);
+  background:var(--bg-soft);
+}
+
+.sistemas-modal-imagem-wrap{
+  aspect-ratio:16/9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.sistemas-modal-imagem-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.sistemas-galeria-seta{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:40px;
+  height:40px;
+  border:0;
+  border-radius:50%;
+  background:rgba(13,10,31,.60);
+  color:#fff;
+  font-size:22px;
+  line-height:1;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.sistemas-galeria-seta:hover{
+  background:rgba(13,10,31,.82);
+}
+
+.sistemas-galeria-seta.esquerda{left:12px;}
+.sistemas-galeria-seta.direita{right:12px;}
+
+.sistemas-galeria-contador{
+  position:absolute;
+  right:14px;
+  bottom:12px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(13,10,31,.60);
+  color:#fff;
+  font-size:12px;
+}
+
+.sistemas-modal-miniaturas{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:14px 30px 0;
+}
+
+.sistemas-miniatura{
+  flex:none;
+  width:72px;
+  height:44px;
+  padding:0;
+  overflow:hidden;
+  border:2px solid transparent;
+  border-radius:6px;
+  background:none;
+  cursor:pointer;
+}
+
+.sistemas-miniatura img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.sistemas-miniatura.ativa{
+  border-color:var(--purple);
+}
+
+.sistemas-modal-acoes{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  padding:22px 30px 30px;
+}
+
+.sistemas-modal-acoes a{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 22px;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:600;
+  transition:transform .15s ease, background .2s ease;
+}
+
+.sistemas-modal-acoes a:hover{
+  transform:translateY(-2px);
+}
+
+.sistemas-modal-acoes .acao-primaria{
+  background:var(--purple);
+  color:var(--white);
+  box-shadow:0 8px 20px rgba(91,61,245,.25);
+}
+
+.sistemas-modal-acoes .acao-secundaria{
+  background:var(--white);
+  color:var(--ink);
+  border:1px solid #e3e1f0;
+}
+
+.sistemas-modal-acoes .acao-secundaria:hover{
+  background:var(--bg-soft);
+}
+
+@media (max-width:820px){
+  .sistemas-produtos-grid{grid-template-columns:1fr;}
+}
+
+@media (max-width:600px){
+  .sistemas-produtos-intro{margin-top:-18px;}
+  .sistema-produto-corpo{padding:22px;}
+  .sistemas-modal{padding:10px;}
+  .sistemas-modal-topo{padding:24px 20px 0;}
+  .sistemas-modal-galeria{margin:0 20px;}
+  .sistemas-modal-miniaturas{padding-left:20px;padding-right:20px;}
+  .sistemas-modal-acoes{padding:20px;}
+}
+
+</style>
 </head>
 <body>
 
@@ -105,6 +437,80 @@
   <h2 class="section-heading">Tecnologia sob medida para processos únicos</h2>
   <p class="detail-intro">Quando processos ficam complexos demais para planilhas e ferramentas genéricas, a solução é um sistema pensado para a sua realidade. Desenvolvemos <strong>painéis, integrações e plataformas</strong> que organizam a operação e sustentam o crescimento do negócio.</p>
 </section>
+
+
+<!-- ================= PRODUTOS YANSIX ================= -->
+<section class="block alt sistemas-produtos">
+  <p class="section-title">PRODUTOS YANSIX</p>
+  <h2 class="section-heading">Conheça nossos sistemas</h2>
+  <p class="sistemas-produtos-intro">Além de sistemas 100% sob medida, também temos produtos prontos que já resolvem necessidades comuns de gestão, fidelização e atendimento. Clique em cada card para ver as telas por dentro.</p>
+
+  <div class="sistemas-produtos-grid">
+    <button class="sistema-produto-card" data-sistema="crm" type="button">
+      <img class="sistema-produto-capa" src="images/sistemas/crm-capa.webp" alt="Tela do sistema YANSIX CRM" loading="lazy">
+      <div class="sistema-produto-corpo">
+        <p class="sistema-produto-tag">CRM</p>
+        <h3>YANSIX CRM</h3>
+        <p>Gestão comercial com funil de negociações, propostas, relatórios e comissionamento. Três níveis de acesso: Administrador, Gestor e Vendedor.</p>
+        <span>Ver por dentro <span aria-hidden="true">→</span></span>
+      </div>
+    </button>
+
+    <button class="sistema-produto-card" data-sistema="cashback" type="button">
+      <img class="sistema-produto-capa" src="images/sistemas/cashback-capa.webp" alt="Tela do sistema de Cashback e Pontuação" loading="lazy">
+      <div class="sistema-produto-corpo">
+        <p class="sistema-produto-tag">Fidelização</p>
+        <h3>Cashback &amp; Pontuação</h3>
+        <p>Painel da unidade com registro de pontuação por atendimento, níveis de prêmio e app do cliente para acompanhar o saldo.</p>
+        <span>Ver por dentro <span aria-hidden="true">→</span></span>
+      </div>
+    </button>
+
+    <button class="sistema-produto-card" data-sistema="estoque" type="button">
+      <img class="sistema-produto-capa" src="images/sistemas/estoque-capa.webp" alt="Tela do sistema de Controle de Estoque" loading="lazy">
+      <div class="sistema-produto-corpo">
+        <p class="sistema-produto-tag">Gestão de estoque</p>
+        <h3>Controle de Estoque</h3>
+        <p>Cadastro de produtos, movimentação, pedidos e financeiro, com dashboard de valor total e giro por classe.</p>
+        <span>Ver por dentro <span aria-hidden="true">→</span></span>
+      </div>
+    </button>
+
+    <button class="sistema-produto-card" data-sistema="painel" type="button">
+      <img class="sistema-produto-capa" src="images/sistemas/painel-capa.webp" alt="Painel do Profissional e do Paciente" loading="lazy">
+      <div class="sistema-produto-corpo">
+        <p class="sistema-produto-tag">Área de saúde</p>
+        <h3>Painel Profissional &amp; Paciente</h3>
+        <p>Área logada para clínicas: dashboard de pacientes e agenda para o profissional, espaço de acompanhamento para o paciente.</p>
+        <span>Ver por dentro <span aria-hidden="true">→</span></span>
+      </div>
+    </button>
+  </div>
+</section>
+
+<!-- ================= MODAL DOS SISTEMAS ================= -->
+<div class="sistemas-modal" id="modalSistema" aria-hidden="true">
+  <div class="sistemas-modal-caixa" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+    <button class="sistemas-modal-fechar" id="fecharModal" type="button" aria-label="Fechar">×</button>
+    <div class="sistemas-modal-topo">
+      <p class="sistema-produto-tag" id="modalTag"></p>
+      <h3 id="modalTitulo"></h3>
+      <p id="modalDesc"></p>
+      <div class="sistemas-modal-abas" id="modalAbas">
+        <button class="sistemas-aba-btn ativa" type="button" data-aba="prof">Painel do Profissional</button>
+        <button class="sistemas-aba-btn" type="button" data-aba="pac">Painel do Paciente</button>
+      </div>
+    </div>
+    <div class="sistemas-modal-galeria">
+      <div class="sistemas-modal-imagem-wrap"><img id="modalImagemAtual" src="" alt=""></div>
+      <button class="sistemas-galeria-seta esquerda" id="setaEsq" type="button" aria-label="Imagem anterior">‹</button>
+      <button class="sistemas-galeria-seta direita" id="setaDir" type="button" aria-label="Próxima imagem">›</button>
+      <span class="sistemas-galeria-contador" id="galeriaContador"></span>
+    </div>
+    <div class="sistemas-modal-miniaturas" id="modalMiniaturas"></div>
+    <div class="sistemas-modal-acoes" id="modalAcoes"></div>
+  </div>
+</div>
 
 <!-- ================= BENEFÍCIOS ================= -->
 <section class="block alt">
@@ -471,6 +877,155 @@
 </footer>
 
 <script src="js/solucao-detalhe.js"></script>
+
+
+<script>
+(function(){
+  const SISTEMAS_YANSIX = {
+    crm: {
+      tag:"CRM",
+      titulo:"YANSIX CRM",
+      desc:"Sistema de gestão comercial com funil de negociações, propostas, relatórios e comissionamento. Controle de acesso em três níveis: Administrador, Gestor e Vendedor.",
+      imagens:["images/sistemas/crm-01.webp","images/sistemas/crm-02.webp","images/sistemas/crm-03.webp","images/sistemas/crm-04.webp"],
+      acoes:[
+        {texto:"Ver manual completo →",url:"https://www.yansix.tech/crm_yansix/plano.html",tipo:"secundaria"},
+        {texto:"Quero um sistema assim →",url:"https://www.yansix.tech/contato2.html",tipo:"primaria"}
+      ]
+    },
+    cashback: {
+      tag:"Fidelização",
+      titulo:"Cashback & Pontuação",
+      desc:"Programa de fidelidade com painel da unidade, registro de pontuação por atendimento, níveis de prêmios e aplicativo para o cliente acompanhar o saldo.",
+      imagens:["images/sistemas/cashback-01.webp","images/sistemas/cashback-02.webp","images/sistemas/cashback-03.webp","images/sistemas/cashback-04.webp"],
+      acoes:[
+        {texto:"Ver manual completo →",url:"https://www.yansix.tech/cashback/painel/manualcash.html",tipo:"secundaria"},
+        {texto:"Quero um sistema assim →",url:"https://www.yansix.tech/contato2.html",tipo:"primaria"}
+      ]
+    },
+    estoque: {
+      tag:"Gestão de estoque",
+      titulo:"Controle de Estoque",
+      desc:"Cadastro de produtos, movimentação, pedidos e financeiro, com dashboard de valor total do estoque, ticket médio e curva ABC por classe.",
+      imagens:["images/sistemas/estoque-01.webp","images/sistemas/estoque-02.webp","images/sistemas/estoque-03.webp"],
+      acoes:[
+        {texto:"Ver manual completo →",url:"https://www.yansix.tech/estoque/manual_estoque.html",tipo:"secundaria"},
+        {texto:"Quero um sistema assim →",url:"https://www.yansix.tech/contato2.html",tipo:"primaria"}
+      ]
+    },
+    painel: {
+      tag:"Área de saúde",
+      titulo:"Painel Profissional & Paciente",
+      desc:"Área logada para clínicas e profissionais de estética: dashboard de pacientes e agenda para o profissional, espaço exclusivo de acompanhamento para o paciente.",
+      temAbas:true,
+      imagensPorAba:{
+        prof:["images/sistemas/painel-prof-01.webp","images/sistemas/painel-prof-02.webp","images/sistemas/painel-prof-03.webp","images/sistemas/painel-prof-04.webp"],
+        pac:["images/sistemas/painel-pac-01.webp","images/sistemas/painel-pac-02.webp","images/sistemas/painel-pac-03.webp","images/sistemas/painel-pac-04.webp"]
+      },
+      acoes:[
+        {texto:"Quero um sistema assim →",url:"https://www.yansix.tech/contato2.html",tipo:"primaria"}
+      ]
+    }
+  };
+
+  const modal=document.getElementById("modalSistema");
+  if(!modal) return;
+  const modalTag=document.getElementById("modalTag");
+  const modalTitulo=document.getElementById("modalTitulo");
+  const modalDesc=document.getElementById("modalDesc");
+  const modalAbas=document.getElementById("modalAbas");
+  const modalImagemAtual=document.getElementById("modalImagemAtual");
+  const modalMiniaturas=document.getElementById("modalMiniaturas");
+  const modalAcoes=document.getElementById("modalAcoes");
+  const contador=document.getElementById("galeriaContador");
+  let atual=null, aba="prof", imagens=[], indice=0;
+
+  function listar(){
+    return atual.temAbas ? atual.imagensPorAba[aba] : atual.imagens;
+  }
+
+  function renderGaleria(){
+    imagens=listar();
+    if(indice>=imagens.length) indice=0;
+    modalImagemAtual.src=imagens[indice];
+    modalImagemAtual.alt=atual.titulo+" — tela "+(indice+1);
+    contador.textContent=(indice+1)+" / "+imagens.length;
+    modalMiniaturas.innerHTML="";
+    imagens.forEach(function(src,i){
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="sistemas-miniatura"+(i===indice?" ativa":"");
+      b.setAttribute("aria-label","Ver tela "+(i+1));
+      const img=document.createElement("img");
+      img.src=src; img.alt="";
+      b.appendChild(img);
+      b.addEventListener("click",function(){indice=i;renderGaleria();});
+      modalMiniaturas.appendChild(b);
+    });
+  }
+
+  function renderAcoes(){
+    modalAcoes.innerHTML="";
+    atual.acoes.forEach(function(acao){
+      const a=document.createElement("a");
+      a.href=acao.url;
+      a.target="_blank";
+      a.rel="noopener";
+      a.className="acao-"+acao.tipo;
+      a.textContent=acao.texto;
+      modalAcoes.appendChild(a);
+    });
+  }
+
+  function abrir(chave){
+    atual=SISTEMAS_YANSIX[chave];
+    aba="prof"; indice=0;
+    modalTag.textContent=atual.tag;
+    modalTitulo.textContent=atual.titulo;
+    modalDesc.textContent=atual.desc;
+    modalAbas.classList.toggle("visivel",!!atual.temAbas);
+    modalAbas.querySelectorAll(".sistemas-aba-btn").forEach(function(b){
+      b.classList.toggle("ativa",b.dataset.aba===aba);
+    });
+    renderAcoes();
+    renderGaleria();
+    modal.classList.add("aberto");
+    modal.setAttribute("aria-hidden","false");
+    document.body.style.overflow="hidden";
+    document.getElementById("fecharModal").focus();
+  }
+
+  function fechar(){
+    modal.classList.remove("aberto");
+    modal.setAttribute("aria-hidden","true");
+    document.body.style.overflow="";
+  }
+
+  document.querySelectorAll(".sistema-produto-card").forEach(function(card){
+    card.addEventListener("click",function(){abrir(card.dataset.sistema);});
+  });
+  document.getElementById("fecharModal").addEventListener("click",fechar);
+  document.getElementById("setaDir").addEventListener("click",function(){
+    indice=(indice+1)%imagens.length;renderGaleria();
+  });
+  document.getElementById("setaEsq").addEventListener("click",function(){
+    indice=(indice-1+imagens.length)%imagens.length;renderGaleria();
+  });
+  modal.addEventListener("click",function(e){if(e.target===modal)fechar();});
+  document.addEventListener("keydown",function(e){
+    if(!modal.classList.contains("aberto")) return;
+    if(e.key==="Escape") fechar();
+    if(e.key==="ArrowRight"){indice=(indice+1)%imagens.length;renderGaleria();}
+    if(e.key==="ArrowLeft"){indice=(indice-1+imagens.length)%imagens.length;renderGaleria();}
+  });
+  modalAbas.querySelectorAll(".sistemas-aba-btn").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      aba=btn.dataset.aba; indice=0;
+      modalAbas.querySelectorAll(".sistemas-aba-btn").forEach(function(b){b.classList.toggle("ativa",b===btn);});
+      renderGaleria();
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
