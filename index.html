@@ -135,44 +135,17 @@ YANSIX — Consultoria Digital, Branding, IA e Presença Digital
       "@id": "https://www.yansix.tech/#organization",
       "name": "YANSIX",
       "url": "https://www.yansix.tech/",
-      "logo": "https://www.yansix.tech/image/logo.webp",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://www.yansix.tech/#logo",
+        "url": "https://www.yansix.tech/image/logo.webp"
+      },
+      "description": "A YANSIX conecta estratégia, tecnologia, inteligência artificial, automação e SEO para construir presença digital estratégica.",
       "telephone": "+55-41-93300-2107",
-      "sameAs": [
-        "https://www.instagram.com/yansix.tech"
-      ],
       "founder": {
         "@type": "Person",
         "name": "Danielle Queiroz Brito"
-      }
-    },
-
-    {
-      "@type": "ProfessionalService",
-      "@id": "https://www.yansix.tech/#service",
-      "name": "YANSIX",
-      "url": "https://www.yansix.tech/",
-      "image": "https://www.yansix.tech/image/logo.webp",
-      "priceRange": "$$",
-      "telephone": "+55-41-93300-2107",
-      "description": "Consultoria em branding, presença digital, websites, inteligência artificial, automação e SEO.",
-      "areaServed": [
-        {
-          "@type": "State",
-          "name": "Paraná"
-        },
-        {
-          "@type": "State",
-          "name": "Santa Catarina"
-        },
-        {
-          "@type": "State",
-          "name": "Rio Grande do Sul"
-        },
-        {
-          "@type": "State",
-          "name": "Rio de Janeiro"
-        }
-      ],
+      },
       "sameAs": [
         "https://www.instagram.com/yansix.tech"
       ]
@@ -186,15 +159,21 @@ YANSIX — Consultoria Digital, Branding, IA e Presença Digital
       "publisher": {
         "@id": "https://www.yansix.tech/#organization"
       },
-      "inLanguage": "pt-BR",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://www.yansix.tech/busca.html?q={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-      }
+      "inLanguage": "pt-BR"
+    },
+
+    {
+      "@type": "WebPage",
+      "@id": "https://www.yansix.tech/#webpage",
+      "url": "https://www.yansix.tech/",
+      "name": "YANSIX — Consultoria Digital, Branding, IA e Presença Digital",
+      "isPartOf": {
+        "@id": "https://www.yansix.tech/#website"
+      },
+      "about": {
+        "@id": "https://www.yansix.tech/#organization"
+      },
+      "inLanguage": "pt-BR"
     }
 
   ]
