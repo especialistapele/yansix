@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hora do Pão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Tokens do tema: sobrescritos por aplicarTema() com o tema publicado da padaria */
+  --cor-principal:#e8a93c;
+  --cor-secundaria:#ffffff;
+  --cor-fundo:#1b1008;
+  --cor-texto:#ffffff;
+  --cor-relogio:#ffffff;
+  --logo-altura:52px;
+  --fundo-posicao:center;
+  --ov-rgb:14,8,4; --ov-topo:.80; --ov-meio:.50; --ov-base:.18;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{
+  font-family:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color:var(--cor-texto);background:var(--cor-fundo);
+  display:flex;flex-direction:column;min-height:100%;overflow-x:hidden;
+}
+
+/* Fundo: foto da padaria (fundo_url). Sem foto, usa um fundo padrão de padaria em tons quentes. */
+.fundo{position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(ellipse 70% 22% at 50% 104%,#c0782f 0%,#8a4c1a 45%,transparent 75%),
+    radial-gradient(circle at 12% 10%,rgba(255,176,80,.55) 0 4%,transparent 5%),
+    radial-gradient(circle at 30% 20%,rgba(255,150,60,.40) 0 6%,transparent 7%),
+    radial-gradient(circle at 58% 8%,rgba(255,190,100,.45) 0 5%,transparent 6%),
+    radial-gradient(circle at 82% 18%,rgba(255,160,70,.45) 0 6%,transparent 7%),
+    radial-gradient(circle at 92% 6%,rgba(255,200,110,.40) 0 4%,transparent 5%),
+    linear-gradient(180deg,#3a2210 0%,#2a170a 60%,#4a2a12 100%)}
+.overlay{position:fixed;inset:0;z-index:-1;
+  background:linear-gradient(180deg,
+    rgba(var(--ov-rgb),var(--ov-topo)) 0%,
+    rgba(var(--ov-rgb),var(--ov-meio)) 55%,
+    rgba(var(--ov-rgb),var(--ov-base)) 100%)}
+
+/* Cabeçalho */
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px clamp(16px,4vw,56px)}
+.marca{display:flex;align-items:center;gap:clamp(12px,2vw,30px);min-width:0}
+#logo{display:flex;align-items:center;gap:10px;min-width:0}
+#logo img{height:var(--logo-altura);width:auto;max-width:60vw;display:block}
+.logo-ico{width:calc(var(--logo-altura) * 1.05);height:calc(var(--logo-altura) * 1.05);color:var(--cor-principal);flex:none}
+.logo-texto{display:flex;flex-direction:column;line-height:1.15}
+.logo-nome{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-size:clamp(1.2rem,3.8vw,2rem);color:var(--cor-texto)}
+.logo-sub{font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cor-principal)}
+.divisor{width:1px;align-self:stretch;min-height:40px;background:rgba(255,255,255,.4)}
+.titulo-pao{display:flex;align-items:center;gap:12px;font-weight:600;letter-spacing:.06em;font-size:clamp(1rem,2vw,1.5rem);color:var(--cor-principal);white-space:nowrap}
+.titulo-pao svg{width:1.9em;height:1.9em}
+.relogio{text-align:right;line-height:1.1;flex:none}
+.relogio time{display:block;font-weight:600;font-size:clamp(1.4rem,4vw,2.8rem);color:var(--cor-relogio);font-variant-numeric:tabular-nums}
+.relogio small{font-size:.74rem;opacity:.9}
+
+/* Cena principal (tela cheia, sem cartão) */
+main{flex:1;display:flex}
+.cena{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px clamp(18px,5vw,56px) clamp(20px,5vh,56px)}
+.centro{display:flex;flex-direction:column;align-items:center;width:100%;max-width:640px}
+.cena[data-estado="aguardando"] .centro,.cena[data-estado="proximo"] .centro{flex:1;justify-content:center}
+.cena[data-estado="pronto"],.cena[data-estado="fim"]{padding-bottom:14vh}
+.icone{width:clamp(64px,13vw,92px);height:clamp(64px,13vw,92px);color:var(--cor-principal);margin-bottom:6px}
+.icone svg{width:100%;height:100%;overflow:visible}
+.vapor{animation:vapor 2.4s ease-in-out infinite}
+@keyframes vapor{0%,100%{opacity:.4;transform:translateY(2px)}50%{opacity:1;transform:translateY(-2px)}}
+.rotulo{margin:0;font-weight:600;letter-spacing:.03em;font-size:clamp(1.15rem,3.4vw,1.6rem)}
+.destaque{margin:2px 0 0;font-weight:800;line-height:1;font-size:clamp(4.6rem,22vw,8.5rem);font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(0,0,0,.45)}
+.destaque.titulo{font-size:clamp(2.2rem,9vw,4rem);line-height:1.1;margin-top:12px;text-wrap:balance;letter-spacing:.01em}
+.contador{display:flex;flex-direction:column;align-items:center;gap:2px;width:min(100%,440px);margin-top:clamp(18px,3vh,30px);padding:12px 28px;
+  border:1.5px solid var(--cor-principal);border-radius:999px;background:rgba(0,0,0,.22)}
+.contador span{display:flex;align-items:center;gap:8px;font-size:.82rem;letter-spacing:.14em;color:var(--cor-principal)}
+.contador span svg{width:15px;height:15px}
+.contador strong{font-weight:500;font-size:clamp(1.7rem,6.5vw,2.4rem);font-variant-numeric:tabular-nums}
+.rodape{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:18px;max-width:34ch}
+.msg-icone{width:34px;height:34px;color:var(--cor-principal)}
+.msg-icone svg{width:100%;height:100%}
+.mensagem{margin:0;font-size:clamp(1.05rem,3vw,1.4rem);line-height:1.4;color:var(--cor-secundaria);text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.cena[data-estado="pronto"] .mensagem{font-size:clamp(1.2rem,3.6vw,1.7rem)}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+#demo{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px;border-radius:12px;background:rgba(0,0,0,.75);max-width:96vw;z-index:5}
+#demo button{font:inherit;font-size:.75rem;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.5);border-radius:8px;padding:6px 10px;cursor:pointer}
+#demo button[aria-pressed="true"]{background:var(--cor-principal);color:#1b1008;border-color:var(--cor-principal)}
+#demo button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+@media (max-width:560px){.divisor,.titulo-pao{display:none}}
+@media (prefers-reduced-motion:reduce){.vapor{animation:none}}
+</style>
+</head>
+<body>
+<div class="fundo" id="fundo"></div>
+<div class="overlay"></div>
+
+<header>
+  <div class="marca">
+    <div id="logo"></div>
+    <i class="divisor" aria-hidden="true"></i>
+    <div class="titulo-pao">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M16 8v8l5 3"/></svg>
+      HORA DO PÃO
+    </div>
+  </div>
+  <div class="relogio"><time id="hora" aria-label="Horário atual">--:--</time><small>Horário atual</small></div>
+</header>
+
+<main>
+  <section class="cena" id="cena" data-estado="">
+    <div class="centro">
+      <div class="icone" id="icone" aria-hidden="true"></div>
+      <p class="rotulo" id="rotulo"></p>
+      <p class="destaque" id="destaque"></p>
+      <div class="contador" id="contador" hidden>
+        <span><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M16 8v8l5 3"/></svg>FALTA</span>
+        <strong id="tempo"></strong>
+      </div>
+    </div>
+    <div class="rodape">
+      <div class="msg-icone" id="msgIcone" aria-hidden="true"></div>
+      <p class="mensagem" id="mensagem"></p>
+    </div>
+  </section>
+</main>
+<div class="sr" role="status" aria-live="polite" id="anuncio"></div>
+
+<div id="demo" hidden>
+  <button data-demo="aguardando">1. Aguardando</button>
+  <button data-demo="pronto">2. Pão pronto</button>
+  <button data-demo="proximo">3. Próximo pão</button>
+  <button data-demo="fim">4. Fim do dia</button>
+  <button data-demo="real">Hora real</button>
+</div>
+
+<script>
+/* ============================================================
+   DADOS DA PADARIA (por enquanto fixos).
+   Na ligação com o Supabase, carregarDados(slug) devolve este mesmo
+   formato: tema = temas_padaria.publicado, horarios = horarios_pao +
+   programacoes, config = configuracoes_padaria.
+   ============================================================ */
+const DADOS = {
+  tema: {
+    nome: 'Padaria da Villa',
+    subtitulo: 'Pão · Café · Tradição',
+    // A logo superior permanece a logo original da index (SVG + texto), nunca uma imagem.
+    logo_url: null,
+    fundo_posicao: 'center',
+    logo_altura: 52,
+    // Sequência fixa das artes enviadas: 01=aguardando, 02=pronto, 03=próximo, 04=fim.
+    fundos: {
+      aguardando: 'assets/01.jpg',
+      pronto: 'assets/02.jpg',
+      proximo: 'assets/03.jpg',
+      fim: 'assets/04.jpg'
+    },
+    fundos_mobile: {
+      aguardando: 'assets/01 mobile.jpg',
+      pronto: 'assets/02 mobile.jpg',
+      proximo: 'assets/03 mobile.jpg',
+      fim: 'assets/04 mobile.jpg'
+    },
+    cores: { principal:'#e8a93c', secundaria:'#ffffff', fundo:'#1b1008', texto:'#ffffff', relogio:'#ffffff' },
+    overlay: { rgb:'14,8,4', topo:.80, meio:.50, base:.18 }
+  },
+  config: {
+    antecedencia_min: 20,     // até 20 min = "Aguardando"; acima = "Próximo pão"
+    mensagens: {
+      aguardando: 'Seu próximo pão está sendo preparado.',
+      proximo:    'O próximo pão já está programado.',
+      pronto:     'Pão pronto quentinho esperando por você!',
+      fim:        'O próximo pão estará disponível {quando} às {hora}.',
+      fim_sem_horarios: 'Não há novos horários programados.'
+    }
+  },
+  /* Em produção, os horários vêm exclusivamente do Supabase e são definidos pelo estabelecimento. */
+  horarios: []
+};
+
+/* Apenas para validar visualmente a Index Modelo com ?demo. Não são horários do sistema. */
+const HORARIOS_DEMO = [
+  { hora:'06:30', dias:[1,2,3,4,5,6], duracao:30 },
+  { hora:'16:30', dias:[0,1,2,3,4,5,6], duracao:30 },
+  { hora:'17:30', dias:[0,1,2,3,4,5,6], duracao:30 }
+];
+
+/* ---------- Tempo (fuso do Brasil) ---------- */
+const fmtSP = new Intl.DateTimeFormat('en-US',{timeZone:'America/Sao_Paulo',hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const DIAS = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+let sim = null; // simulação do modo demo: {dow, secs, t0}
+
+function agora(){
+  if(sim){
+    let total = sim.secs + Math.floor((Date.now()-sim.t0)/1000), dow = sim.dow;
+    while(total >= 86400){ total -= 86400; dow = (dow+1)%7; }
+    return {dow, secs: total};
+  }
+  const p = Object.fromEntries(fmtSP.formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {dow: DIAS[p.weekday], secs: (+p.hour%24)*3600 + (+p.minute)*60 + (+p.second)};
+}
+
+/* ---------- Regra dos 4 estados (função pura) ---------- */
+const NOMES_DIA = ['no domingo','na segunda-feira','na terça-feira','na quarta-feira','na quinta-feira','na sexta-feira','no sábado'];
+const hms = s => { const [h,m] = s.split(':').map(Number); return h*3600 + m*60; };
+
+function calcularEstado(horarios, {dow, secs}, cfg){
+  /*
+   * Os horários são dados do estabelecimento. A função nunca conhece
+   * horários fixos de uma padaria específica.
+   * Regra: durante a janela do pão = PRONTO; até 20:00 restantes = AGUARDANDO;
+   * acima de 20:00 = PRÓXIMO PÃO; sem outro horário hoje = FIM.
+   */
+  const hoje = (horarios || []).filter(h=>h.ativo !== false && h.dias.includes(dow)).map(h=>({...h, ini:hms(h.hora)})).sort((a,b)=>a.ini-b.ini);
+
+  const ativo = hoje.find(h => secs >= h.ini && secs < h.ini + h.duracao*60);
+  if(ativo) return {estado:'pronto', hora:ativo.hora};
+
+  const prox = hoje.find(h => h.ini > secs);
+  if(prox){
+    const falta = prox.ini - secs;
+    return {estado: falta <= cfg.antecedencia_min*60 ? 'aguardando' : 'proximo', hora:prox.hora, falta};
+  }
+
+  for(let i=1;i<=7;i++){
+    const d = (dow+i)%7;
+    const lista = (horarios || []).filter(h=>h.ativo !== false && h.dias.includes(d)).sort((a,b)=>hms(a.hora)-hms(b.hora));
+    if(lista.length) return {estado:'fim', hora:lista[0].hora, quando: i===1 ? 'amanhã' : NOMES_DIA[d]};
+  }
+  return {estado:'fim', hora:null, quando:null};
+}
+
+/* ---------- Ícones (SVG inline) ---------- */
+const PAO = '<path d="M8 42c0-10 10-17 24-17s24 7 24 17c0 3-2 5-5 5H13c-3 0-5-2-5-5z"/><path d="M24 35l4 6M34 34l4 6M43 36l3 5"/>';
+const ICONES = {
+  aguardando: PAO,
+  proximo:    PAO,
+  pronto:     PAO + '<g class="vapor"><path d="M26 20c-3-3 3-5 0-9M34 20c-3-3 3-5 0-9M42 20c-3-3 3-5 0-9"/></g><path d="M12 22l-5-3M52 22l5-3M8 30H2M56 30h6"/>',
+  fim:        PAO + '<path d="M32 17V9M19 21l-5-5M45 21l5-5"/>'
+};
+const svg = d => `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICO_TRIGO = svg('<path d="M32 58V20"/><path d="M32 20c-5-3-6-8-4-12 5 1 7 7 4 12zM32 20c5-3 6-8 4-12-5 1-7 7-4 12zM32 33c-7-1-11-6-11-12 7 0 11 5 11 12zM32 33c7-1 11-6 11-12-7 0-11 5-11 12zM32 46c-7-1-11-6-11-12 7 0 11 5 11 12zM32 46c7-1 11-6 11-12-7 0-11 5-11 12z"/>');
+const ICO_CALENDARIO = svg('<rect x="10" y="14" width="44" height="40" rx="5"/><path d="M10 26h44M22 8v10M42 8v10M22 36h4M30 36h4M38 36h4M22 44h4M30 44h4"/>');
+
+/* ---------- Tema ---------- */
+function aplicarTema(t){
+  const r = document.documentElement.style;
+  const c = t.cores || DADOS.tema.cores;
+  const o = t.overlay || DADOS.tema.overlay;
+  r.setProperty('--cor-principal', c.principal);
+  r.setProperty('--cor-secundaria', c.secundaria);
+  r.setProperty('--cor-fundo', c.fundo);
+  r.setProperty('--cor-texto', c.texto);
+  r.setProperty('--cor-relogio', c.relogio);
+  r.setProperty('--logo-altura', (t.logo_altura || 52) + 'px');
+  r.setProperty('--fundo-posicao', t.fundo_posicao || 'center');
+  r.setProperty('--ov-rgb', o.rgb);
+  r.setProperty('--ov-topo', o.topo);
+  r.setProperty('--ov-meio', o.meio);
+  r.setProperty('--ov-base', o.base);
+  document.title = 'Hora do Pão — ' + (t.nome || 'Padaria');
+
+  // Importante: não usamos logo_url. A logo superior é exatamente a logo original da index.
+  const logo = $('logo');
+  logo.innerHTML = `<svg class="logo-ico" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M32 58V22"/><path d="M32 22c-5-3-6-9-4-14 5 2 7 8 4 14zM32 22c5-3 6-9 4-14-5 2-7 8-4 14zM32 36c-7-1-11-6-11-13 7 0 11 6 11 13zM32 36c7-1 11-6 11-13-7 0-11 6-11 13zM32 50c-7-1-11-6-11-13 7 0 11 6 11 13zM32 50c7-1 11-6 11-13-7 0-11 6-11 13z"/></svg>
+      <div class="logo-texto"><span class="logo-nome">${t.nome || 'Hora do Pão'}</span><span class="logo-sub">${t.subtitulo || ''}</span></div>`;
+}
+
+
+/* ---------- Renderização ---------- */
+function $(id){ return document.getElementById(id); }
+const pad = n => String(n).padStart(2,'0');
+let estadoAnterior = null;
+
+function fmtTempo(s){
+  const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+  return h ? `${h} h ${pad(m)} min ${pad(x)} s` : `${m} min ${pad(x)} s`;
+}
+
+function fundoDoEstado(estado){
+  const desktop = (DADOS.tema.fundos || {})[estado] || `assets/${({aguardando:'01',pronto:'02',proximo:'03',fim:'04'})[estado]}.jpg`;
+  const mobile = (DADOS.tema.fundos_mobile || {})[estado] || `assets/${({aguardando:'01',pronto:'02',proximo:'03',fim:'04'})[estado]} mobile.jpg`;
+  return window.matchMedia('(max-width: 700px)').matches ? mobile : desktop;
+}
+
+function aplicarFundo(estado){
+  const url = fundoDoEstado(estado);
+  $('fundo').style.background = `url("${url}") ${DADOS.tema.fundo_posicao || 'center'}/cover no-repeat`;
+}
+
+function renderizar(){
+  const a = agora(), cfg = DADOS.config, msg = cfg.mensagens;
+  $('hora').textContent = `${pad(Math.floor(a.secs/3600))}:${pad(Math.floor(a.secs%3600/60))}`;
+
+  const e = calcularEstado(DADOS.horarios, a, cfg);
+  const destaque = $('destaque');
+
+  if(e.estado !== estadoAnterior){
+    $('cena').dataset.estado = e.estado;
+    aplicarFundo(e.estado);
+    $('icone').innerHTML = svg(ICONES[e.estado]);
+    const comContador = e.estado==='aguardando' || e.estado==='proximo';
+    $('rotulo').hidden = !comContador;
+    $('rotulo').textContent = 'PRÓXIMO PÃO';
+    $('contador').hidden = !comContador;
+    destaque.classList.toggle('titulo', !comContador);
+    $('msgIcone').innerHTML = comContador ? ICO_TRIGO : (e.estado==='fim' ? ICO_CALENDARIO : '');
+    $('msgIcone').hidden = e.estado==='pronto';
+
+    if(e.estado==='pronto'){ destaque.textContent = 'PÃO PRONTO!'; $('mensagem').textContent = msg.pronto; }
+    if(e.estado==='fim'){
+      destaque.textContent = 'OS PÃES DE HOJE JÁ FORAM PREPARADOS';
+      $('mensagem').textContent = e.hora ? msg.fim.replace('{quando}', e.quando).replace('{hora}', e.hora) : msg.fim_sem_horarios;
+    }
+    if(e.estado==='aguardando') $('mensagem').textContent = msg.aguardando;
+    if(e.estado==='proximo')    $('mensagem').textContent = msg.proximo;
+    $('anuncio').textContent = (e.estado==='pronto' ? 'Pão pronto! ' : '') + $('mensagem').textContent;
+    estadoAnterior = e.estado;
+  }
+  if(e.estado==='aguardando' || e.estado==='proximo'){
+    destaque.textContent = e.hora;
+    $('tempo').textContent = fmtTempo(e.falta);
+  }
+}
+
+/* ---------- Modo demonstração (?demo) para validar os 4 estados ---------- */
+const PONTOS_DEMO = {
+  aguardando: {dow:1, secs:16*3600+11*60+28},   // 16:11:28 -> falta 18 min 32 s
+  pronto:     {dow:1, secs:16*3600+30*60+10},   // 16:30:10
+  proximo:    {dow:1, secs:17*3600+5*60+5},     // 17:05:05 -> falta 24 min 55 s
+  fim:        {dow:1, secs:18*3600+45*60}       // 18:45:00
+};
+function iniciarDemo(){
+  const barra = $('demo'); barra.hidden = false;
+  barra.querySelectorAll('button').forEach(b=>{
+    b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',()=>{
+      barra.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
+      const k = b.dataset.demo;
+      sim = k==='real' ? null : {...PONTOS_DEMO[k], t0: Date.now()};
+      estadoAnterior = null; renderizar();
+    });
+  });
+}
+
+/* ---------- Dados públicos da padaria ---------- */
+const SUPABASE_URL = 'https://scnzyxvtaizfsbwiofvf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_nApY5cRNCcrSeUuhz3eJpQ_-Pqki3n-';
+
+async function carregarDados(slug){
+  try{
+    const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/pagina_publica?apikey=' + encodeURIComponent(SUPABASE_KEY), {
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_slug:slug})
+    });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if(!d || !d.padaria_id) throw new Error('Padaria não encontrada');
+
+    const temaIndex = d.tema && d.tema.index ? d.tema.index : {};
+    DADOS.tema = {
+      ...DADOS.tema,
+      ...temaIndex,
+      nome: d.padaria.nome || DADOS.tema.nome,
+      // As quatro artes locais permanecem como padrão, mesmo se o tema do banco não as substituir.
+      // As quatro artes físicas enviadas no projeto são fixas e não podem ser
+      // substituídas por caminhos antigos gravados no banco.
+      fundos: {...DADOS.tema.fundos},
+      fundos_mobile: {...DADOS.tema.fundos_mobile},
+      logo_url: null
+    };
+    DADOS.padaria_id = d.padaria_id; DADOS.versao = d.versao;
+    DADOS.config = d.config || DADOS.config;
+    DADOS.horarios = Array.isArray(d.horarios) ? d.horarios : DADOS.horarios;
+  }catch(e){
+    console.warn('Usando dados locais do modelo:', e.message);
+  }
+}
+
+/* ---------- Início ---------- */
+(async()=>{
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('padaria') || location.pathname.split('/').filter(Boolean).slice(-2,-1)[0] || 'padaria-da-villa';
+  const modoDemo = params.has('demo');
+  await carregarDados(slug);
+  if(modoDemo) DADOS.horarios = HORARIOS_DEMO.map(x=>({...x}));
+  /* Modo preview (usado pelo Painel Master): ?preview=1&estado=aguardando|pronto|proximo|fim
+     Fixa um estado de demonstração e aceita o tema em edição via postMessage (mesma origem). */
+  const modoPreview = params.get('preview')==='1';
+  if(modoPreview){
+    DADOS.horarios = HORARIOS_DEMO.map(x=>({...x}));
+    const est = params.get('estado');
+    if(PONTOS_DEMO[est]) sim = {...PONTOS_DEMO[est], t0: Date.now()};
+    window.addEventListener('message', ev => {
+      if(ev.origin !== location.origin || !ev.data || ev.data.tipo !== 'tema' || !ev.data.index) return;
+      const x = ev.data.index;
+      DADOS.tema = {...DADOS.tema, ...x, fundos:{...DADOS.tema.fundos}, fundos_mobile:{...DADOS.tema.fundos_mobile}, logo_url:null};
+      aplicarTema(DADOS.tema); estadoAnterior = null; renderizar();
+    });
+  }
+  aplicarTema(DADOS.tema);
+  if(modoDemo) iniciarDemo();
+  renderizar();
+  if(!modoDemo && !modoPreview) iniciarAtualizacaoAoVivo(slug);
+})();
+
+/* ---------- Atualização em tempo real ----------
+   Quando o administrador/Master altera horários, mensagens ou tema, o banco incrementa
+   publicacoes.versao. A Index escuta essa tabela via Supabase Realtime e, como reserva
+   (rede instável, Realtime indisponível), confere a versão a cada 30 s. */
+let atualizando = false;
+async function atualizarAoVivo(slug){
+  if(atualizando) return; atualizando = true;
+  try{
+    const versaoAntes = DADOS.versao;
+    await carregarDados(slug);
+    if(DADOS.versao !== versaoAntes){
+      aplicarTema(DADOS.tema);
+      estadoAnterior = null;   // força redesenhar textos, imagem e contador
+      renderizar();
+    }
+  } finally { atualizando = false; }
+}
+async function iniciarAtualizacaoAoVivo(slug){
+  setInterval(() => { if(!document.hidden) atualizarAoVivo(slug); }, 30000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) atualizarAoVivo(slug); });
+  try{
+    const {createClient} = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    if(!DADOS.padaria_id) return;
+    sb.channel('pub-' + DADOS.padaria_id)
+      .on('postgres_changes', {event:'*', schema:'public', table:'publicacoes', filter:'padaria_id=eq.' + DADOS.padaria_id}, () => atualizarAoVivo(slug))
+      .subscribe();
+  }catch(e){ console.warn('Realtime indisponível; usando verificação periódica.', e.message); }
+}
+window.addEventListener('resize', () => {
+  if(estadoAnterior) aplicarFundo(estadoAnterior);
+});
+setInterval(renderizar, 1000);
+</script>
+</body>
+</html>

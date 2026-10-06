@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hora do Pão — Painel da Padaria</title>
+<style>
+:root{--bg:#f4f5f7;--ink:#20242a;--muted:#68727d;--brown:#1b1008;--gold:#e8a93c;--line:#e1e4e8;--card:#fff;--ok:#dff5e4;--okink:#17652c;--warn:#fff2cf;--warnink:#785900;--bad:#ffe0e0;--badink:#8b1d1d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.top{background:var(--brown);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.top strong{font-size:18px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.master-bar{background:#7c1d1d;color:#fff;text-align:center;padding:8px;font-weight:800;font-size:13px;letter-spacing:.04em}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.card{padding:14px}
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 3px 14px rgba(0,0,0,.05)}
+.metric{font-size:clamp(16px,2.4vw,20px);font-weight:800;margin-top:4px}.muted{color:var(--muted);font-size:13px}
+.nav{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}
+.nav button,.btn{border:0;border-radius:9px;padding:10px 14px;cursor:pointer;background:var(--gold);color:#1b1008;font-weight:800;font:inherit;font-weight:800;text-decoration:none;display:inline-block}
+.nav button:not(.active){background:#eceef1;color:#25282c}
+.btn.alt{background:#eceef1;color:#25282c}.btn.danger{background:#f5c7c7;color:#7c1d1d}.btn.small{padding:6px 10px;font-size:12px}
+.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:10px;border-bottom:1px solid #eee;font-size:14px;vertical-align:middle}
+.scroll{overflow-x:auto}
+.status{display:inline-block;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:800;background:#eee}
+.status.ok{background:var(--ok);color:var(--okink)}.status.bad{background:var(--bad);color:var(--badink)}.status.warn{background:var(--warn);color:var(--warnink)}
+.login{max-width:430px;margin:12vh auto}
+.field{margin:11px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid #d3d7dc;border-radius:9px;font:inherit;background:#fff}
+.field textarea{min-height:70px;resize:vertical}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 16px}
+.days{display:flex;gap:6px;flex-wrap:wrap}.days label{display:flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid #d3d7dc;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;margin:0}
+.msg{padding:10px 12px;border-radius:9px;margin:10px 0;font-size:13px;font-weight:700}.msg.error{background:var(--bad);color:var(--badink)}.msg.okm{background:var(--ok);color:var(--okink)}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal-back.open{display:flex}.modal{background:#fff;border-radius:14px;padding:20px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dayline{font-size:12px;color:var(--muted)}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.big{font-size:clamp(20px,3vw,26px);font-weight:800;letter-spacing:.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+@media(max-width:640px){.wrap{padding:12px}.top{padding:12px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modalBack" class="modal-back"><div class="modal" id="modal"></div></div>
+<script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SUPABASE_URL='https://scnzyxvtaizfsbwiofvf.supabase.co';
+const SUPABASE_KEY='sb_publishable_nApY5cRNCcrSeUuhz3eJpQ_-Pqki3n-';
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MSG_PADRAO={aguardando:'Seu próximo pão está sendo preparado.',proximo:'O próximo pão já está programado.',pronto:'Pão pronto quentinho esperando por você!',fim:'O próximo pão estará disponível {quando} às {hora}.',fim_sem_horarios:'Não há novos horários programados.'};
+let st={cobr:[],pagto:null,tema:null,uso:null,user:null,perfil:null,master:false,padaria:null,config:null,horarios:[],tab:'dash',pub:null};
+
+/* ---------- utilidades ---------- */
+const hhmm=t=>String(t||'').slice(0,5);
+function agoraSP(){ // data/hora em America/Sao_Paulo
+  const p=new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour12:false,weekday:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(new Date());
+  const g=t=>p.find(x=>x.type===t).value;
+  const dia={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[g('weekday')];
+  return {dia,min:(+g('hour')%24)*60+ +g('minute'),seg:+g('second')};
+}
+const toMin=h=>{const [a,b]=h.split(':');return +a*60+ +b};
+function proximo(){ // calcula próximo pão com base nos horários ativos
+  const n=agoraSP();
+  if(st.config?.modo==='manual'){
+    if(!st.config.manual_hora)return {txt:'Sem horário manual definido',estado:'—'};
+    const m=toMin(hhmm(st.config.manual_hora)),d=st.config.manual_duracao_min||30;
+    const estado=n.min>=m&&n.min<m+d?'PÃO PRONTO':n.min<m?(m-n.min<=(st.config.antecedencia_min||20)?'AGUARDANDO':'PRÓXIMO PÃO'):'FIM DO DIA';
+    return {txt:hhmm(st.config.manual_hora)+' (manual)',estado};
+  }
+  const ativos=st.horarios.filter(h=>h.ativo);
+  const hoje=ativos.filter(h=>h.dias.includes(n.dia)).map(h=>({m:toMin(hhmm(h.hora)),d:h.duracao_pronto_min,h})).sort((a,b)=>a.m-b.m);
+  const pronto=hoje.find(x=>n.min>=x.m&&n.min<x.m+x.d);
+  if(pronto)return {txt:hhmm(pronto.h.hora),estado:'PÃO PRONTO'};
+  const prox=hoje.find(x=>x.m>n.min);
+  if(prox){const ant=st.config?.antecedencia_min||20;return {txt:hhmm(prox.h.hora),estado:(prox.m-n.min<=ant)?'AGUARDANDO':'PRÓXIMO PÃO'}}
+  for(let i=1;i<=7;i++){const d=(n.dia+i)%7;const l=ativos.filter(h=>h.dias.includes(d)).sort((a,b)=>hhmm(a.hora).localeCompare(hhmm(b.hora)))[0];
+    if(l)return {txt:hhmm(l.hora)+(i===1?' (amanhã)':' ('+DIAS[d]+')'),estado:'FIM DO DIA'}}
+  return {txt:'Nenhum horário ativo',estado:'FIM DO DIA'};
+}
+function msg(id,t,err){ $(id).innerHTML=`<div class="msg ${err?'error':'okm'}">${esc(t)}</div>`; }
+function openModal(h){$('modal').innerHTML=h;$('modalBack').classList.add('open')}
+function closeModal(){$('modalBack').classList.remove('open')}
+$('modalBack').addEventListener('click',e=>{if(e.target===$('modalBack'))closeModal()});
+function log(acao,detalhe){sb.rpc('registrar_log',{p_acao:acao,p_detalhe:detalhe||{},p_padaria:st.padaria?.id}).then(()=>{},()=>{})}
+
+/* ---------- tema visual do painel (configurado pelo Master) ---------- */
+function corOk(c){return typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)}
+function aplicarTemaPainel(){
+  const c=st.tema?.cores||{},r=document.documentElement.style;
+  if(corOk(c.cabecalho))r.setProperty('--brown',c.cabecalho);
+  if(corOk(c.botoes))r.setProperty('--gold',c.botoes);
+}
+function urlArquivo(path){return path?`${SUPABASE_URL}/storage/v1/object/public/padarias/${path.split('/').map(encodeURIComponent).join('/')}`:null}
+
+/* ---------- login / sessão ---------- */
+function loginView(m){
+  $('app').innerHTML=`<div class="login panel"><h1 style="margin:0">Hora do Pão</h1><p class="muted">Painel da padaria</p>${m?`<div class="msg error">${esc(m)}</div>`:''}<div id="loginMsg"></div>
+  <div class="field"><label>E-mail</label><input id="email" type="email" autocomplete="username"></div>
+  <div class="field"><label>Senha</label><input id="senha" type="password" autocomplete="current-password"></div>
+  <button class="btn" id="entrar">Entrar</button> <button class="btn alt" id="esqueci">Esqueci a senha</button></div>`;
+  const go=async()=>{const {error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('senha').value});
+    if(error)return $('loginMsg').innerHTML=`<div class="msg error">${esc(error.message==='Invalid login credentials'?'E-mail ou senha incorretos.':error.message)}</div>`;
+    log('login',{}); await iniciar()};
+  $('entrar').onclick=go; $('senha').onkeydown=e=>{if(e.key==='Enter')go()};
+  $('esqueci').onclick=async()=>{const e=$('email').value.trim();if(!e)return $('loginMsg').innerHTML='<div class="msg error">Informe o e-mail.</div>';
+    const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.href.split('?')[0]});
+    $('loginMsg').innerHTML=error?`<div class="msg error">${esc(error.message)}</div>`:'<div class="msg okm">Se o e-mail existir, você receberá o link de redefinição.</div>'};
+}
+async function iniciar(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user)return loginView();
+  const {data:p,error}=await sb.from('profiles').select('id,papel,ativo,padaria_id,nome,login').eq('id',user.id).single();
+  if(error||!p||!p.ativo)return negar('Usuário sem perfil ativo.');
+  st.user=user;st.perfil=p;st.master=p.papel==='master';
+  let pid=p.padaria_id;
+  if(st.master){pid=new URLSearchParams(location.search).get('padaria');
+    if(!pid)return negar('Perfil Master: abra este painel pelo botão "Acessar painel" do Painel Master.',true);}
+  else if(p.papel!=='admin'||!pid)return negar('Este usuário não é administrador de uma padaria.');
+  const {data:pad}=await sb.from('padarias').select('*').eq('id',pid).maybeSingle();
+  if(!pad||(!st.master&&!pad.ativa))return negar(st.master?'Padaria não encontrada.':'Padaria inativa ou inacessível.');
+  st.padaria=pad; await carregar(); render();
+}
+async function negar(t,semSair){ if(!semSair)await sb.auth.signOut(); $('app').innerHTML=`<div class="login panel"><h2>Acesso não autorizado</h2><p>${esc(t)}</p>${st.master?'<a class="btn" href="painel-master.html">Voltar ao Master</a>':'<button class="btn" onclick="location.reload()">Voltar</button>'}</div>`; }
+
+async function carregar(){
+  const id=st.padaria.id;
+  const [h,pr,c,pu]=await Promise.all([
+    sb.from('horarios_pao').select('id,hora,duracao_pronto_min,ativo').eq('padaria_id',id).order('hora'),
+    sb.from('programacoes').select('horario_id,dia_semana').eq('padaria_id',id),
+    sb.from('configuracoes_padaria').select('*').eq('padaria_id',id).maybeSingle(),
+    sb.from('publicacoes').select('atualizado_em').eq('padaria_id',id).maybeSingle()]);
+  const cb=await sb.from('cobrancas_mensais').select('id,competencia,valor,vencimento_em,status,pago_em,mensagem,enviada_em,visualizada_em').eq('padaria_id',id).order('competencia',{ascending:false}).limit(24);
+  st.cobr=cb.error?[]:(cb.data||[]);
+  const pg=await sb.from('plataforma_config').select('valor').eq('chave','cobranca').maybeSingle();st.pagto=pg.data?.valor||null;
+  const t=await sb.from('temas_padaria').select('publicado').eq('padaria_id',id).maybeSingle();
+  st.tema=t.data?.publicado?.painel||null; aplicarTemaPainel();
+  st.horarios=(h.data||[]).map(x=>({...x,dias:(pr.data||[]).filter(p=>p.horario_id===x.id).map(p=>p.dia_semana).sort()}));
+  st.config=c.data; st.pub=pu.data;
+}
+
+/* ---------- views ---------- */
+function render(){
+  const t=st.tab,a=x=>t===x?'active':'';
+  const nome=st.padaria.nome_comercial||st.padaria.nome;
+  $('app').innerHTML=`${st.master?`<div class="master-bar">MODO MASTER — ${esc(nome.toUpperCase())}</div>`:''}
+  <header class="top"><strong style="display:flex;align-items:center;gap:10px">${st.tema?.logo?`<img src="${esc(urlArquivo(st.tema.logo))}" alt="" style="height:34px;border-radius:6px">`:'🍞'} ${esc(nome)}</strong><div class="actions"><span class="muted" style="color:#ddd">${esc(st.perfil.nome||st.user.email)}</span>
+  <a class="btn alt small" target="_blank" href="estabelecimentos/${encodeURIComponent(st.padaria.slug)}/index.html">Abrir Index</a>
+  ${st.master?'<a class="btn alt small" href="painel-master.html">← Master</a>':''}<button class="btn small" id="sair">Sair</button></div></header>
+  <div class="wrap"><nav class="nav"><button class="${a('dash')}" data-t="dash">Dashboard</button><button class="${a('hor')}" data-t="hor">Horários do pão</button><button class="${a('cfg')}" data-t="cfg">Mensagens e modo</button><button class="${a('dados')}" data-t="dados">Dados da padaria</button><button class="${a('mens')}" data-t="mens">Mensalidade${abertas()?` <span class="status bad">${abertas()}</span>`:''}</button><button class="${a('perfil')}" data-t="perfil">Perfil</button></nav>
+  <div id="conteudo"></div></div>`;
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.t;render()});
+  $('sair').onclick=async()=>{log('logout');await sb.auth.signOut();location.href=location.pathname};
+  ({dash:vDash,hor:vHor,cfg:vCfg,dados:vDados,mens:vMens,perfil:vPerfil})[t]();
+}
+let tick;
+function vDash(){
+  clearInterval(tick);
+  const ativos=st.horarios.filter(h=>h.ativo).length;
+  $('conteudo').innerHTML=`${abertas()?`<div class="msg error" style="cursor:pointer" id="avisoMens">Você tem ${abertas()} mensalidade(s) em aberto. Toque para ver.</div>`:''}<div class="grid">
+  <div class="card"><div class="muted">Horário atual (Brasília)</div><div class="big" id="rel">--:--:--</div></div>
+  <div class="card"><div class="muted">Próximo pão</div><div class="big" id="prox">--</div></div>
+  <div class="card"><div class="muted">Estado da Index</div><div class="metric" id="estado">--</div></div>
+  <div class="card"><div class="muted">Horários ativos</div><div class="metric">${ativos} <span class="muted">/ ${st.horarios.length}</span></div></div>
+  <div class="card"><div class="muted">Modo</div><div class="metric">${st.config?.modo==='manual'?'Manual':'Programado'}</div></div>
+  <div class="card"><div class="muted">Última atualização</div><div class="metric" style="font-size:14px">${st.pub?new Date(st.pub.atualizado_em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}):'—'}</div></div></div>`;
+  if($('avisoMens'))$('avisoMens').onclick=()=>{st.tab='mens';render()};
+  const f=()=>{if(!$('rel'))return clearInterval(tick);const n=agoraSP(),p=proximo();
+    $('rel').textContent=[Math.floor(n.min/60),n.min%60,n.seg].map(v=>String(v).padStart(2,'0')).join(':');$('prox').textContent=p.txt;$('estado').textContent=p.estado};
+  f();tick=setInterval(f,1000);
+}
+function vHor(){
+  clearInterval(tick);
+  $('conteudo').innerHTML=`<section class="panel"><div class="actions" style="justify-content:space-between;margin-bottom:10px"><div><h2 style="margin:0">Horários do pão</h2><p class="muted">O estado “Aguardando” (últimos ${st.config?.antecedencia_min||20} min) é regra do sistema — não cadastre como horário.</p></div><button class="btn" id="novo">+ Novo horário</button></div>
+  ${st.config?.modo==='manual'?'<div class="msg error">Modo MANUAL ativo: estes horários são ignorados pela Index. Altere em “Mensagens e modo”.</div>':''}
+  <div class="scroll"><table class="table"><thead><tr><th>Hora</th><th>Dias</th><th>“Pronto” por</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+  ${st.horarios.map(h=>`<tr><td><strong style="font-size:18px">${hhmm(h.hora)}</strong></td><td class="dayline">${h.dias.length===7?'Todos os dias':h.dias.map(d=>DIAS[d]).join(', ')||'—'}</td><td>${h.duracao_pronto_min} min</td><td><span class="status ${h.ativo?'ok':'bad'}">${h.ativo?'Ativo':'Inativo'}</span></td>
+  <td><div class="actions"><button class="btn small" data-ed="${h.id}">Editar</button><button class="btn small alt" data-tg="${h.id}">${h.ativo?'Desativar':'Ativar'}</button><button class="btn small danger" data-del="${h.id}">Excluir</button></div></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Nenhum horário cadastrado.</td></tr>'}
+  </tbody></table></div></section>`;
+  $('novo').onclick=()=>formHorario();
+  document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>formHorario(st.horarios.find(h=>h.id===b.dataset.ed)));
+  document.querySelectorAll('[data-tg]').forEach(b=>b.onclick=async()=>{const h=st.horarios.find(x=>x.id===b.dataset.tg);
+    const {error}=await sb.from('horarios_pao').update({ativo:!h.ativo}).eq('id',h.id);if(error)return alert(error.message);log('horario_'+(h.ativo?'desativado':'ativado'),{hora:hhmm(h.hora)});await carregar();render()});
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const h=st.horarios.find(x=>x.id===b.dataset.del);
+    if(!confirm(`Excluir o horário ${hhmm(h.hora)}?`))return;
+    let r=await sb.from('programacoes').delete().eq('horario_id',h.id);if(r.error)return alert(r.error.message);
+    r=await sb.from('horarios_pao').delete().eq('id',h.id);if(r.error)return alert(r.error.message);
+    log('horario_excluido',{hora:hhmm(h.hora)});await carregar();render()});
+}
+function formHorario(h){
+  const dias=h?h.dias:[1,2,3,4,5,6,0];
+  openModal(`<div class="modal-head"><h2 style="margin:0">${h?'Editar':'Novo'} horário</h2><button class="btn alt small" id="fx">Fechar</button></div>
+  <form id="fh"><div class="formgrid"><div class="field"><label>Hora *</label><input type="time" name="hora" required value="${h?hhmm(h.hora):''}"></div>
+  <div class="field"><label>Minutos em “Pão pronto” *</label><input type="number" name="dur" min="1" max="240" required value="${h?h.duracao_pronto_min:30}"></div></div>
+  <div class="field"><label>Dias da semana</label><div class="days">${DIAS.map((d,i)=>`<label><input type="checkbox" name="dia" value="${i}" ${dias.includes(i)?'checked':''}>${d}</label>`).join('')}</div></div>
+  <button class="btn" type="submit">Salvar</button><div id="fhm"></div></form>`);
+  $('fx').onclick=closeModal;
+  $('fh').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const hora=f.get('hora'),dur=+f.get('dur'),sel=f.getAll('dia').map(Number);
+    if(!sel.length)return msg('fhm','Selecione ao menos um dia.',true);
+    if(st.horarios.some(x=>hhmm(x.hora)===hora&&x.id!==h?.id))return msg('fhm','Já existe um horário às '+hora+'.',true);
+    let id=h?.id;
+    if(h){const r=await sb.from('horarios_pao').update({hora,duracao_pronto_min:dur}).eq('id',id);if(r.error)return msg('fhm',r.error.message,true);
+      const d=await sb.from('programacoes').delete().eq('horario_id',id);if(d.error)return msg('fhm',d.error.message,true)}
+    else{const r=await sb.from('horarios_pao').insert({padaria_id:st.padaria.id,hora,duracao_pronto_min:dur,ativo:true}).select('id').single();if(r.error)return msg('fhm',r.error.message,true);id=r.data.id}
+    const ins=await sb.from('programacoes').insert(sel.map(dia_semana=>({horario_id:id,padaria_id:st.padaria.id,dia_semana})));
+    if(ins.error)return msg('fhm',ins.error.message,true);
+    log(h?'horario_editado':'horario_criado',{hora,dur,dias:sel});closeModal();await carregar();render()};
+}
+function vCfg(){
+  clearInterval(tick);
+  const c=st.config||{},m={...MSG_PADRAO,...(c.mensagens||{})};
+  $('conteudo').innerHTML=`<section class="panel"><h2 style="margin:0 0 8px">Modo e mensagens da Index</h2><form id="fc">
+  <div class="formgrid"><div class="field"><label>Modo</label><select name="modo"><option value="programado" ${c.modo!=='manual'?'selected':''}>Programado (usa os horários cadastrados)</option><option value="manual" ${c.modo==='manual'?'selected':''}>Manual (um único horário)</option></select></div>
+  <div class="field"><label>Manual — próximo pão às</label><input type="time" name="manual_hora" value="${hhmm(c.manual_hora)}"></div>
+  <div class="field"><label>Manual — minutos em “Pão pronto”</label><input type="number" name="manual_duracao_min" min="1" max="240" value="${c.manual_duracao_min||30}"></div></div>
+  <div class="field"><label>Mensagem — Aguardando</label><input name="aguardando" maxlength="160" value="${esc(m.aguardando)}"></div>
+  <div class="field"><label>Mensagem — Próximo pão</label><input name="proximo" maxlength="160" value="${esc(m.proximo)}"></div>
+  <div class="field"><label>Mensagem — Pão pronto</label><input name="pronto" maxlength="160" value="${esc(m.pronto)}"></div>
+  <div class="field"><label>Mensagem — Fim do dia (use {quando} e {hora})</label><input name="fim" maxlength="160" value="${esc(m.fim)}"></div>
+  <div class="field"><label>Mensagem — Sem horários</label><input name="fim_sem_horarios" maxlength="160" value="${esc(m.fim_sem_horarios)}"></div>
+  <button class="btn" type="submit">Salvar e publicar</button> <button class="btn alt" type="button" id="padrao">Restaurar mensagens padrão</button><div id="fcm"></div></form></section>`;
+  $('padrao').onclick=()=>{const f=$('fc');for(const k in MSG_PADRAO)f.elements[k].value=MSG_PADRAO[k]};
+  $('fc').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);
+    if(f.get('modo')==='manual'&&!f.get('manual_hora'))return msg('fcm','No modo manual, informe o horário.',true);
+    const mensagens={};for(const k in MSG_PADRAO)mensagens[k]=String(f.get(k)||MSG_PADRAO[k]).trim();
+    const {error}=await sb.from('configuracoes_padaria').update({modo:f.get('modo'),manual_hora:f.get('manual_hora')||null,manual_duracao_min:+f.get('manual_duracao_min')||30,mensagens}).eq('padaria_id',st.padaria.id);
+    if(error)return msg('fcm',error.message,true);log('config_alterada',{modo:f.get('modo')});await carregar();msg('fcm','Configurações publicadas.')};
+}
+function vDados(){
+  clearInterval(tick);const p=st.padaria;
+  $('conteudo').innerHTML=`<section class="panel"><h2 style="margin:0 0 8px">Dados públicos da padaria</h2><form id="fd"><div class="formgrid">
+  ${[['nome_comercial','Nome exibido',p.nome_comercial||p.nome],['telefone','Telefone',p.telefone],['email','E-mail',p.email],['endereco','Endereço',p.endereco],['cidade','Cidade',p.cidade],['estado','UF',p.estado]].map(([k,l,v])=>`<div class="field"><label>${l}</label><input name="${k}" ${k==='estado'?'maxlength="2"':''} value="${esc(v||'')}"></div>`).join('')}</div>
+  <div class="field"><label>Informações públicas</label><textarea name="informacoes_publicas">${esc(p.informacoes_publicas||'')}</textarea></div>
+  <p class="muted">Endereço da página: <code>estabelecimentos/${esc(p.slug)}/</code> (alterável apenas pelo Master).</p>
+  <button class="btn" type="submit">Salvar</button><div id="fdm"></div></form></section>`;
+  $('fd').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.currentTarget).entries());
+    for(const k in f)f[k]=String(f[k]).trim()||null; if(f.estado)f.estado=f.estado.toUpperCase();
+    if(!f.nome_comercial)return msg('fdm','O nome é obrigatório.',true);
+    const {error}=await sb.from('padarias').update(f).eq('id',p.id);if(error)return msg('fdm',error.message,true);
+    Object.assign(st.padaria,f);log('dados_padaria_alterados',{});msg('fdm','Dados salvos.')};
+}
+const hojeSP=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());
+const stCob=c=>c.status==='pendente'&&c.vencimento_em<hojeSP()?'atrasado':c.status;
+const abertas=()=>st.cobr.filter(c=>['pendente','atrasado'].includes(c.status)).length;
+const dBR=d=>d?d.split('-').reverse().join('/'):'—';
+const brl=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',');
+async function vMens(){
+  clearInterval(tick);
+  const g=st.pagto||{};
+  $('conteudo').innerHTML=`<section class="panel"><h2 style="margin:0 0 8px">Mensalidade do Hora do Pão</h2>
+  ${st.cobr.length?'':'<p class="muted">Nenhuma cobrança enviada até o momento.</p>'}
+  ${st.cobr.filter(c=>['pendente','atrasado'].includes(c.status)).map(c=>`<div class="card" style="margin-bottom:12px;border-color:${stCob(c)==='atrasado'?'#e0a0a0':'#e1e4e8'}"><div class="actions" style="justify-content:space-between"><div><strong>Competência ${c.competencia.slice(5,7)}/${c.competencia.slice(0,4)}</strong><div class="metric">${brl(c.valor)}</div><div class="muted">Vencimento: ${dBR(c.vencimento_em)}</div></div><span class="status ${stCob(c)==='atrasado'?'bad':'warn'}">${stCob(c)==='atrasado'?'Em atraso':'A pagar'}</span></div>
+  ${c.mensagem?`<p style="margin:10px 0 0">${esc(c.mensagem)}</p>`:''}</div>`).join('')}
+  ${(g.pix_chave||g.instrucoes)?`<div class="card" style="margin:12px 0"><strong>Como pagar</strong>${g.pix_chave?`<p style="margin:8px 0 0">Chave PIX: <code id="pixk">${esc(g.pix_chave)}</code> <button class="btn small alt" id="cpix">Copiar</button></p>`:''}${g.favorecido?`<p class="muted" style="margin:4px 0 0">Favorecido: ${esc(g.favorecido)}</p>`:''}${g.instrucoes?`<p style="margin:8px 0 0">${esc(g.instrucoes)}</p>`:''}</div>`:''}
+  <h3>Histórico</h3><div class="scroll"><table class="table"><thead><tr><th>Competência</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead><tbody>${st.cobr.map(c=>`<tr><td>${c.competencia.slice(5,7)}/${c.competencia.slice(0,4)}</td><td>${brl(c.valor)}</td><td>${dBR(c.vencimento_em)}</td><td><span class="status ${c.status==='pago'?'ok':stCob(c)==='atrasado'?'bad':'warn'}">${esc(stCob(c))}</span></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Sem cobranças.</td></tr>'}</tbody></table></div></section>`;
+  if($('cpix'))$('cpix').onclick=async()=>{try{await navigator.clipboard.writeText(g.pix_chave);$('cpix').textContent='Copiado!'}catch(e){$('cpix').textContent='Selecione e copie'}};
+  // registra que a unidade visualizou (só quem é admin da própria padaria; o Master não marca)
+  if(!st.master)for(const c of st.cobr.filter(c=>!c.visualizada_em))sb.rpc('marcar_cobranca_vista',{p_cobranca:c.id}).then(()=>{c.visualizada_em=new Date().toISOString()},()=>{});
+}
+function vPerfil(){
+  clearInterval(tick);
+  $('conteudo').innerHTML=`<section class="panel"><h2 style="margin:0 0 8px">Meu perfil</h2><form id="fp"><div class="formgrid">
+  <div class="field"><label>Nome</label><input name="nome" value="${esc(st.perfil.nome||'')}"></div>
+  <div class="field"><label>Login</label><input value="${esc(st.user.email)}" disabled></div></div>
+  <button class="btn" type="submit">Salvar nome</button><div id="fpm"></div></form>
+  <hr style="margin:20px 0;border:0;border-top:1px solid #eee"><h3>Alterar senha</h3><form id="fs"><div class="formgrid"><div class="field"><label>Nova senha (mín. 8)</label><input type="password" name="s1" minlength="8" autocomplete="new-password"></div><div class="field"><label>Repetir</label><input type="password" name="s2" autocomplete="new-password"></div></div><button class="btn" type="submit">Alterar senha</button><div id="fsm"></div></form></section>`;
+  $('fp').onsubmit=async e=>{e.preventDefault();const nome=new FormData(e.currentTarget).get('nome').trim();
+    const {error}=await sb.from('profiles').update({nome}).eq('id',st.user.id);if(error)return msg('fpm',error.message,true);st.perfil.nome=nome;msg('fpm','Perfil atualizado.')};
+  $('fs').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget);
+    if(f.get('s1').length<8)return msg('fsm','Mínimo de 8 caracteres.',true);if(f.get('s1')!==f.get('s2'))return msg('fsm','As senhas não conferem.',true);
+    const {error}=await sb.auth.updateUser({password:f.get('s1')});if(error)return msg('fsm',error.message,true);log('senha_alterada');msg('fsm','Senha alterada.')};
+}
+
+sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){$('app').innerHTML='<div class="login panel"><h2>Nova senha</h2><div id="rm"></div><div class="field"><input id="np" type="password" minlength="8" placeholder="Nova senha (mín. 8)"></div><button class="btn" id="sp">Salvar</button></div>';
+  $('sp').onclick=async()=>{const {error}=await sb.auth.updateUser({password:$('np').value});if(error)return msg('rm',error.message,true);msg('rm','Senha alterada.');setTimeout(()=>location.href=location.pathname,900)}}});
+iniciar();
+</script>
+</body>
+</html>
