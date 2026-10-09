@@ -111,6 +111,10 @@ DECLARE
   prof_est uuid;
   prof_role text;
 BEGIN
+  IF TG_OP = 'INSERT' THEN
+    NEW.criado_por := auth.uid();
+  END IF;
+
   SELECT * INTO srv
   FROM public.servicos
   WHERE id = NEW.servico_id AND estabelecimento_id = NEW.estabelecimento_id;
