@@ -967,10 +967,10 @@
 <!-- ===== Modal Editar Profissional ===== -->
 <div class="modal-backdrop" id="modal-editar-profissional">
   <div class="modal">
-    <div class="modal-head"><h3>Editar profissional</h3><button class="modal-close" onclick="closeModal('modal-editar-profissional')">✕</button></div>
+    <div class="modal-head"><h3 id="ep-titulo">Editar profissional</h3><button class="modal-close" onclick="closeModal('modal-editar-profissional')">✕</button></div>
     <div class="modal-body">
-      <input type="hidden" id="ep-id" />
-      <div class="field"><label>Nome do profissional</label><input id="ep-nome" /></div>
+      <input type="hidden" id="ep-id" /><input type="hidden" id="ep-role" value="profissional" />
+      <div class="field"><label id="ep-nome-label">Nome do profissional</label><input id="ep-nome" /></div>
       <div class="field"><label>E-mail de acesso</label><input type="email" id="ep-email" /></div>
       <div class="field"><label>Nova senha (opcional)</label><input type="password" id="ep-senha" placeholder="Deixe em branco para manter a senha atual" /></div>
       <div id="ep-resultado"></div>
@@ -1813,8 +1813,8 @@ async function renderEquipeEstabelecimento(id=ESTAB_ID){
   const {data:admins}=await sb.from('perfis').select('id,nome,email,role,estabelecimento_id,created_at,permissoes').eq('estabelecimento_id',id).in('role',['admin_estabelecimento','profissional']).order('role').order('nome');
   const estab=TODOS_ESTABELECIMENTOS.find(e=>e.id===id);
   const permLabels={dashboard:'Dashboard',clientes:'Clientes',atendimentos:'Atendimentos',servicos:'Serviços',premios:'Prêmios',marketing:'Marketing',configuracoes:'Configurações',equipe:'Equipe',auditoria:'Auditoria'};
-  const adminRows=(admins||[]).filter(a=>a.role==='admin_estabelecimento').map(a=>`<div class="panel" style="margin-top:16px;"><div class="panel-head"><div><h3>Permissões · ${a.nome||'Administrador'}</h3><div class="sub">Acesso administrativo restrito a esta unidade</div></div></div><div class="panel-body"><div class="permission-grid">${Object.entries(permLabels).map(([k,label])=>`<label class="permission-item"><input type="checkbox" data-perm-user="${a.id}" data-perm="${k}" ${a.permissoes?.[k]!==false?'checked':''}> ${label}</label>`).join('')}</div><button class="btn btn-primary" style="margin-top:14px;" onclick="salvarPermissoesAdmin('${a.id}')">Salvar permissões</button></div></div>`).join('');
-  box.innerHTML=`<div class="topbar" style="align-items:flex-start;"><div><h2>Equipe · ${estab?.nome||'Estabelecimento'}</h2><div class="sub">Administrador e profissionais vinculados a esta unidade</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-profissional')">＋ NOVO PROFISSIONAL</button></div><div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead><tbody>${(admins||[]).map(a=>`<tr><td>${a.nome||'—'}</td><td>${a.role==='admin_estabelecimento'?'Administrador':'Profissional'}</td><td>${fmtDate(a.created_at)}</td><td>${a.role==='profissional'?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="abrirConsultaAtendimentosProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Consultar</button><button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);" onclick="excluirProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Excluir</button></div>`:''}</td></tr>`).join('')||`<tr><td colspan="4">${emptyState('Nenhum integrante cadastrado.')}</td></tr>`}</tbody></table></div></div>${adminRows}<div id="view-consulta-profissional" style="margin-top:16px;"></div>`;
+  const adminRows=(admins||[]).filter(a=>a.role==='admin_estabelecimento').map(a=>`<div class="panel" id="permissoes-admin-${a.id}" style="margin-top:16px;"><div class="panel-head"><div><h3>Permissões · ${a.nome||'Administrador'}</h3><div class="sub">Acesso administrativo restrito a esta unidade</div></div></div><div class="panel-body"><div class="permission-grid">${Object.entries(permLabels).map(([k,label])=>`<label class="permission-item"><input type="checkbox" data-perm-user="${a.id}" data-perm="${k}" ${a.permissoes?.[k]!==false?'checked':''}> ${label}</label>`).join('')}</div><button class="btn btn-primary" style="margin-top:14px;" onclick="salvarPermissoesAdmin('${a.id}')">Salvar permissões</button></div></div>`).join('');
+  box.innerHTML=`<div class="topbar" style="align-items:flex-start;"><div><h2>Equipe · ${estab?.nome||'Estabelecimento'}</h2><div class="sub">Administrador e profissionais vinculados a esta unidade</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-profissional')">＋ NOVO PROFISSIONAL</button></div><div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead><tbody>${(admins||[]).map(a=>`<tr><td>${a.nome||'—'}</td><td>${a.role==='admin_estabelecimento'?'Administrador':'Profissional'}</td><td>${fmtDate(a.created_at)}</td><td>${a.role==='profissional'?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="abrirConsultaAtendimentosProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Consultar</button><button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);" onclick="excluirProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Excluir</button></div>`:`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar dados</button><button class="btn btn-outline btn-xs" onclick="document.getElementById('permissoes-admin-${a.id}')?.scrollIntoView({behavior:'smooth',block:'center'})">Permissões</button></div>`}</td></tr>`).join('')||`<tr><td colspan="4">${emptyState('Nenhum integrante cadastrado.')}</td></tr>`}</tbody></table></div></div>${adminRows}<div id="view-consulta-profissional" style="margin-top:16px;"></div>`;
 }
 
 async function excluirProfissional(id, nome, estabId){
@@ -1827,8 +1827,12 @@ async function excluirProfissional(id, nome, estabId){
 }
 // ---------- Editar profissional (nome / e-mail / senha) ----------
 async function abrirEdicaoProfissional(id){
-  const {data:p}=await sb.from('perfis').select('id,nome,email,estabelecimento_id').eq('id',id).maybeSingle();
-  if(!p){toast('Profissional não encontrado.',true);return;}
+  const {data:p}=await sb.from('perfis').select('id,nome,email,role,estabelecimento_id').eq('id',id).maybeSingle();
+  if(!p||!['profissional','admin_estabelecimento'].includes(p.role)){toast('Integrante da equipe não encontrado.',true);return;}
+  if(p.role==='admin_estabelecimento'&&MEU_PAPEL!=='admin_master'){toast('Somente o Admin Master pode editar o administrador da unidade.',true);return;}
+  document.getElementById('ep-role').value=p.role;
+  document.getElementById('ep-titulo').textContent=p.role==='admin_estabelecimento'?'Editar administrador da unidade':'Editar profissional';
+  document.getElementById('ep-nome-label').textContent=p.role==='admin_estabelecimento'?'Nome do administrador':'Nome do profissional';
   document.getElementById('ep-id').value=p.id;
   document.getElementById('ep-nome').value=p.nome||'';
   document.getElementById('ep-email').value=p.email||'';
@@ -1847,7 +1851,7 @@ async function salvarEdicaoProfissional(){
   const {data,error}=await sb.functions.invoke('editar-profissional',{body:{profissional_id:id,nome,email,...(senha?{senha}:{})}});
   btn.disabled=false;btn.textContent='Salvar alterações';
   if(error||(data&&data.error)){ const msg=await functionErrorMessage(error,data?.error||'Falha ao salvar profissional.'); box.innerHTML=`<div style="color:var(--danger)"><strong>Erro:</strong> ${msg}</div>`; return; }
-  toast('Profissional atualizado.');
+  toast(document.getElementById('ep-role').value==='admin_estabelecimento'?'Administrador da unidade atualizado.':'Profissional atualizado.');
   closeModal('modal-editar-profissional');
   if(MEU_PAPEL==='admin_estabelecimento'){
     await renderEquipeLocal();
