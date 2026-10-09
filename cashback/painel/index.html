@@ -497,14 +497,16 @@
               <div class="grid-2">
                 <div class="field"><label>Nome do cliente *</label><input id="agenda-cliente-nome" autocomplete="name" /></div>
                 <div class="field"><label>Telefone do cliente *</label><input id="agenda-cliente-telefone" autocomplete="tel" /></div>
-                <div class="field"><label>Serviço *</label><select id="agenda-servico"><option value="">Selecione um serviço ativo</option></select></div>
+                <div class="field"><label>Procedimento principal *</label><select id="agenda-servico"><option value="">Selecione um serviço ativo</option></select></div>
+                <div class="field full"><label>Procedimentos adicionais (opcional)</label><select id="agenda-servicos-adicionais" multiple style="min-height:100px;"></select><div class="subtle" style="margin-top:6px;">Selecione outros procedimentos que serão realizados no mesmo atendimento. Use Ctrl (Windows) ou Command (Mac) para selecionar mais de um.</div></div>
                 <div class="field"><label>Profissional</label><select id="agenda-profissional"><option value="">Qualquer profissional</option></select></div>
                 <div class="field"><label>Data *</label><input id="agenda-data" type="date" /></div>
                 <div class="field"><label>Horário de início *</label><input id="agenda-hora" type="time" /></div>
+                <div class="field"><label>Horário de término *</label><input id="agenda-hora-fim" type="time" /></div>
               </div>
               <div class="field"><label>Observação</label><textarea id="agenda-observacao" rows="2" placeholder="Informações úteis para o atendimento"></textarea></div>
               <button class="btn btn-primary" id="agenda-salvar-btn" onclick="salvarAgendamento()">＋ Criar agendamento</button>
-              <p class="subtle" style="margin-bottom:0;">A duração e o valor são puxados do serviço cadastrado. O sistema bloqueia conflitos de horário.</p>
+              <p class="subtle" style="margin-bottom:0;">O término é sugerido pela soma das durações e pode ser ajustado. O valor total e o cashback serão calculados por procedimento; conflitos consideram o intervalo completo.</p>
             </div>
           </div>
         </div>
@@ -2292,26 +2294,49 @@ async function renderAgenda(){
   AGENDA_SERVICOS_ATIVOS=servicos||[];
   const serviceSel=document.getElementById('agenda-servico');
   const serviceCurrent=serviceSel.value;
-  serviceSel.innerHTML='<option value="">Selecione um serviço ativo</option>'+(servicos||[]).map(s=>`<option value="${s.id}">${agendaEsc(s.nome)} — ${fmtMoney(s.valor)} · ${Number(s.duracao_min||30)} min</option>`).join('');
+  const additionalSel=document.getElementById('agenda-servicos-adicionais');
+  const additionalCurrent=Array.from(additionalSel?.selectedOptions||[]).map(o=>o.value);
+  const serviceOptions=(servicos||[]).map(s=>`<option value="${s.id}">${agendaEsc(s.nome)} — ${fmtMoney(s.valor)} · ${Number(s.duracao_min||30)} min</option>`).join('');
+  serviceSel.innerHTML='<option value="">Selecione um serviço ativo</option>'+serviceOptions;
   if((servicos||[]).some(s=>s.id===serviceCurrent))serviceSel.value=serviceCurrent;
+  if(additionalSel){additionalSel.innerHTML=serviceOptions;Array.from(additionalSel.options).forEach(o=>{o.selected=additionalCurrent.includes(o.value)&&o.value!==serviceSel.value;});}
   const profSel=document.getElementById('agenda-profissional');
   const profCurrent=profSel.value;
   const isProfessional=MEU_PAPEL==='profissional';
   profSel.innerHTML=(isProfessional?'':'<option value="">Qualquer profissional</option>')+(profs||[]).map(p=>`<option value="${p.id}">${agendaEsc(p.nome||'Profissional')}</option>`).join('');
   if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
   else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
-  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } carregarAgendamentosDia(); };
-  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; carregarAgendamentosDia(); };
+  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } if(additionalSel)Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;}); agendaAtualizarHoraFim(true); carregarAgendamentosDia(); };
+  additionalSel.onchange=()=>{if(additionalSel.value===serviceSel.value)Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;});agendaAtualizarHoraFim(true);carregarAgendamentosDia();};
+  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; agendaAtualizarHoraFim(true); carregarAgendamentosDia(); };
+  document.getElementById('agenda-hora')?.addEventListener('change',()=>agendaAtualizarHoraFim(true));
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
   if(!AGENDA_DIA_SELECIONADO)AGENDA_DIA_SELECIONADO=today;
   if(!AGENDA_MES_CURSOR)AGENDA_MES_CURSOR=agendaLocalDate(AGENDA_DIA_SELECIONADO);
   await carregarAgendaCalendario();
   await carregarAgendamentosDia();
 }
-function agendaDuracaoSelecionada(){
+function agendaDuracaoServicoBase(){
   const id=document.getElementById('agenda-servico')?.value;
   const srv=AGENDA_SERVICOS_ATIVOS.find(s=>s.id===id);
-  return Math.max(5,Number(srv?.duracao_min)||30);
+  const adicionais=Array.from(document.getElementById('agenda-servicos-adicionais')?.selectedOptions||[]).map(o=>AGENDA_SERVICOS_ATIVOS.find(s=>s.id===o.value)).filter(Boolean);
+  return Math.max(5,(Number(srv?.duracao_min)||30)+adicionais.reduce((n,s)=>n+(Number(s.duracao_min)||30),0));
+}
+function agendaDuracaoSelecionada(){
+  const inicio=document.getElementById('agenda-hora')?.value, fim=document.getElementById('agenda-hora-fim')?.value;
+  if(inicio&&fim){const [ih,im]=inicio.split(':').map(Number),[fh,fm]=fim.split(':').map(Number);const mins=fh*60+fm-(ih*60+im);if(mins>=5&&mins<=720)return mins;}
+  return agendaDuracaoServicoBase();
+}
+function agendaAtualizarHoraFim(forcar=false){
+  const inicio=document.getElementById('agenda-hora')?.value, fimInput=document.getElementById('agenda-hora-fim');
+  if(!inicio||!fimInput)return;
+  const [h,m]=inicio.split(':').map(Number),total=h*60+m+agendaDuracaoServicoBase();
+  if(forcar||!fimInput.value)fimInput.value=String(Math.floor(total/60)%24).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+}
+function agendaValidarHoraFim(){
+  const ini=document.getElementById('agenda-hora')?.value,fim=document.getElementById('agenda-hora-fim')?.value;if(!ini||!fim)return null;
+  const [ih,im]=ini.split(':').map(Number),[fh,fm]=fim.split(':').map(Number),mins=fh*60+fm-(ih*60+im);
+  return mins>=5&&mins<=720?mins:null;
 }
 function selecionarHorarioAgenda(hora){
   const data=AGENDA_DIA_SELECIONADO||agendaDataHoje();
@@ -2319,6 +2344,7 @@ function selecionarHorarioAgenda(hora){
   const dataInput=document.getElementById('agenda-data');
   const filtro=document.getElementById('agenda-filtro-data');
   if(horaInput)horaInput.value=hora;
+  agendaAtualizarHoraFim(true);
   if(dataInput)dataInput.value=data;
   if(filtro)filtro.value=data;
   document.getElementById('agenda-form-body')?.classList.remove('hidden');
@@ -2432,11 +2458,15 @@ async function salvarAgendamento(){
   const nome=document.getElementById('agenda-cliente-nome').value.trim();
   const telefone=document.getElementById('agenda-cliente-telefone').value.trim();
   const servicoId=document.getElementById('agenda-servico').value;
+  const servicosAdicionais=Array.from(document.getElementById('agenda-servicos-adicionais')?.selectedOptions||[]).map(o=>o.value).filter(id=>id&&id!==servicoId);
   const data=document.getElementById('agenda-data').value;
   const hora=document.getElementById('agenda-hora').value;
+  const horaFim=document.getElementById('agenda-hora-fim').value;
+  const duracaoManual=agendaValidarHoraFim();
   const profissional=document.getElementById('agenda-profissional').value||null;
   const observacao=document.getElementById('agenda-observacao').value.trim();
-  if(!nome||!telefone||!servicoId||!data||!hora){toast('Preencha cliente, telefone, serviço, data e horário.',true);return;}
+  if(!nome||!telefone||!servicoId||!data||!hora||!horaFim){toast('Preencha cliente, telefone, procedimento principal, data e horários de início e término.',true);return;}
+  if(!duracaoManual){toast('O término deve ser pelo menos 5 minutos depois do início e no máximo 12 horas depois.',true);return;}
   const start=new Date(`${data}T${hora}:00`);
   if(Number.isNaN(start.getTime())||start<=new Date()){toast('Escolha uma data e horário futuros válidos.',true);return;}
   const btn=document.getElementById('agenda-salvar-btn');btn.disabled=true;btn.textContent='Salvando…';
@@ -2454,13 +2484,22 @@ async function salvarAgendamento(){
     }
     const {error}=await sb.from('agendamentos').insert({
       estabelecimento_id:eid,cliente_id:clienteId,servico_id:servicoId,
-      profissional_id:profissional,inicio:start.toISOString(),observacao:observacao||null,criado_por:MEU_ID
-    });
+      profissional_id:profissional,inicio:start.toISOString(),duracao_min:duracaoManual,observacao:observacao||null,criado_por:MEU_ID
+    }).select('id').single();
     if(error)throw error;
+    const agendamentoId=data?.id;
+    if(servicosAdicionais.length){
+      const snapshots=servicosAdicionais.map(sid=>{const s=AGENDA_SERVICOS_ATIVOS.find(x=>x.id===sid);return {agendamento_id:agendamentoId,servico_id:sid,valor_snapshot:Number(s?.valor)||0,duracao_min_snapshot:Math.max(5,Number(s?.duracao_min)||30),cashback_pct_snapshot:Math.max(0,Number(s?.cashback_pct)||0)};});
+      const extras=await sb.from('agendamento_procedimentos').insert(snapshots);
+      if(extras.error){await sb.from('agendamentos').delete().eq('id',agendamentoId);throw extras.error;}
+    }
     toast('Agendamento criado.');
     document.getElementById('agenda-cliente-nome').value='';
     document.getElementById('agenda-cliente-telefone').value='';
     document.getElementById('agenda-observacao').value='';
+    document.getElementById('agenda-servicos-adicionais').selectedIndex=-1;
+    document.getElementById('agenda-servico').value='';
+    agendaAtualizarHoraFim(true);
     document.getElementById('agenda-filtro-data').value=data;
     AGENDA_DIA_SELECIONADO=data;
     AGENDA_MES_CURSOR=agendaLocalDate(data);
