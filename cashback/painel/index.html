@@ -1933,19 +1933,19 @@ async function renderServicos(){
     const [{data},profsPorUnidade]=await Promise.all([q, eidFiltro?carregarProfissionaisUnidade(eidFiltro):Promise.resolve([])]);
     const list=data||[];
     const nomeProf=s=>s.profissional_id? (profsPorUnidade.find(p=>p.id===s.profissional_id)?.nome||'Profissional') : 'Qualquer profissional';
-    tbody.innerHTML=list.length?list.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td>${calcularPontos(s.valor)}</td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===s.estabelecimento_id)?.nome||'—'}<br><span class="subtle">${s.ativo?'Ativo':'Inativo'} · ${eidFiltro?nomeProf(s):(s.profissional_id?'Profissional vinculado':'Qualquer profissional')}</span></td><td></td></tr>`).join(''): `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado para o filtro selecionado.')}</td></tr>`; return;
+    tbody.innerHTML=list.length?list.map(s=>`<tr><td>${s.nome}<br><span class="subtle">${Number(s.duracao_min||30)} min</span></td><td>${fmtMoney(s.valor)}</td><td>${calcularPontos(s.valor)}</td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===s.estabelecimento_id)?.nome||'—'}<br><span class="subtle">${s.ativo?'Ativo':'Inativo'} · ${eidFiltro?nomeProf(s):(s.profissional_id?'Profissional vinculado':'Qualquer profissional')}</span></td><td></td></tr>`).join(''): `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado para o filtro selecionado.')}</td></tr>`; return;
   }
   if(filtroBox) filtroBox.classList.add('hidden');
   const btnNovoServico=document.getElementById('btn-novo-servico'); if(btnNovoServico) btnNovoServico.classList.remove('hidden');
   if(MEU_PAPEL==='profissional'){
     const meusServicos=SERVICOS.filter(s=>s.profissional_id===MEU_ID || !s.profissional_id);
-    tbody.innerHTML = meusServicos.length? meusServicos.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> ${s.profissional_id?'':'<span class="subtle">· Qualquer profissional</span>'}</td><td>${s.profissional_id===MEU_ID?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div>`:''}</td></tr>`).join('') : `<tr><td colspan="6">${emptyState('Você ainda não cadastrou nenhum serviço.')}</td></tr>`;
+    tbody.innerHTML = meusServicos.length? meusServicos.map(s=>`<tr><td>${s.nome}<br><span class="subtle">${Number(s.duracao_min||30)} min</span></td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> ${s.profissional_id?'':'<span class="subtle">· Qualquer profissional</span>'}</td><td>${s.profissional_id===MEU_ID?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div>`:''}</td></tr>`).join('') : `<tr><td colspan="6">${emptyState('Você ainda não cadastrou nenhum serviço.')}</td></tr>`;
     return;
   }
   if(!SERVICOS.length){ tbody.innerHTML = `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado.')}</td></tr>`; return; }
   const profs=await carregarProfissionaisUnidade(ESTAB_ID);
   const nomeProf=s=>s.profissional_id? (profs.find(p=>p.id===s.profissional_id)?.nome||'Profissional') : 'Qualquer profissional';
-  tbody.innerHTML = SERVICOS.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> <span class="subtle">· ${nomeProf(s)}</span></td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-sm" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div></td></tr>`).join('');
+  tbody.innerHTML = SERVICOS.map(s=>`<tr><td>${s.nome}<br><span class="subtle">${Number(s.duracao_min||30)} min</span></td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> <span class="subtle">· ${nomeProf(s)}</span></td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-sm" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div></td></tr>`).join('');
 }
 document.getElementById('servico-valor').addEventListener('input', ()=>{
   const v = parseFloat(document.getElementById('servico-valor').value || 0);
@@ -2026,7 +2026,7 @@ async function renderAgenda(){
     masterBox.classList.remove('hidden');
     await carregarTodosEstabelecimentos();
     const sel=document.getElementById('agenda-estabelecimento');
-    const current=AGENDA_ESTAB_ID || sel.value || '';
+    const current=sel.value || AGENDA_ESTAB_ID || '';
     sel.innerHTML='<option value="">Selecione um estabelecimento</option>'+TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}">${agendaEsc(e.nome)}</option>`).join('');
     sel.value=TODOS_ESTABELECIMENTOS.some(e=>e.id===current)?current:'';
     AGENDA_ESTAB_ID=sel.value;
@@ -2061,6 +2061,7 @@ async function renderAgenda(){
   profSel.innerHTML=(isProfessional?'':'<option value="">Qualquer profissional</option>')+(profs||[]).map(p=>`<option value="${p.id}">${agendaEsc(p.nome||'Profissional')}</option>`).join('');
   if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
   else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
+  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } };
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
   await carregarAgendamentosDia();
 }
@@ -2109,7 +2110,7 @@ async function salvarAgendamento(){
     if(cliErr)throw cliErr;
     let clienteId=cli?.id;
     if(!clienteId){
-      const created=await sb.from('clientes').insert({estabelecimento_id:eid,nome,telefone}).select('id').single();
+      const created=await sb.from('clientes').insert({estabelecimento_id:eid,nome,telefone,atendimento_regra:'qualquer',profissional_principal_id:MEU_PAPEL==='profissional'?MEU_ID:null}).select('id').single();
       if(created.error)throw created.error;
       clienteId=created.data.id;
     }else{
