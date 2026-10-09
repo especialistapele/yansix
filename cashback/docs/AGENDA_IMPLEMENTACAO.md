@@ -10,7 +10,8 @@
 - Cancelamentos preservam histórico; não há exclusão física pela interface.
 
 ## Arquivos
-- `cashback/painel/index.html`: menu Agenda, criação/consulta diária, atualização de status e campo de duração no cadastro de serviços.
+- `cashback/painel/index.html`: menu Agenda com calendário mensal interativo, navegação entre meses, seleção de dia, indicadores de ocupação, consulta dos horários, criação de agendamentos e atualização de status; campo de duração no cadastro de serviços.
+- O painel destaca separadamente os agendamentos concluídos que ainda não tiveram pontos/cashback computados, com ação explícita para processamento manual. O botão também aparece na linha do atendimento; após processar, o painel exibe o estado de confirmação.
 - `cashback/supabase/migrations/029_modulo_agenda.sql`: schema, RLS, validação de conflito e auditoria.
 
 ## Aplicação e verificação
@@ -34,3 +35,11 @@
 - No modo automático, a conclusão do agendamento tenta processar o cashback imediatamente. Se falhar (por exemplo, sem profissional atribuído), o agendamento continua concluído e a ação manual fica disponível para nova tentativa.
 - `processar_cashback_agendamento` bloqueia concorrência por linha e associa um único atendimento ao agendamento; tentativas repetidas não lançam pontos ou cashback novamente.
 - O modo padrão é manual. O automático só deve ser ativado após testes autenticados de ponta a ponta.
+
+
+## Visualização interativa
+- O calendário mensal mostra indicadores de dias com agendamentos, atendimentos concluídos e pendências.
+- Ao selecionar um dia, a consulta diária é sincronizada e lista horários, cliente, serviço, profissional, valor, status e ações.
+- O botão `Novo agendamento` leva ao formulário e preenche a data selecionada.
+- O processamento manual permanece idempotente pela RPC existente; a interface não substitui a validação do banco.
+- Validação nesta alteração: sintaxe JavaScript do painel validada; testes de ponta a ponta com sessão autenticada ainda precisam ser executados.
