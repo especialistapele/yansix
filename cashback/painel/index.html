@@ -2285,7 +2285,7 @@ async function renderAgenda(){
   const filterInput=document.getElementById('agenda-filtro-data');
   if(dateInput && !dateInput.value)dateInput.value=today;
   if(filterInput && !filterInput.value)filterInput.value=today;
-  let qServ=sb.from('servicos').select('id,nome,valor,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome');
+  let qServ=sb.from('servicos').select('id,nome,valor,cashback_pct,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome');
   if(MEU_PAPEL==='profissional')qServ=qServ.or(`profissional_id.is.null,profissional_id.eq.${MEU_ID}`);
   const [{data:servicos,error:errServ},{data:profs,error:errProf}]=await Promise.all([
     qServ,
@@ -2470,7 +2470,11 @@ async function salvarAgendamento(){
   const hora=document.getElementById('agenda-hora').value;
   const horaFim=document.getElementById('agenda-hora-fim').value;
   const duracaoManual=agendaValidarHoraFim();
-  const profissional=document.getElementById('agenda-profissional').value||null;
+  let profissional=document.getElementById('agenda-profissional').value||null;
+  const servicosSelecionados=[servicoId,...servicosAdicionais].map(id=>AGENDA_SERVICOS_ATIVOS.find(s=>s.id===id)).filter(Boolean);
+  const profissionaisVinculados=[...new Set(servicosSelecionados.map(s=>s.profissional_id).filter(Boolean))];
+  if(profissionaisVinculados.length>1){toast('Os procedimentos selecionados estão vinculados a profissionais diferentes. Separe-os em agendamentos distintos.',true);return;}
+  if(profissionaisVinculados.length===1){if(profissional&&profissional!==profissionaisVinculados[0]){toast('Um dos procedimentos está vinculado a outro profissional.',true);return;}profissional=profissionaisVinculados[0];document.getElementById('agenda-profissional').value=profissional;}
   const observacao=document.getElementById('agenda-observacao').value.trim();
   if(!nome||!telefone||!servicoId||!data||!hora||!horaFim){toast('Preencha cliente, telefone, procedimento principal, data e horários de início e término.',true);return;}
   if(!duracaoManual){toast('O término deve ser pelo menos 5 minutos depois do início e no máximo 12 horas depois.',true);return;}
