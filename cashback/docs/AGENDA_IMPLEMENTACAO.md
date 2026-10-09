@@ -26,3 +26,11 @@
 5. Executar os advisors de segurança/performance e testes ponta a ponta antes de merge.
 
 **Importante:** a migration foi adicionada ao repositório, mas não foi aplicada ao banco de produção. Os testes de integração exigem a migration aplicada em ambiente controlado.
+
+
+## Cashback vinculado à Agenda
+- A configuração `configuracoes.agenda_cashback_modo` é por estabelecimento e inicia em `manual`.
+- No modo manual, ao concluir o atendimento, o operador usa **Computar cashback** para chamar a rotina oficial `registrar_atendimento_pontuacao`, que lança os pontos e calcula o cashback conforme o serviço e as configurações existentes.
+- No modo automático, a conclusão do agendamento tenta processar o cashback imediatamente. Se falhar (por exemplo, sem profissional atribuído), o agendamento continua concluído e a ação manual fica disponível para nova tentativa.
+- `processar_cashback_agendamento` bloqueia concorrência por linha e associa um único atendimento ao agendamento; tentativas repetidas não lançam pontos ou cashback novamente.
+- O modo padrão é manual. O automático só deve ser ativado após testes autenticados de ponta a ponta.
