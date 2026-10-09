@@ -320,6 +320,7 @@
         <div class="nav-item" data-view="clientes"><span class="nav-icon">◈</span> Clientes</div>
         <div class="nav-item" data-view="servicos"><span class="nav-icon">✂</span> Serviços</div>
         <div class="nav-item" data-view="agenda"><span class="nav-icon">▦</span> Agenda</div>
+        <div class="nav-item" data-view="indicadores"><span class="nav-icon">▤</span> Indicadores de Atendimento</div>
         <div class="nav-item" data-view="pontuar"><span class="nav-icon">＋</span> Registrar Pontuação</div>
         <div class="nav-item" data-view="premios"><span class="nav-icon">✦</span> Prêmios</div>
         <div class="nav-item" data-view="niveis"><span class="nav-icon">♛</span> Níveis</div>
@@ -462,7 +463,7 @@
               <div class="agenda-calendar-grid" id="agenda-calendario">
                 <div class="agenda-calendar-empty">Carregando calendário…</div>
               </div>
-              <div class="agenda-legend"><span><i class="agenda-dot agenda-dot-booked"></i> Com agendamentos</span><span><i class="agenda-dot agenda-dot-done"></i> Concluídos</span><span><i class="agenda-dot agenda-dot-pending"></i> Pendentes</span></div>
+              <div class="agenda-legend"><span><i class="agenda-dot agenda-dot-booked"></i> Com agendamentos</span><span><i class="agenda-dot agenda-dot-done"></i> Realizados</span><span><i class="agenda-dot agenda-dot-pending"></i> Pendentes</span></div>
             </div>
           </div>
           <div class="panel" style="margin-bottom:16px;" id="agenda-horarios-panel">
@@ -525,6 +526,28 @@
             </table>
           </div>
         </div>
+      </section>
+
+      <!-- INDICADORES DE ATENDIMENTO -->
+      <section id="view-indicadores" class="view hidden">
+        <div class="topbar"><div><h2>Indicadores de Atendimento</h2><div class="sub">Acompanhe a conversão da agenda em atendimentos reais e o processamento do cashback.</div></div></div>
+        <div id="indicadores-unidade-box" class="panel hidden" style="margin-bottom:14px;"><div class="panel-body"><div class="field" style="margin:0"><label>Unidade</label><select id="indicadores-unidade" onchange="INDICADORES_UNIDADE=this.value;renderIndicadores()"><option value="">Todas as unidades</option></select></div></div></div>
+        <div class="panel"><div class="panel-head"><h3>Filtros do relatório</h3></div><div class="panel-body">
+          <div class="form-grid">
+            <div class="field"><label>Data inicial</label><input id="indicadores-data-inicio" type="date" /></div>
+            <div class="field"><label>Data final</label><input id="indicadores-data-fim" type="date" /></div>
+            <div class="field"><label>Profissional</label><select id="indicadores-profissional"><option value="">Todos os profissionais</option></select></div>
+            <div class="field"><label>Serviço</label><select id="indicadores-servico"><option value="">Todos os serviços</option></select></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;"><button class="btn btn-primary" style="width:auto;" onclick="carregarIndicadoresAtendimento()">Aplicar filtros</button><button class="btn btn-outline" onclick="limparFiltrosIndicadores()">Limpar filtros</button></div>
+          <p class="subtle" style="margin-bottom:0;">A conversão é calculada por atendimentos realizados ÷ total de agendamentos no período. Faltas e cancelamentos aparecem separadamente.</p>
+        </div></div>
+        <div id="indicadores-mensagem" class="subtle" style="margin:12px 0;"></div>
+        <div class="grid-cards" id="indicadores-kpis"></div>
+        <div class="panel"><div class="panel-head"><h3>Resultado do período</h3></div><div class="panel-body"><div id="indicadores-resumo-status"></div></div></div>
+        <div class="panel"><div class="panel-head"><h3>Conversão por profissional</h3></div><div class="panel-body" style="overflow-x:auto;"><div id="indicadores-por-profissional"></div></div></div>
+        <div class="panel"><div class="panel-head"><h3>Conversão por serviço</h3></div><div class="panel-body" style="overflow-x:auto;"><div id="indicadores-por-servico"></div></div></div>
+        <div class="panel"><div class="panel-head"><h3>Agendamentos do período</h3></div><div class="panel-body" style="overflow-x:auto;"><div id="indicadores-detalhes"></div></div></div>
       </section>
 
       <!-- REGISTRAR PONTUAÇÃO -->
@@ -1896,6 +1919,7 @@ function showView(view, skipAutoLoad){
   if(skipAutoLoad) return;
   if(view==='admin' && MEU_PAPEL==='admin_master') renderAdminEstabelecimentos();
   if(view==='agenda') renderAgenda();
+  if(view==='indicadores') renderIndicadores();
   if(view==='administradores' && MEU_PAPEL==='admin_master') renderAdministradores();
   if(view==='premios') renderPremios();
   if(view==='niveis') renderNiveis();
@@ -2111,10 +2135,10 @@ function agendaDataLocalISO(data, proximoDia=false){
   return d.toISOString();
 }
 function agendaStatusLabel(status){
-  return ({agendado:'Agendado',confirmado:'Confirmado',concluido:'Concluído',cancelado:'Cancelado',faltou:'Faltou'})[status]||status;
+  return ({agendado:'Agendado',confirmado:'Confirmado',realizado:'Realizado',cancelado:'Cancelado',faltou:'Faltou'})[status]||status;
 }
 function agendaStatusOptions(status){
-  return ['agendado','confirmado','concluido','faltou','cancelado'].map(st=>`<option value="${st}" ${st===status?'selected':''}>${agendaStatusLabel(st)}</option>`).join('');
+  return ['agendado','confirmado','realizado','faltou','cancelado'].map(st=>`<option value="${st}" ${st===status?'selected':''}>${agendaStatusLabel(st)}</option>`).join('');
 }
 let AGENDA_MES_CURSOR = null;
 let AGENDA_DIA_SELECIONADO = null;
@@ -2209,8 +2233,8 @@ async function carregarAgendaCalendario(){
     const key=agendaFormatLocalDate(new Date(a.inicio));
     if(!counts[key])counts[key]={total:0,done:0,pending:0};
     counts[key].total++;
-    if(a.status==='concluido')counts[key].done++;
-    if(!['concluido','cancelado','faltou'].includes(a.status))counts[key].pending++;
+    if(a.status==='realizado')counts[key].done++;
+    if(!['realizado','cancelado','faltou'].includes(a.status))counts[key].pending++;
   });
   const today=agendaDataHoje();
   const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>'<div class="agenda-weekday">'+d+'</div>').join('');
@@ -2219,7 +2243,7 @@ async function carregarAgendaCalendario(){
     const day=new Date(start);day.setDate(start.getDate()+i);
     const key=agendaFormatLocalDate(day),c=counts[key]||{total:0,done:0,pending:0};
     const classes=['agenda-day',day.getMonth()!==month?'is-outside':'',key===today?'is-today':'',key===selected?'is-selected':''].filter(Boolean).join(' ');
-    const dots=c.total?'<span class="agenda-day-dots">'+(c.done?'<i class="agenda-dot agenda-dot-done" title="Concluídos"></i>':'')+(c.pending?'<i class="agenda-dot agenda-dot-pending" title="Pendentes"></i>':'')+'</span>':'';
+    const dots=c.total?'<span class="agenda-day-dots">'+(c.done?'<i class="agenda-dot agenda-dot-done" title="Realizados"></i>':'')+(c.pending?'<i class="agenda-dot agenda-dot-pending" title="Pendentes"></i>':'')+'</span>':'';
     days+=`<button type="button" class="${classes}" onclick="selecionarDiaAgenda('${key}')" aria-label="${key}, ${c.total} agendamentos"><span class="agenda-day-number">${day.getDate()}</span>${c.total?'<span class="agenda-day-meta">'+c.total+' '+(c.total===1?'agendamento':'agendamentos')+'</span>':''}${dots}</button>`;
   }
   grid.innerHTML=weekdays+days;
@@ -2363,13 +2387,13 @@ async function carregarAgendamentosDia(){
   const services=new Map((s.data||[]).map(x=>[x.id,x]));
   const pros=new Map((p.data||[]).map(x=>[x.id,x]));
   renderHorariosDisponiveis(items||[],date,clients,services,pros);
-  const pendencias=(items||[]).filter(a=>a.status==='concluido'&&!a.atendimento_id);
+  const pendencias=(items||[]).filter(a=>a.status==='realizado'&&!a.atendimento_id);
   const pendingBox=document.getElementById('agenda-cashback-pendencias');
   if(pendingBox){
     pendingBox.innerHTML=pendencias.length?pendencias.map(a=>{
       const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{};
       const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(srv.nome||'Serviço')}</span><div class="subtle">Atendimento concluído, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
+      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(srv.nome||'Serviço')}</span><div class="subtle">Atendimento realizado, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
     }).join(''):'';
   }
   if(summary)summary.textContent=(items?.length||0)+' agendamento(s) · '+pendencias.length+' lançamento(s) de cashback pendente(s)';
@@ -2378,9 +2402,9 @@ async function carregarAgendamentosDia(){
     const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{},pro=pros.get(a.profissional_id)||{};
     const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    const terminal=['cancelado','concluido','faltou'].includes(a.status);
+    const terminal=['cancelado','realizado','faltou'].includes(a.status);
     const actions=terminal?'—':`<select aria-label="Alterar status" onchange="alterarStatusAgendamento('${a.id}',this.value)">${agendaStatusOptions(a.status)}</select>`;
-    const cashbackAction=a.status==='concluido'
+    const cashbackAction=a.status==='realizado'
       ? (a.atendimento_id
         ? '<span class="agenda-cashback-done">✓ Cashback computado</span>'
         : `<button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button>`)
@@ -2445,16 +2469,16 @@ async function salvarAgendamento(){
   }finally{btn.disabled=false;btn.textContent='＋ Criar agendamento';}
 }
 async function alterarStatusAgendamento(id,status){
-  if(!['agendado','confirmado','concluido','faltou','cancelado'].includes(status))return;
+  if(!['agendado','confirmado','realizado','faltou','cancelado'].includes(status))return;
   const {data:antes,error:errAntes}=await sb.from('agendamentos').select('id,estabelecimento_id,atendimento_id').eq('id',id).maybeSingle();
   if(errAntes||!antes){toast('Não foi possível consultar o agendamento.',true);return;}
   const {error}=await sb.from('agendamentos').update({status}).eq('id',id);
   if(error){toast('Não foi possível alterar o status: '+error.message,true);await carregarAgendamentosDia();return;}
-  if(status==='concluido'&&!antes.atendimento_id){
+  if(status==='realizado'&&!antes.atendimento_id){
     const {data:cfg,error:cfgErr}=await sb.from('configuracoes').select('agenda_cashback_modo').eq('estabelecimento_id',antes.estabelecimento_id).maybeSingle();
     if(!cfgErr&&cfg?.agenda_cashback_modo==='automatico'){
       await computarCashbackAgendamento(id,{automatico:true,silencioso:true});
-    }else toast('Atendimento concluído. O cashback está no modo manual.');
+    }else toast('Atendimento realizado. O cashback está no modo manual.');
   }else toast('Status do agendamento atualizado.');
   await carregarAgendaCalendario();
   await carregarAgendamentosDia();
@@ -2464,7 +2488,7 @@ async function computarCashbackAgendamento(id,opts={}){
   if(error||data?.error){
     const msg=error?.message||data?.error||'operação inválida';
     if(!opts.silencioso)toast('Não foi possível computar o cashback: '+msg,true);
-    else toast('Atendimento concluído, mas o cashback automático falhou. Corrija o motivo e use “Computar cashback” para tentar novamente. '+msg,true);
+    else toast('Atendimento realizado, mas o cashback automático falhou. Corrija o motivo e use “Computar cashback” para tentar novamente. '+msg,true);
     await carregarAgendamentosDia();
     return false;
   }
@@ -2475,6 +2499,128 @@ async function computarCashbackAgendamento(id,opts={}){
   await carregarAgendaCalendario();
   await carregarAgendamentosDia();
   return true;
+}
+
+
+/* ---------- INDICADORES DE ATENDIMENTO ---------- */
+let INDICADORES_UNIDADE = '';
+let INDICADORES_PERIODO_INICIALIZADO = false;
+function indicadoresDataLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function indicadoresStatusLabel(s){return ({agendado:'Agendado',confirmado:'Confirmado',realizado:'Realizado',concluido:'Realizado',cancelado:'Cancelado',faltou:'Faltou'})[s]||s||'Sem status';}
+function indicadoresPct(n,t){return t?100*n/t:0;}
+function indicadoresVazio(msg){return '<div class="empty-state"><div class="ico">▤</div>'+agendaEsc(msg)+'</div>';}
+function indicadoresPreencherSelect(id,items,label,first){
+  const sel=document.getElementById(id);if(!sel)return;const old=sel.value;
+  const unique=Array.from(new Map((items||[]).map(x=>[x.id,x])).values()).sort((a,b)=>String(label(a)).localeCompare(String(label(b)),'pt-BR'));
+  sel.innerHTML='<option value="">'+first+'</option>'+unique.map(x=>'<option value="'+agendaEsc(x.id)+'">'+agendaEsc(label(x))+'</option>').join('');
+  if(old&&unique.some(x=>x.id===old))sel.value=old;
+}
+async function renderIndicadores(){
+  if(MEU_PAPEL==='admin_master'){
+    document.getElementById('indicadores-unidade-box')?.classList.remove('hidden');
+    await carregarTodosEstabelecimentos();
+    const sel=document.getElementById('indicadores-unidade');
+    if(sel){sel.innerHTML='<option value="">Todas as unidades</option>'+TODOS_ESTABELECIMENTOS.map(e=>'<option value="'+e.id+'">'+agendaEsc(e.nome)+'</option>').join('');sel.value=INDICADORES_UNIDADE||'';}
+  }else{
+    document.getElementById('indicadores-unidade-box')?.classList.add('hidden');
+    INDICADORES_UNIDADE=ESTAB_ID||'';
+  }
+  if(!INDICADORES_PERIODO_INICIALIZADO){
+    const hoje=new Date(),inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+    document.getElementById('indicadores-data-inicio').value=indicadoresDataLocal(inicio);
+    document.getElementById('indicadores-data-fim').value=indicadoresDataLocal(hoje);
+    INDICADORES_PERIODO_INICIALIZADO=true;
+  }
+  await carregarIndicadoresAtendimento();
+}
+async function limparFiltrosIndicadores(){
+  const hoje=new Date(),inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  document.getElementById('indicadores-data-inicio').value=indicadoresDataLocal(inicio);
+  document.getElementById('indicadores-data-fim').value=indicadoresDataLocal(hoje);
+  document.getElementById('indicadores-profissional').value='';
+  document.getElementById('indicadores-servico').value='';
+  await carregarIndicadoresAtendimento();
+}
+async function carregarIndicadoresAtendimento(){
+  const msg=document.getElementById('indicadores-mensagem'),kpis=document.getElementById('indicadores-kpis'),details=document.getElementById('indicadores-detalhes');
+  const di=document.getElementById('indicadores-data-inicio')?.value,df=document.getElementById('indicadores-data-fim')?.value;
+  const profSel=document.getElementById('indicadores-profissional')?.value||'',servSel=document.getElementById('indicadores-servico')?.value||'';
+  if(!di||!df){msg.textContent='Selecione as datas inicial e final.';return;}
+  if(di>df){msg.textContent='A data inicial não pode ser posterior à data final.';return;}
+  msg.textContent='Carregando indicadores…';kpis.innerHTML='<div class="card stat-card"><div class="label">Carregando</div><div class="value">…</div></div>';details.innerHTML='';
+  try{
+    const from=new Date(di+'T00:00:00').toISOString(),to=new Date(new Date(df+'T00:00:00').getTime()+86400000).toISOString();
+    let q=sb.from('agendamentos').select('id,estabelecimento_id,cliente_id,servico_id,profissional_id,inicio,fim,valor,status,atendimento_id,cashback_resultado').gte('inicio',from).lt('inicio',to).order('inicio',{ascending:false}).range(0,9999);
+    if(MEU_PAPEL!=='admin_master')q=q.eq('estabelecimento_id',ESTAB_ID);
+    else if(INDICADORES_UNIDADE)q=q.eq('estabelecimento_id',INDICADORES_UNIDADE);
+    const result=await q;if(result.error)throw result.error;const raw=result.data||[];
+    const unitFilter=MEU_PAPEL==='admin_master'?INDICADORES_UNIDADE:ESTAB_ID;
+    const [cr,sr,pr,ur]=await Promise.all([
+      sb.from('clientes').select('id,nome,telefone,estabelecimento_id'),
+      sb.from('servicos').select('id,nome,estabelecimento_id'),
+      sb.from('perfis').select('id,nome,estabelecimento_id').eq('role','profissional'),
+      MEU_PAPEL==='admin_master'?sb.from('estabelecimentos').select('id,nome'):Promise.resolve({data:[],error:null})
+    ]);
+    if(cr.error)throw cr.error;if(sr.error)throw sr.error;if(pr.error)throw pr.error;if(ur.error)throw ur.error;
+    const inUnit=x=>!unitFilter||x.estabelecimento_id===unitFilter;
+    const clients=new Map((cr.data||[]).filter(inUnit).map(x=>[x.id,x]));
+    const services=(sr.data||[]).filter(inUnit),pros=(pr.data||[]).filter(inUnit);
+    const serviceMap=new Map(services.map(x=>[x.id,x])),proMap=new Map(pros.map(x=>[x.id,x]));
+    indicadoresPreencherSelect('indicadores-profissional',pros,x=>x.nome||'Profissional','Todos os profissionais');
+    indicadoresPreencherSelect('indicadores-servico',services,x=>x.nome||'Serviço','Todos os serviços');
+    const unitMap=new Map((ur.data||TODOS_ESTABELECIMENTOS||[]).map(x=>[x.id,x.nome]));
+    const items=raw.filter(a=>(!profSel||a.profissional_id===profSel)&&(!servSel||a.servico_id===servSel));
+    const norm=a=>a.status==='concluido'?'realizado':a.status;
+    const total=items.length, count=s=>items.filter(a=>norm(a)===s).length;
+    const realizados=count('realizado'),faltas=count('faltou'),cancelados=count('cancelado');
+    const pendentes=items.filter(a=>['agendado','confirmado'].includes(norm(a))).length;
+    const realizadosRows=items.filter(a=>norm(a)==='realizado');
+    const processados=realizadosRows.filter(a=>!!a.atendimento_id).length;
+    const cbPendentes=realizadosRows.filter(a=>!a.atendimento_id).length;
+    const ids=[...new Set(realizadosRows.map(a=>a.atendimento_id).filter(Boolean))];
+    let cashback=0;
+    if(ids.length){const cr2=await sb.from('cashback_lancamentos').select('tipo,valor,atendimento_id').in('atendimento_id',ids);if(cr2.error)throw cr2.error;cashback=(cr2.data||[]).filter(x=>x.tipo==='credito').reduce((s,x)=>s+Number(x.valor||0),0);}
+    const cards=[
+      ['Agendamentos',String(total),'Total no período'],
+      ['Realizados',String(realizados),indicadoresPct(realizados,total).toFixed(1).replace('.',',')+'% de conversão'],
+      ['Faltas',String(faltas),indicadoresPct(faltas,total).toFixed(1).replace('.',',')+'% do total'],
+      ['Cancelamentos',String(cancelados),indicadoresPct(cancelados,total).toFixed(1).replace('.',',')+'% do total'],
+      ['Cashback computado',fmtMoney(cashback),processados+' atendimento(s) processado(s)'],
+      ['Cashback pendente',String(cbPendentes),cbPendentes+' realizado(s) sem computação']
+    ];
+    kpis.innerHTML=cards.map(x=>'<div class="card stat-card"><div class="label">'+x[0]+'</div><div class="value">'+x[1]+'</div><div class="subtle" style="margin-top:7px;">'+x[2]+'</div></div>').join('');
+    const breakdown=[['Realizado',realizados],['Agendado / Confirmado',pendentes],['Faltou',faltas],['Cancelado',cancelados]];
+    document.getElementById('indicadores-resumo-status').innerHTML='<p class="subtle">'+agendaEsc(di)+' a '+agendaEsc(df)+' · '+total+' agendamento(s) encontrado(s)</p><div style="display:grid;gap:13px;">'+breakdown.map(x=>{const pct=indicadoresPct(x[1],total);return '<div><div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:5px;"><strong>'+x[0]+'</strong><span>'+x[1]+' · '+pct.toFixed(1).replace('.',',')+'%</span></div><div class="quota-bar"><div class="quota-fill" style="width:'+pct+'%"></div></div></div>';}).join('')+'</div><p class="subtle" style="margin-top:14px;">A taxa de conversão é realizados ÷ total de agendamentos no período. Agendamentos futuros entram no total se forem incluídos nas datas escolhidas.</p>';
+    const ranking=(rows,type)=>{
+      const groups=new Map();
+      rows.forEach(a=>{
+        const id=type==='profissional'?a.profissional_id:a.servico_id;
+        const name=type==='profissional'?(proMap.get(id)?.nome||'Sem profissional'):(serviceMap.get(id)?.nome||'Serviço não identificado');
+        const key=id||'__none__';if(!groups.has(key))groups.set(key,{name,total:0,realizados:0,faltas:0,cancelados:0,pendentes:0,valor:0});
+        const g=groups.get(key);g.total++;g.valor+=Number(a.valor||0);
+        if(norm(a)==='realizado')g.realizados++;else if(norm(a)==='faltou')g.faltas++;else if(norm(a)==='cancelado')g.cancelados++;else g.pendentes++;
+      });
+      const sorted=[...groups.values()].sort((a,b)=>b.realizados-a.realizados||b.total-a.total);
+      if(!sorted.length)return indicadoresVazio('Não há dados para os filtros selecionados.');
+      return '<table><thead><tr><th>'+(type==='profissional'?'Profissional':'Serviço')+'</th><th>Agendamentos</th><th>Realizados</th><th>Conversão</th><th>Faltas</th><th>Cancelados</th><th>Valor agendado</th></tr></thead><tbody>'+sorted.map(g=>'<tr><td><strong>'+agendaEsc(g.name)+'</strong></td><td>'+g.total+'</td><td>'+g.realizados+'</td><td>'+indicadoresPct(g.realizados,g.total).toFixed(1).replace('.',',')+'%</td><td>'+g.faltas+'</td><td>'+g.cancelados+'</td><td>'+fmtMoney(g.valor)+'</td></tr>').join('')+'</tbody></table>';
+    };
+    document.getElementById('indicadores-por-profissional').innerHTML=ranking(items,'profissional');
+    document.getElementById('indicadores-por-servico').innerHTML=ranking(items,'servico');
+    const recent=[...items].sort((a,b)=>new Date(b.inicio)-new Date(a.inicio)).slice(0,100);
+    details.innerHTML=recent.length?'<table><thead><tr><th>Data e hora</th><th>Unidade</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Valor</th><th>Status</th><th>Cashback</th></tr></thead><tbody>'+recent.map(a=>{
+      const dt=new Date(a.inicio),cli=clients.get(a.cliente_id)||{},srv=serviceMap.get(a.servico_id)||{},pro=proMap.get(a.profissional_id)||{};
+      const cash=norm(a)==='realizado'?(a.atendimento_id?'Computado':'Pendente'):'—';
+      return '<tr><td>'+dt.toLocaleDateString('pt-BR')+'<br><span class="subtle">'+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</span></td><td>'+agendaEsc(unitMap.get(a.estabelecimento_id)||'—')+'</td><td>'+agendaEsc(cli.nome||'Cliente')+'</td><td>'+agendaEsc(srv.nome||'Serviço')+'</td><td>'+agendaEsc(pro.nome||'—')+'</td><td>'+fmtMoney(a.valor)+'</td><td>'+agendaEsc(indicadoresStatusLabel(a.status))+'</td><td>'+(cash==='Computado'?'<span class="agenda-cashback-done">✓ Computado</span>':cash==='Pendente'?'<span class="pill pill-off">Pendente</span>':'—')+'</td></tr>';
+    }).join('')+'</tbody></table>':indicadoresVazio('Nenhum agendamento encontrado no período.');
+    msg.textContent='Relatório atualizado · '+total+' agendamento(s) · '+di+' a '+df;
+  }catch(error){
+    console.error('Falha ao carregar indicadores de atendimento:',error);
+    msg.textContent='Não foi possível carregar os indicadores: '+(error.message||'erro inesperado');
+    kpis.innerHTML='<div class="card"><strong>Erro ao carregar os dados</strong><p class="subtle">'+agendaEsc(error.message||'Tente novamente.')+'</p></div>';
+    document.getElementById('indicadores-resumo-status').innerHTML='';
+    document.getElementById('indicadores-por-profissional').innerHTML='';
+    document.getElementById('indicadores-por-servico').innerHTML='';details.innerHTML='';
+  }
 }
 
 // ---------- REGISTRAR PONTUAÇÃO ----------
