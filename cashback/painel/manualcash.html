@@ -415,6 +415,49 @@
         <div class="info-card"><span class="ic">↺</span><strong>Eventos do Histórico</strong><span>Cada registro é classificado como Criação, Alteração ou Exclusão, o que ajuda a auditar quem fez o quê e quando.</span></div>
         <div class="info-card"><span class="ic">＋／－</span><strong>Pontos no histórico do cliente</strong><span>Na Página do cliente, movimentações positivas (ganho de pontos) aparecem em verde com "+"; resgates aparecem em vermelho com "−".</span></div>
       </div>
+
+      <h3>Indicadores de Atendimento: conversão da agenda e cashback</h3>
+      <p>Esta tela reúne informações para avaliar quantos agendamentos se transformaram em atendimentos realizados, comparar resultados por profissional e serviço e acompanhar se os atendimentos realizados já foram processados para o cashback.</p>
+      <h4>1. Como abrir e filtrar o relatório</h4>
+      <ol class="steps">
+        <li>No menu lateral do painel, abra <strong>Indicadores de Atendimento</strong>.</li>
+        <li>Confira a data inicial e a data final. Por padrão, o relatório começa no primeiro dia do mês atual e termina na data de hoje.</li>
+        <li>Se quiser analisar uma pessoa ou um procedimento específico, selecione o <strong>Profissional</strong> e/ou o <strong>Serviço</strong>.</li>
+        <li>O Admin Master também pode escolher uma unidade específica ou visualizar todas. Os demais perfis ficam limitados à unidade a que têm acesso.</li>
+        <li>Clique em <strong>Aplicar filtros</strong>. Para voltar ao período padrão e retirar os filtros de profissional e serviço, use <strong>Limpar filtros</strong>.</li>
+      </ol>
+      <h4>2. O que significam os indicadores</h4>
+      <table>
+        <thead><tr><th>Indicador</th><th>Como interpretar</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Agendamentos</strong></td><td>Total de reservas encontradas com início dentro do período selecionado, respeitando os filtros aplicados.</td></tr>
+          <tr><td><strong>Realizados</strong></td><td>Quantidade marcada como realizada. O percentual exibido é a taxa de conversão: realizados ÷ total de agendamentos × 100.</td></tr>
+          <tr><td><strong>Faltas</strong></td><td>Quantidade e percentual de agendamentos registrados como falta.</td></tr>
+          <tr><td><strong>Cancelamentos</strong></td><td>Quantidade e percentual de agendamentos registrados como cancelados.</td></tr>
+          <tr><td><strong>Cashback computado</strong></td><td>Soma dos lançamentos de crédito de cashback associados aos atendimentos realizados e processados no período. Não representa necessariamente o valor total de vendas.</td></tr>
+          <tr><td><strong>Cashback pendente</strong></td><td>Número de agendamentos realizados que ainda não têm um atendimento vinculado/processado. Verifique esses casos para concluir o fluxo operacional.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><div class="head">Como ler a taxa de conversão</div>Se houver 40 agendamentos no período e 30 estiverem como realizados, a conversão será de 75%. O denominador inclui todos os agendamentos retornados pelos filtros, inclusive os futuros se as datas selecionadas os incluírem. Por isso, compare períodos equivalentes e interprete com cuidado relatórios que incluam muitos agendamentos futuros.</div>
+      <h4>3. Resumo por status</h4>
+      <p>A área <strong>Resultado do período</strong> apresenta a distribuição de agendamentos realizados, agendados/confirmados, faltas e cancelamentos, com quantidade e percentual de cada grupo. Use esse resumo para identificar se o resultado do período foi afetado por faltas, cancelamentos ou reservas ainda pendentes.</p>
+      <h4>4. Conversão por profissional e por serviço</h4>
+      <p>As tabelas de comparação agrupam os registros por profissional ou serviço e mostram agendamentos, realizados, taxa de conversão, faltas, cancelamentos e valor agendado. A ordenação prioriza quem tem mais atendimentos realizados e, em seguida, quem tem mais agendamentos. Use os dados para localizar oportunidades de melhoria, não como avaliação isolada de desempenho: volume de agenda, tipo de serviço e perfil dos clientes também influenciam os resultados.</p>
+      <h4>5. Conferir os agendamentos individualmente</h4>
+      <p>A tabela <strong>Agendamentos do período</strong> lista até 100 registros mais recentes do conjunto filtrado, com data e hora, unidade, cliente, serviço, profissional, valor, status e situação do cashback. Os indicadores e resumos são calculados sobre o conjunto carregado; a tabela detalhada é apenas uma amostra limitada aos 100 registros mais recentes.</p>
+      <ul style="font-size:14.5px;line-height:1.8;padding-left:20px;">
+        <li><strong>Computado:</strong> existe um atendimento vinculado ao agendamento.</li>
+        <li><strong>Pendente:</strong> o agendamento está como realizado, mas ainda não possui atendimento vinculado.</li>
+        <li><strong>—:</strong> situação de cashback não se aplica àquele status de agendamento.</li>
+      </ul>
+      <h4>6. Boas práticas para usar os números</h4>
+      <ul style="font-size:14.5px;line-height:1.8;padding-left:20px;">
+        <li>Registre corretamente o status de cada agendamento; dados incompletos ou status incorretos distorcem a conversão.</li>
+        <li>Confira os registros marcados como realizados, mas com cashback pendente, e finalize o processo no fluxo correto do sistema.</li>
+        <li>Compare períodos com duração semelhante e use os mesmos filtros antes de tirar conclusões.</li>
+        <li>Não interprete o cashback computado como faturamento total: o indicador soma créditos de cashback associados aos atendimentos processados.</li>
+        <li>Se os números parecerem incorretos, revise as datas, unidade, profissional, serviço e status dos agendamentos antes de abrir um chamado.</li>
+      </ul>
     </section>
 
     <!-- 10 -->
