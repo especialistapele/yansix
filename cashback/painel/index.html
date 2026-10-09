@@ -267,6 +267,7 @@
         <div class="nav-item active" data-view="dashboard"><span class="nav-icon">◆</span> Painel</div>
         <div class="nav-item" data-view="clientes"><span class="nav-icon">◈</span> Clientes</div>
         <div class="nav-item" data-view="servicos"><span class="nav-icon">✂</span> Serviços</div>
+        <div class="nav-item" data-view="agenda"><span class="nav-icon">▦</span> Agenda</div>
         <div class="nav-item" data-view="pontuar"><span class="nav-icon">＋</span> Registrar Pontuação</div>
         <div class="nav-item" data-view="premios"><span class="nav-icon">✦</span> Prêmios</div>
         <div class="nav-item" data-view="niveis"><span class="nav-icon">♛</span> Níveis</div>
@@ -378,6 +379,47 @@
               <tbody id="clientes-tbody"></tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <!-- AGENDA -->
+      <section id="view-agenda" class="view hidden">
+        <div class="topbar">
+          <div><h2>Agenda</h2><div class="sub">Agendamentos por estabelecimento, usando os serviços já cadastrados.</div></div>
+        </div>
+        <div id="agenda-master-context" class="panel hidden" style="margin-bottom:14px;">
+          <div class="panel-body">
+            <div class="field" style="margin:0"><label>Estabelecimento para consultar</label>
+              <select id="agenda-estabelecimento" onchange="renderAgenda()"><option value="">Selecione um estabelecimento</option></select>
+            </div>
+          </div>
+        </div>
+        <div id="agenda-conteudo" class="hidden">
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-head"><h3>Novo agendamento</h3></div>
+            <div class="panel-body">
+              <div class="grid-2">
+                <div class="field"><label>Nome do cliente *</label><input id="agenda-cliente-nome" autocomplete="name" /></div>
+                <div class="field"><label>Telefone do cliente *</label><input id="agenda-cliente-telefone" autocomplete="tel" /></div>
+                <div class="field"><label>Serviço *</label><select id="agenda-servico"><option value="">Selecione um serviço ativo</option></select></div>
+                <div class="field"><label>Profissional</label><select id="agenda-profissional"><option value="">Qualquer profissional</option></select></div>
+                <div class="field"><label>Data *</label><input id="agenda-data" type="date" /></div>
+                <div class="field"><label>Horário de início *</label><input id="agenda-hora" type="time" /></div>
+              </div>
+              <div class="field"><label>Observação</label><textarea id="agenda-observacao" rows="2" placeholder="Informações úteis para o atendimento"></textarea></div>
+              <button class="btn btn-primary" id="agenda-salvar-btn" onclick="salvarAgendamento()">＋ Criar agendamento</button>
+              <p class="subtle" style="margin-bottom:0;">A duração e o valor são puxados do serviço cadastrado. O sistema bloqueia conflitos de horário.</p>
+            </div>
+          </div>
+          <div class="topbar" style="margin-bottom:12px;">
+            <div><h3 style="margin:0;">Agendamentos do dia</h3></div>
+            <div class="field" style="margin:0;max-width:220px;"><label>Data para consultar</label><input id="agenda-filtro-data" type="date" onchange="carregarAgendamentosDia()" /></div>
+          </div>
+          <div class="panel"><div class="panel-body">
+            <table><thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="agenda-tbody"><tr><td colspan="7">Selecione uma unidade e uma data.</td></tr></tbody>
+            </table>
+          </div></div>
         </div>
       </section>
 
@@ -661,6 +703,13 @@
             </label>
             <p class="subtle" style="margin-top:0;">O percentual de cashback é definido por serviço (tela Serviços). Aqui você define só a validade do saldo.</p>
             <div class="field"><label>Saldo expira em (dias)</label><input type="number" id="cfg-cashback-dias" placeholder="90" /></div>
+            <div class="field" id="cfg-agenda-cashback-modo-box"><label>Cashback ao concluir pela Agenda</label>
+              <select id="cfg-agenda-cashback-modo">
+                <option value="manual">Manual — revisar e clicar em “Computar cashback”</option>
+                <option value="automatico">Automático — creditar ao concluir o atendimento</option>
+              </select>
+              <p class="subtle" style="margin:6px 0 0;">O modo manual é o padrão. O automático usa as regras de pontos e cashback já cadastradas para o serviço.</p>
+            </div>
             <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
           </div>
         </div>
@@ -761,6 +810,7 @@
       <input type="hidden" id="servico-edit-id" />
       <div class="field"><label>Nome do serviço</label><input id="servico-nome" /></div>
       <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="servico-valor" /></div>
+      <div class="field"><label>Duração do serviço (minutos)</label><input type="number" min="5" max="720" step="5" id="servico-duracao" value="30" /></div>
       <div class="field"><label>Cashback (%)</label><input type="number" step="0.1" id="servico-cashback" placeholder="0" /></div>
       <div class="field" id="servico-profissional-box"><label>Profissional</label><select id="servico-profissional"><option value="">Qualquer profissional</option></select></div>
       <p class="subtle" id="servico-pontos-preview">Gera 0 pontos</p>
@@ -1116,6 +1166,7 @@ document.getElementById('logout-btn').addEventListener('click', async ()=>{
 
 let MEU_PAPEL = null;
 let MEU_ID = null;
+let AGENDA_ESTAB_ID = null;
 let TODOS_ESTABELECIMENTOS = [];
 const areaLabels={beleza:'Beleza',barbearia:'Barbearia',estetica:'Estética',saude:'Saúde',fitness:'Fitness',moda:'Moda',alimentacao:'Alimentação',servicos:'Serviços',outros:'Outros'};
 
@@ -1135,7 +1186,7 @@ async function bootApp(session){
   ['admin','administradores','consumo','novo-profissional','equipe-local'].forEach(v=>{
     const el=document.querySelector('.nav-item[data-view="'+v+'"]'); if(el) el.remove();
   });
-  ESTAB_ID = null; TODOS_ESTABELECIMENTOS = [];
+  ESTAB_ID = null; TODOS_ESTABELECIMENTOS = []; AGENDA_ESTAB_ID = null;
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.view==='dashboard'));
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
   document.getElementById('view-dashboard').classList.remove('hidden');
@@ -1343,6 +1394,10 @@ async function carregarConfiguracoes(){
   document.getElementById('cfg-valor-por-ponto').value = data.valor_por_ponto ?? 1;
   document.getElementById('cfg-cashback-ativo').checked = !!data.cashback_ativo;
   document.getElementById('cfg-cashback-dias').value = data.cashback_expiracao_dias ?? 90;
+  const agendaModo=document.getElementById('cfg-agenda-cashback-modo');
+  if(agendaModo)agendaModo.value=data.agenda_cashback_modo==='automatico'?'automatico':'manual';
+  const agendaModoBox=document.getElementById('cfg-agenda-cashback-modo-box');
+  if(agendaModoBox)agendaModoBox.style.display=MEU_PAPEL==='profissional'?'none':'';
   document.getElementById('cfg-mkt-inatividade-ativo').checked = !!data.inatividade_ativo;
   document.getElementById('cfg-mkt-inatividade-dias').value = data.inatividade_dias ?? 45;
   document.getElementById('cfg-mkt-lembrete-ativo').checked = !!data.lembrete_pontos_ativo;
@@ -1390,6 +1445,7 @@ async function salvarConfiguracoes(){
     valor_por_ponto: parseFloat(document.getElementById('cfg-valor-por-ponto').value) || 1,
     cashback_ativo: document.getElementById('cfg-cashback-ativo').checked,
     cashback_expiracao_dias: parseInt(document.getElementById('cfg-cashback-dias').value) || 90,
+    agenda_cashback_modo: MEU_PAPEL==='profissional' ? (CONFIGURACOES?.agenda_cashback_modo||'manual') : (document.getElementById('cfg-agenda-cashback-modo')?.value==='automatico'?'automatico':'manual'),
     inatividade_ativo: document.getElementById('cfg-mkt-inatividade-ativo').checked,
     inatividade_dias: parseInt(document.getElementById('cfg-mkt-inatividade-dias').value) || 45,
     lembrete_pontos_ativo: document.getElementById('cfg-mkt-lembrete-ativo').checked,
@@ -1755,6 +1811,7 @@ function showView(view, skipAutoLoad){
   document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden')); target.classList.remove('hidden');
   if(skipAutoLoad) return;
   if(view==='admin' && MEU_PAPEL==='admin_master') renderAdminEstabelecimentos();
+  if(view==='agenda') renderAgenda();
   if(view==='administradores' && MEU_PAPEL==='admin_master') renderAdministradores();
   if(view==='premios') renderPremios();
   if(view==='niveis') renderNiveis();
@@ -1888,19 +1945,19 @@ async function renderServicos(){
     const [{data},profsPorUnidade]=await Promise.all([q, eidFiltro?carregarProfissionaisUnidade(eidFiltro):Promise.resolve([])]);
     const list=data||[];
     const nomeProf=s=>s.profissional_id? (profsPorUnidade.find(p=>p.id===s.profissional_id)?.nome||'Profissional') : 'Qualquer profissional';
-    tbody.innerHTML=list.length?list.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td>${calcularPontos(s.valor)}</td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===s.estabelecimento_id)?.nome||'—'}<br><span class="subtle">${s.ativo?'Ativo':'Inativo'} · ${eidFiltro?nomeProf(s):(s.profissional_id?'Profissional vinculado':'Qualquer profissional')}</span></td><td></td></tr>`).join(''): `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado para o filtro selecionado.')}</td></tr>`; return;
+    tbody.innerHTML=list.length?list.map(s=>`<tr><td>${s.nome}<br><span class="subtle">${Number(s.duracao_min||30)} min</span></td><td>${fmtMoney(s.valor)}</td><td>${calcularPontos(s.valor)}</td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td>${TODOS_ESTABELECIMENTOS.find(e=>e.id===s.estabelecimento_id)?.nome||'—'}<br><span class="subtle">${s.ativo?'Ativo':'Inativo'} · ${eidFiltro?nomeProf(s):(s.profissional_id?'Profissional vinculado':'Qualquer profissional')}</span></td><td></td></tr>`).join(''): `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado para o filtro selecionado.')}</td></tr>`; return;
   }
   if(filtroBox) filtroBox.classList.add('hidden');
   const btnNovoServico=document.getElementById('btn-novo-servico'); if(btnNovoServico) btnNovoServico.classList.remove('hidden');
   if(MEU_PAPEL==='profissional'){
     const meusServicos=SERVICOS.filter(s=>s.profissional_id===MEU_ID || !s.profissional_id);
-    tbody.innerHTML = meusServicos.length? meusServicos.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> ${s.profissional_id?'':'<span class="subtle">· Qualquer profissional</span>'}</td><td>${s.profissional_id===MEU_ID?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div>`:''}</td></tr>`).join('') : `<tr><td colspan="6">${emptyState('Você ainda não cadastrou nenhum serviço.')}</td></tr>`;
+    tbody.innerHTML = meusServicos.length? meusServicos.map(s=>`<tr><td>${s.nome}<br><span class="subtle">${Number(s.duracao_min||30)} min</span></td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> ${s.profissional_id?'':'<span class="subtle">· Qualquer profissional</span>'}</td><td>${s.profissional_id===MEU_ID?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div>`:''}</td></tr>`).join('') : `<tr><td colspan="6">${emptyState('Você ainda não cadastrou nenhum serviço.')}</td></tr>`;
     return;
   }
   if(!SERVICOS.length){ tbody.innerHTML = `<tr><td colspan="6">${emptyState('Nenhum serviço cadastrado.')}</td></tr>`; return; }
   const profs=await carregarProfissionaisUnidade(ESTAB_ID);
   const nomeProf=s=>s.profissional_id? (profs.find(p=>p.id===s.profissional_id)?.nome||'Profissional') : 'Qualquer profissional';
-  tbody.innerHTML = SERVICOS.map(s=>`<tr><td>${s.nome}</td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> <span class="subtle">· ${nomeProf(s)}</span></td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-sm" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div></td></tr>`).join('');
+  tbody.innerHTML = SERVICOS.map(s=>`<tr><td>${s.nome}<br><span class="subtle">${Number(s.duracao_min||30)} min</span></td><td>${fmtMoney(s.valor)}</td><td><span class="tag-points">${calcularPontos(s.valor)} pts</span></td><td>${s.cashback_pct>0?s.cashback_pct+'%':'—'}</td><td><span class="pill ${s.ativo?'pill-on':'pill-off'}">${s.ativo?'Ativo':'Inativo'}</span> <span class="subtle">· ${nomeProf(s)}</span></td><td><div class="row-actions"><button class="btn btn-outline btn-sm" onclick="openServicoModal('${s.id}')">Editar</button><button class="btn btn-outline btn-sm" onclick="toggleServico('${s.id}', ${s.ativo})">${s.ativo?'Desativar':'Ativar'}</button></div></td></tr>`).join('');
 }
 document.getElementById('servico-valor').addEventListener('input', ()=>{
   const v = parseFloat(document.getElementById('servico-valor').value || 0);
@@ -1913,6 +1970,7 @@ async function openServicoModal(id){
   document.getElementById('modal-servico-titulo').textContent = s ? 'Editar serviço' : 'Novo serviço';
   document.getElementById('servico-nome').value = s ? s.nome : '';
   document.getElementById('servico-valor').value = s ? s.valor : '';
+  document.getElementById('servico-duracao').value = s ? (s.duracao_min || 30) : 30;
   document.getElementById('servico-cashback').value = s ? (s.cashback_pct || '') : '';
   document.getElementById('servico-pontos-preview').textContent = `Gera ${calcularPontos(s ? s.valor : 0)} pontos`;
   const profBox=document.getElementById('servico-profissional-box'), profSel=document.getElementById('servico-profissional');
@@ -1933,9 +1991,10 @@ async function salvarServico(){
   const nome = document.getElementById('servico-nome').value.trim();
   const valor = parseFloat(document.getElementById('servico-valor').value);
   const cashback_pct = parseFloat(document.getElementById('servico-cashback').value) || 0;
-  if(!nome || isNaN(valor)){ toast('Preencha nome e valor.', true); return; }
+  const duracao_min = parseInt(document.getElementById('servico-duracao').value,10) || 30;
+  if(!nome || isNaN(valor) || duracao_min < 5 || duracao_min > 720){ toast('Preencha nome, valor e duração entre 5 e 720 minutos.', true); return; }
   const profissional_id = MEU_PAPEL==='profissional' ? MEU_ID : (document.getElementById('servico-profissional').value || null);
-  const payload = { nome, valor, cashback_pct, profissional_id };
+  const payload = { nome, valor, cashback_pct, profissional_id, duracao_min };
   const { error } = id
     ? await sb.from('servicos').update(payload).eq('id', id)
     : await sb.from('servicos').insert({ ...payload, estabelecimento_id: ESTAB_ID, ativo:true });
@@ -1946,6 +2005,187 @@ async function salvarServico(){
 async function toggleServico(id, ativoAtual){
   await sb.from('servicos').update({ ativo: !ativoAtual }).eq('id', id);
   await carregarTudo(); renderServicos();
+}
+
+
+/* ---------- AGENDA — integrada ao catálogo de serviços existente ---------- */
+function agendaEsc(v){
+  return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function agendaDataHoje(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function agendaDataLocalISO(data, proximoDia=false){
+  const d=new Date(data+'T00:00:00');
+  if(proximoDia)d.setDate(d.getDate()+1);
+  return d.toISOString();
+}
+function agendaStatusLabel(status){
+  return ({agendado:'Agendado',confirmado:'Confirmado',concluido:'Concluído',cancelado:'Cancelado',faltou:'Faltou'})[status]||status;
+}
+function agendaStatusOptions(status){
+  return ['agendado','confirmado','concluido','faltou','cancelado'].map(st=>`<option value="${st}" ${st===status?'selected':''}>${agendaStatusLabel(st)}</option>`).join('');
+}
+function agendaUnitId(){
+  return MEU_PAPEL==='admin_master' ? (document.getElementById('agenda-estabelecimento')?.value||'') : ESTAB_ID;
+}
+async function renderAgenda(){
+  const masterBox=document.getElementById('agenda-master-context');
+  const content=document.getElementById('agenda-conteudo');
+  if(!masterBox||!content)return;
+  if(MEU_PAPEL==='admin_master'){
+    masterBox.classList.remove('hidden');
+    await carregarTodosEstabelecimentos();
+    const sel=document.getElementById('agenda-estabelecimento');
+    const current=sel.value || AGENDA_ESTAB_ID || '';
+    sel.innerHTML='<option value="">Selecione um estabelecimento</option>'+TODOS_ESTABELECIMENTOS.map(e=>`<option value="${e.id}">${agendaEsc(e.nome)}</option>`).join('');
+    sel.value=TODOS_ESTABELECIMENTOS.some(e=>e.id===current)?current:'';
+    AGENDA_ESTAB_ID=sel.value;
+  }else{
+    masterBox.classList.add('hidden');
+    AGENDA_ESTAB_ID=ESTAB_ID;
+  }
+  const eid=agendaUnitId();
+  content.classList.toggle('hidden',!eid);
+  if(!eid){
+    const tbody=document.getElementById('agenda-tbody');
+    if(tbody)tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento para consultar a agenda.</td></tr>';
+    return;
+  }
+  const today=agendaDataHoje();
+  const dateInput=document.getElementById('agenda-data');
+  const filterInput=document.getElementById('agenda-filtro-data');
+  if(dateInput && !dateInput.value)dateInput.value=today;
+  if(filterInput && !filterInput.value)filterInput.value=today;
+  let qServ=sb.from('servicos').select('id,nome,valor,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome');
+  if(MEU_PAPEL==='profissional')qServ=qServ.or(`profissional_id.is.null,profissional_id.eq.${MEU_ID}`);
+  const [{data:servicos,error:errServ},{data:profs,error:errProf}]=await Promise.all([
+    qServ,
+    sb.from('perfis').select('id,nome').eq('estabelecimento_id',eid).eq('role','profissional').order('nome')
+  ]);
+  if(errServ||errProf){toast('Não foi possível carregar os serviços/profissionais da agenda.',true);return;}
+  const serviceSel=document.getElementById('agenda-servico');
+  const serviceCurrent=serviceSel.value;
+  serviceSel.innerHTML='<option value="">Selecione um serviço ativo</option>'+(servicos||[]).map(s=>`<option value="${s.id}">${agendaEsc(s.nome)} — ${fmtMoney(s.valor)} · ${Number(s.duracao_min||30)} min</option>`).join('');
+  if((servicos||[]).some(s=>s.id===serviceCurrent))serviceSel.value=serviceCurrent;
+  const profSel=document.getElementById('agenda-profissional');
+  const profCurrent=profSel.value;
+  const isProfessional=MEU_PAPEL==='profissional';
+  profSel.innerHTML=(isProfessional?'':'<option value="">Qualquer profissional</option>')+(profs||[]).map(p=>`<option value="${p.id}">${agendaEsc(p.nome||'Profissional')}</option>`).join('');
+  if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
+  else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
+  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } };
+  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; };
+  if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
+  await carregarAgendamentosDia();
+}
+async function carregarAgendamentosDia(){
+  const eid=agendaUnitId(), date=document.getElementById('agenda-filtro-data')?.value||agendaDataHoje();
+  const tbody=document.getElementById('agenda-tbody');
+  if(!tbody)return;
+  if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';return;}
+  const from=agendaDataLocalISO(date),to=agendaDataLocalISO(date,true);
+  const {data:items,error}=await sb.from('agendamentos').select('*').eq('estabelecimento_id',eid).gte('inicio',from).lt('inicio',to).order('inicio');
+  if(error){tbody.innerHTML='<tr><td colspan="7">Erro ao carregar agenda. Confirme se a migração 029 foi aplicada no Supabase.</td></tr>';return;}
+  const [c,s,p]=await Promise.all([
+    sb.from('clientes').select('id,nome,telefone').eq('estabelecimento_id',eid),
+    sb.from('servicos').select('id,nome').eq('estabelecimento_id',eid),
+    sb.from('perfis').select('id,nome').eq('estabelecimento_id',eid).eq('role','profissional')
+  ]);
+  const clients=new Map((c.data||[]).map(x=>[x.id,x]));
+  const services=new Map((s.data||[]).map(x=>[x.id,x]));
+  const pros=new Map((p.data||[]).map(x=>[x.id,x]));
+  if(!items?.length){tbody.innerHTML='<tr><td colspan="7">Nenhum agendamento nesta data.</td></tr>';return;}
+  tbody.innerHTML=items.map(a=>{
+    const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{},pro=pros.get(a.profissional_id)||{};
+    const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const terminal=['cancelado','concluido','faltou'].includes(a.status);
+    const actions=terminal?'—':`<select aria-label="Alterar status" onchange="alterarStatusAgendamento('${a.id}',this.value)">${agendaStatusOptions(a.status)}</select>`;
+    const cashbackAction=a.status==='concluido'
+      ? (a.atendimento_id
+        ? '<span class="subtle">Cashback computado</span>'
+        : `<button class="btn btn-primary" style="padding:7px 10px;font-size:12px;white-space:nowrap;" onclick="computarCashbackAgendamento('${a.id}')">Computar pontos + cashback</button>`)
+      : '';
+    const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
+    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
+  }).join('');
+}
+async function salvarAgendamento(){
+  const eid=agendaUnitId();
+  if(!eid){toast('Selecione um estabelecimento.',true);return;}
+  const nome=document.getElementById('agenda-cliente-nome').value.trim();
+  const telefone=document.getElementById('agenda-cliente-telefone').value.trim();
+  const servicoId=document.getElementById('agenda-servico').value;
+  const data=document.getElementById('agenda-data').value;
+  const hora=document.getElementById('agenda-hora').value;
+  const profissional=document.getElementById('agenda-profissional').value||null;
+  const observacao=document.getElementById('agenda-observacao').value.trim();
+  if(!nome||!telefone||!servicoId||!data||!hora){toast('Preencha cliente, telefone, serviço, data e horário.',true);return;}
+  const start=new Date(`${data}T${hora}:00`);
+  if(Number.isNaN(start.getTime())||start<=new Date()){toast('Escolha uma data e horário futuros válidos.',true);return;}
+  const btn=document.getElementById('agenda-salvar-btn');btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    let {data:cli,error:cliErr}=await sb.from('clientes').select('id').eq('estabelecimento_id',eid).eq('telefone',telefone).limit(1).maybeSingle();
+    if(cliErr)throw cliErr;
+    let clienteId=cli?.id;
+    if(!clienteId){
+      const created=await sb.from('clientes').insert({estabelecimento_id:eid,nome,telefone,atendimento_regra:'qualquer',profissional_principal_id:MEU_PAPEL==='profissional'?MEU_ID:null}).select('id').single();
+      if(created.error)throw created.error;
+      clienteId=created.data.id;
+    }else{
+      const upd=await sb.from('clientes').update({nome}).eq('id',clienteId);
+      if(upd.error)throw upd.error;
+    }
+    const {error}=await sb.from('agendamentos').insert({
+      estabelecimento_id:eid,cliente_id:clienteId,servico_id:servicoId,
+      profissional_id:profissional,inicio:start.toISOString(),observacao:observacao||null,criado_por:MEU_ID
+    });
+    if(error)throw error;
+    toast('Agendamento criado.');
+    document.getElementById('agenda-cliente-nome').value='';
+    document.getElementById('agenda-cliente-telefone').value='';
+    document.getElementById('agenda-observacao').value='';
+    document.getElementById('agenda-filtro-data').value=data;
+    await carregarAgendamentosDia();
+  }catch(e){
+    const msg=String(e?.message||e);
+    if(msg.includes('CONFLITO_HORARIO_AGENDAMENTO'))toast('Esse horário conflita com outro agendamento. Escolha outro horário.',true);
+    else if(msg.includes('SERVICO_VINCULADO_A_OUTRO_PROFISSIONAL'))toast('Esse serviço está vinculado a outro profissional.',true);
+    else if(msg.includes('CLIENTE_PROFISSIONAL_NAO_AUTORIZADO'))toast('Este cliente só pode ser atendido pelos profissionais autorizados no cadastro.',true);
+    else toast('Não foi possível salvar o agendamento: '+msg,true);
+  }finally{btn.disabled=false;btn.textContent='＋ Criar agendamento';}
+}
+async function alterarStatusAgendamento(id,status){
+  if(!['agendado','confirmado','concluido','faltou','cancelado'].includes(status))return;
+  const {data:antes,error:errAntes}=await sb.from('agendamentos').select('id,estabelecimento_id,atendimento_id').eq('id',id).maybeSingle();
+  if(errAntes||!antes){toast('Não foi possível consultar o agendamento.',true);return;}
+  const {error}=await sb.from('agendamentos').update({status}).eq('id',id);
+  if(error){toast('Não foi possível alterar o status: '+error.message,true);await carregarAgendamentosDia();return;}
+  if(status==='concluido'&&!antes.atendimento_id){
+    const {data:cfg,error:cfgErr}=await sb.from('configuracoes').select('agenda_cashback_modo').eq('estabelecimento_id',antes.estabelecimento_id).maybeSingle();
+    if(!cfgErr&&cfg?.agenda_cashback_modo==='automatico'){
+      await computarCashbackAgendamento(id,{automatico:true,silencioso:true});
+    }else toast('Atendimento concluído. O cashback está no modo manual.');
+  }else toast('Status do agendamento atualizado.');
+  await carregarAgendamentosDia();
+}
+async function computarCashbackAgendamento(id,opts={}){
+  const {data,error}=await sb.rpc('processar_cashback_agendamento',{p_agendamento_id:id,p_usar_cashback:false});
+  if(error||data?.error){
+    const msg=error?.message||data?.error||'operação inválida';
+    if(!opts.silencioso)toast('Não foi possível computar o cashback: '+msg,true);
+    else toast('Atendimento concluído, mas o cashback automático falhou. Corrija o motivo e use “Computar cashback” para tentar novamente. '+msg,true);
+    await carregarAgendamentosDia();
+    return false;
+  }
+  const d=data?.resultado||data;
+  let msg=data?.ja_processado?'Este agendamento já tinha sido computado.':`Atendimento computado: ${Number(d?.pontos||0)} pontos`;
+  if(Number(d?.cashback)>0)msg+=` + ${fmtMoney(d.cashback)} de cashback`;
+  toast(msg+'.');
+  await carregarAgendamentosDia();
+  return true;
 }
 
 // ---------- REGISTRAR PONTUAÇÃO ----------
