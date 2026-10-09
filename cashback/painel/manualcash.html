@@ -289,7 +289,7 @@
       <p class="lead">Os itens do menu variam conforme o seu perfil de acesso.</p>
       <h3>Menu padrão (todos os perfis do painel)</h3>
       <div class="mockup-nav">
-        <span>◆ Painel</span><span>◈ Clientes</span><span>✂ Serviços</span><span>＋ Registrar Pontuação</span>
+        <span>◆ Painel</span><span>◈ Clientes</span><span>✂ Serviços</span><span>▦ Agenda</span><span>＋ Registrar Pontuação</span>
         <span>✦ Prêmios</span><span>♛ Níveis</span><span>✓ Liberar Prêmio</span><span>⌗ Validar Cupom</span>
         <span>↺ Histórico</span><span>★ Avaliações</span><span>✉ Marketing</span><span>⚙ Configurações</span>
       </div>
@@ -309,6 +309,10 @@
     <section class="block" id="s7">
       <h2><span class="num">07</span> Como utilizar cada funcionalidade</h2>
       <p class="lead">O que é → para que serve → como utilizar, tela por tela.</p>
+
+      <h3>▦ Agenda</h3>
+      <p>A Agenda organiza os horários dos profissionais e permite criar, consultar, editar e, em situações específicas, excluir agendamentos. A disponibilidade das ações depende do perfil de acesso, das permissões da unidade e do estado do agendamento.</p>
+      <p>Na grade diária, confira o horário, o status, o cliente, o profissional e o procedimento ou serviço antes de executar uma ação.</p>
 
       <h3>◆ Painel (Dashboard)</h3>
       <p>É a tela inicial após o login. Mostra indicadores gerais — para o Admin Master, um panorama de todas as unidades; para o Admin do Estabelecimento, os números da própria unidade (clientes, pontos, resgates); para o Profissional, um resumo dos próprios atendimentos, clientes atendidos e faturamento gerado, com a lista dos últimos atendimentos realizados.</p>
@@ -396,8 +400,8 @@
       <p>Três regras que alimentam a tela ✉ Marketing: aviso de cliente inativo (após X dias sem visita), lembrete de resgate (quando faltam poucos pontos para um prêmio) e cupom de reativação para indicados que sumiram, com o desconto correspondente.</p>
 
       <div class="callout future">
-        <div class="head">🔧 Botão "Abrir o chamado" — recurso previsto para a versão de produção</div>
-        Na seção de Configurações, a versão definitiva do Yansix Cashback contará com o botão <strong>"Abrir o chamado"</strong>, para que o administrador da unidade possa solicitar suporte diretamente da YANSIX sempre que precisar de ajuda para configurar ou ajustar alguma regra do programa. Na versão do sistema analisada para a construção deste manual, esse botão <strong>ainda não está implementado</strong> — o que não representa um erro do sistema, apenas um recurso que chegará com a versão de produção.
+        <div class="head">🔧 Suporte e abertura de chamados</div>
+        Se o botão <strong>"Abrir o chamado"</strong> estiver disponível no painel, use-o para enviar sua solicitação. Se precisar de acesso ao formulário externo, utilize <a href="https://admin.yansix.tech/chamado.html" target="_blank" rel="noopener noreferrer">o formulário de chamados da YANSIX</a>, conforme as orientações de acesso recebidas da equipe.
       </div>
     </section>
 
@@ -417,6 +421,37 @@
     <section class="block" id="s10">
       <h2><span class="num">10</span> Principais operações, passo a passo</h2>
       <p class="lead">Os fluxos mais usados no dia a dia do estabelecimento.</p>
+
+      <h3>Usar a Agenda e criar um agendamento</h3>
+      <ol class="steps">
+        <li>Abra <span class="path">Agenda</span> pelo menu do painel.</li>
+        <li>Selecione a unidade, se seu perfil permitir, e navegue até a data desejada.</li>
+        <li>Clique em um horário livre ou em <strong>Novo agendamento</strong>.</li>
+        <li>Selecione o cliente e o profissional e adicione o procedimento ou serviço desejado.</li>
+        <li>Confira o horário de início e o horário de término. A duração cadastrada para os serviços ajuda a calcular o período reservado.</li>
+        <li>Se o atendimento incluir mais de um procedimento, adicione todos os itens e confira a duração total e o valor antes de salvar.</li>
+        <li>Salve e revise a grade para confirmar que o agendamento aparece na data, horário e profissional corretos.</li>
+      </ol>
+      <div class="callout tip"><div class="head">Atenção aos conflitos</div>Se o horário não estiver disponível, confira a duração dos procedimentos, o horário de término e os demais agendamentos do profissional. Não tente reservar um período que já esteja ocupado.</div>
+
+      <h3>Editar um agendamento</h3>
+      <ol class="steps">
+        <li>Localize o registro correto na Agenda e confira cliente, data, horário e profissional.</li>
+        <li>Clique em <strong>Editar agendamento</strong>, se a ação estiver disponível.</li>
+        <li>Atualize os campos necessários e confira novamente os procedimentos, a duração, o valor e possíveis conflitos de horário.</li>
+        <li>Salve e confira a grade para confirmar que a alteração foi aplicada.</li>
+      </ol>
+      <p>A edição pela Agenda está disponível para agendamentos com status <strong>Agendado</strong> ou <strong>Confirmado</strong>, desde que ainda não exista um atendimento vinculado. Se a ação não aparecer, confirme o status e solicite ao administrador que verifique as permissões da sua conta.</p>
+
+      <h3>Excluir um agendamento pendente</h3>
+      <ol class="steps">
+        <li>Localize a reserva que deseja remover e confira cuidadosamente o cliente, a data, o horário, o profissional e os procedimentos.</li>
+        <li>Clique em <strong>Excluir agendamento</strong> (ícone de lixeira), se disponível.</li>
+        <li>Leia a confirmação e confirme somente se tiver certeza de que selecionou o registro correto.</li>
+        <li>Atualize a Agenda e confira se a reserva deixou de aparecer.</li>
+      </ol>
+      <p>A exclusão pela Agenda só é permitida para agendamentos com status <strong>Agendado</strong> ou <strong>Confirmado</strong>, sem atendimento vinculado, e para usuários autorizados. A permissão é concedida ao Admin Master ou ao administrador da unidade com permissão de atendimentos.</p>
+      <div class="callout warning"><div class="head">Preserve o histórico</div>Não use a exclusão para apagar atendimentos realizados, faltas, cancelamentos ou registros que já tenham atendimento vinculado. Para esses casos, peça orientação ao administrador.</div>
 
       <h3>Cadastrar um novo cliente</h3>
       <ol class="steps">
@@ -481,14 +516,17 @@
         <div class="faq"><p class="q">Fiz login e não aparece nenhum estabelecimento.</p><p class="a">Isso indica que seu usuário ainda não foi vinculado a nenhuma unidade. Procure o Admin Master ou o Admin do Estabelecimento para concluir esse vínculo.</p></div>
         <div class="faq"><p class="q">O cliente diz que tinha mais pontos do que aparece.</p><p class="a">Verifique a regra de validade dos pontos em Configurações — pontos além do prazo definido deixam de contar para resgate. O Histórico mostra todos os créditos e resgates daquele cliente.</p></div>
         <div class="faq"><p class="q">Preciso alterar um serviço sem perder o histórico de quem já foi atendido com ele.</p><p class="a">Edite o serviço em vez de excluí-lo, ou desative-o quando ele não for mais oferecido — os atendimentos já registrados continuam no histórico normalmente.</p></div>
-        <div class="faq"><p class="q">Não encontro o botão para abrir um chamado de suporte na tela de Configurações.</p><p class="a">Esse botão faz parte da versão de produção do sistema e ainda não está presente na versão atual. Veja a seção 8 e a seção 13 (Suporte) para mais detalhes.</p></div>
+        <div class="faq"><p class="q">Não consigo editar um agendamento.</p><p class="a">A edição pela Agenda é permitida para reservas com status Agendado ou Confirmado e sem atendimento vinculado. Confira o status e peça ao administrador para verificar as permissões da sua conta.</p></div>
+        <div class="faq"><p class="q">Não consigo excluir um agendamento.</p><p class="a">A exclusão é restrita a reservas Agendadas ou Confirmadas, sem atendimento vinculado, e exige permissão de atendimentos. Atualize a página com Ctrl + F5, confira se selecionou a reserva correta e, se continuar falhando, registre a mensagem de erro ou uma captura de tela e procure o administrador.</p></div>
+        <div class="faq"><p class="q">Os horários ou a duração do agendamento estão incorretos.</p><p class="a">Confira a duração cadastrada para cada serviço, os procedimentos adicionados ao agendamento, o horário de início e término e possíveis conflitos na agenda do profissional.</p></div>
+        <div class="faq"><p class="q">Preciso abrir um chamado de suporte.</p><p class="a">Use o botão Abrir o chamado quando estiver disponível no painel ou acesse o formulário externo da YANSIX indicado na seção 13.</p></div>
     </section>
 
     <!-- 13 -->
     <section class="block" id="s13">
       <h2><span class="num">13</span> Suporte</h2>
-      <p class="lead">Como pedir ajuda enquanto o canal integrado ainda não está disponível.</p>
-      <p>Na versão de produção do Yansix Cashback, o suporte poderá ser solicitado diretamente pela tela de Configurações, através do botão <strong>"Abrir o chamado"</strong>. Até essa funcionalidade estar disponível, o suporte da YANSIX pode ser acionado pelos canais de contato oficiais informados pela equipe no momento da implantação do sistema.</p>
+      <p class="lead">Como registrar uma solicitação de suporte.</p>
+      <p>Quando disponível, utilize o botão <strong>"Abrir o chamado"</strong> no painel. Também é possível acessar o <a href="https://admin.yansix.tech/chamado.html" target="_blank" rel="noopener noreferrer">formulário externo de chamados da YANSIX</a>, conforme o acesso autorizado para sua conta.</p>
       <div class="callout tip"><div class="head">💡 Dica</div>Ao entrar em contato, informe o nome do estabelecimento, o perfil do usuário (Admin Master, Admin do Estabelecimento ou Profissional) e uma descrição objetiva da situação — isso agiliza o atendimento.</div>
     </section>
 
@@ -496,7 +534,7 @@
     <section class="block" id="s14">
       <h2><span class="num">14</span> Observações importantes</h2>
       <ul style="font-size:14.5px;line-height:1.8;padding-left:20px;margin:0;">
-        <li>Este manual descreve o sistema exatamente como ele foi analisado para esta entrega, incluindo diferenças pontuais em relação à versão de produção — a única identificada até o momento é o botão <strong>"Abrir o chamado"</strong> (seção 8), previsto para a versão final.</li>
+        <li>As telas e ações disponíveis podem variar conforme as atualizações do sistema, o perfil e as permissões de cada usuário.</li>
         <li>Os perfis de acesso (Admin Master, Admin do Estabelecimento e Profissional) determinam quais telas e ações ficam visíveis — não é uma falha caso alguns itens de menu não apareçam para o seu usuário.</li>
         <li>A regra de conversão padrão do sistema é R$ 1 gasto = 1 ponto, mas é totalmente ajustável em Configurações para cada unidade.</li>
         <li>Dúvidas técnicas adicionais podem ser esclarecidas diretamente com a equipe YANSIX responsável pela implantação.</li>
