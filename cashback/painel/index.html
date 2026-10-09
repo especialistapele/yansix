@@ -88,6 +88,8 @@
   }
   .btn:active{transform:translateY(1px);}
   .btn-primary{background:var(--wine);color:#fff;width:100%;}
+  /* Cadastro de estabelecimento no painel Master: botão compacto, sem afetar os demais. */
+  #ne-btn{width:auto;min-width:0;max-width:100%;padding:10px 18px;display:inline-flex;align-items:center;justify-content:center;}
   .btn-primary:hover{background:var(--wine-2);}
   .btn-gold{background:var(--gold);color:#fff;}
   .btn-gold:hover{opacity:.92;}
@@ -495,14 +497,16 @@
               <div class="grid-2">
                 <div class="field"><label>Nome do cliente *</label><input id="agenda-cliente-nome" autocomplete="name" /></div>
                 <div class="field"><label>Telefone do cliente *</label><input id="agenda-cliente-telefone" autocomplete="tel" /></div>
-                <div class="field"><label>Serviço *</label><select id="agenda-servico"><option value="">Selecione um serviço ativo</option></select></div>
+                <div class="field"><label>Procedimento principal *</label><select id="agenda-servico"><option value="">Selecione um serviço ativo</option></select></div>
+                <div class="field full"><label>Procedimentos adicionais (opcional)</label><select id="agenda-servicos-adicionais" multiple style="min-height:100px;"></select><div class="subtle" style="margin-top:6px;">Selecione outros procedimentos que serão realizados no mesmo atendimento. Use Ctrl (Windows) ou Command (Mac) para selecionar mais de um.</div></div>
                 <div class="field"><label>Profissional</label><select id="agenda-profissional"><option value="">Qualquer profissional</option></select></div>
                 <div class="field"><label>Data *</label><input id="agenda-data" type="date" /></div>
                 <div class="field"><label>Horário de início *</label><input id="agenda-hora" type="time" /></div>
+                <div class="field"><label>Horário de término *</label><input id="agenda-hora-fim" type="time" /></div>
               </div>
               <div class="field"><label>Observação</label><textarea id="agenda-observacao" rows="2" placeholder="Informações úteis para o atendimento"></textarea></div>
               <button class="btn btn-primary" id="agenda-salvar-btn" onclick="salvarAgendamento()">＋ Criar agendamento</button>
-              <p class="subtle" style="margin-bottom:0;">A duração e o valor são puxados do serviço cadastrado. O sistema bloqueia conflitos de horário.</p>
+              <p class="subtle" style="margin-bottom:0;">O término é sugerido pela soma das durações e pode ser ajustado. O valor total e o cashback serão calculados por procedimento; conflitos consideram o intervalo completo.</p>
             </div>
           </div>
         </div>
@@ -965,10 +969,10 @@
 <!-- ===== Modal Editar Profissional ===== -->
 <div class="modal-backdrop" id="modal-editar-profissional">
   <div class="modal">
-    <div class="modal-head"><h3>Editar profissional</h3><button class="modal-close" onclick="closeModal('modal-editar-profissional')">✕</button></div>
+    <div class="modal-head"><h3 id="ep-titulo">Editar profissional</h3><button class="modal-close" onclick="closeModal('modal-editar-profissional')">✕</button></div>
     <div class="modal-body">
-      <input type="hidden" id="ep-id" />
-      <div class="field"><label>Nome do profissional</label><input id="ep-nome" /></div>
+      <input type="hidden" id="ep-id" /><input type="hidden" id="ep-role" value="profissional" />
+      <div class="field"><label id="ep-nome-label">Nome do profissional</label><input id="ep-nome" /></div>
       <div class="field"><label>E-mail de acesso</label><input type="email" id="ep-email" /></div>
       <div class="field"><label>Nova senha (opcional)</label><input type="password" id="ep-senha" placeholder="Deixe em branco para manter a senha atual" /></div>
       <div id="ep-resultado"></div>
@@ -1811,8 +1815,8 @@ async function renderEquipeEstabelecimento(id=ESTAB_ID){
   const {data:admins}=await sb.from('perfis').select('id,nome,email,role,estabelecimento_id,created_at,permissoes').eq('estabelecimento_id',id).in('role',['admin_estabelecimento','profissional']).order('role').order('nome');
   const estab=TODOS_ESTABELECIMENTOS.find(e=>e.id===id);
   const permLabels={dashboard:'Dashboard',clientes:'Clientes',atendimentos:'Atendimentos',servicos:'Serviços',premios:'Prêmios',marketing:'Marketing',configuracoes:'Configurações',equipe:'Equipe',auditoria:'Auditoria'};
-  const adminRows=(admins||[]).filter(a=>a.role==='admin_estabelecimento').map(a=>`<div class="panel" style="margin-top:16px;"><div class="panel-head"><div><h3>Permissões · ${a.nome||'Administrador'}</h3><div class="sub">Acesso administrativo restrito a esta unidade</div></div></div><div class="panel-body"><div class="permission-grid">${Object.entries(permLabels).map(([k,label])=>`<label class="permission-item"><input type="checkbox" data-perm-user="${a.id}" data-perm="${k}" ${a.permissoes?.[k]!==false?'checked':''}> ${label}</label>`).join('')}</div><button class="btn btn-primary" style="margin-top:14px;" onclick="salvarPermissoesAdmin('${a.id}')">Salvar permissões</button></div></div>`).join('');
-  box.innerHTML=`<div class="topbar" style="align-items:flex-start;"><div><h2>Equipe · ${estab?.nome||'Estabelecimento'}</h2><div class="sub">Administrador e profissionais vinculados a esta unidade</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-profissional')">＋ NOVO PROFISSIONAL</button></div><div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead><tbody>${(admins||[]).map(a=>`<tr><td>${a.nome||'—'}</td><td>${a.role==='admin_estabelecimento'?'Administrador':'Profissional'}</td><td>${fmtDate(a.created_at)}</td><td>${a.role==='profissional'?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="abrirConsultaAtendimentosProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Consultar</button><button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);" onclick="excluirProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Excluir</button></div>`:''}</td></tr>`).join('')||`<tr><td colspan="4">${emptyState('Nenhum integrante cadastrado.')}</td></tr>`}</tbody></table></div></div>${adminRows}<div id="view-consulta-profissional" style="margin-top:16px;"></div>`;
+  const adminRows=(admins||[]).filter(a=>a.role==='admin_estabelecimento').map(a=>`<div class="panel" id="permissoes-admin-${a.id}" style="margin-top:16px;"><div class="panel-head"><div><h3>Permissões · ${a.nome||'Administrador'}</h3><div class="sub">Acesso administrativo restrito a esta unidade</div></div></div><div class="panel-body"><div class="permission-grid">${Object.entries(permLabels).map(([k,label])=>`<label class="permission-item"><input type="checkbox" data-perm-user="${a.id}" data-perm="${k}" ${a.permissoes?.[k]!==false?'checked':''}> ${label}</label>`).join('')}</div><button class="btn btn-primary" style="margin-top:14px;" onclick="salvarPermissoesAdmin('${a.id}')">Salvar permissões</button></div></div>`).join('');
+  box.innerHTML=`<div class="topbar" style="align-items:flex-start;"><div><h2>Equipe · ${estab?.nome||'Estabelecimento'}</h2><div class="sub">Administrador e profissionais vinculados a esta unidade</div></div><button class="btn btn-primary btn-xs" onclick="showView('novo-profissional')">＋ NOVO PROFISSIONAL</button></div><div class="panel"><div class="panel-body"><table><thead><tr><th>Nome</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead><tbody>${(admins||[]).map(a=>`<tr><td>${a.nome||'—'}</td><td>${a.role==='admin_estabelecimento'?'Administrador':'Profissional'}</td><td>${fmtDate(a.created_at)}</td><td>${a.role==='profissional'?`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar</button><button class="btn btn-outline btn-xs" onclick="abrirConsultaAtendimentosProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Consultar</button><button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger);" onclick="excluirProfissional('${a.id}','${(a.nome||'Profissional').replace(/'/g,"\\'")}','${id}')">Excluir</button></div>`:`<div class="row-actions"><button class="btn btn-outline btn-xs" onclick="abrirEdicaoProfissional('${a.id}')">Editar dados</button><button class="btn btn-outline btn-xs" onclick="document.getElementById('permissoes-admin-${a.id}')?.scrollIntoView({behavior:'smooth',block:'center'})">Permissões</button></div>`}</td></tr>`).join('')||`<tr><td colspan="4">${emptyState('Nenhum integrante cadastrado.')}</td></tr>`}</tbody></table></div></div>${adminRows}<div id="view-consulta-profissional" style="margin-top:16px;"></div>`;
 }
 
 async function excluirProfissional(id, nome, estabId){
@@ -1825,8 +1829,12 @@ async function excluirProfissional(id, nome, estabId){
 }
 // ---------- Editar profissional (nome / e-mail / senha) ----------
 async function abrirEdicaoProfissional(id){
-  const {data:p}=await sb.from('perfis').select('id,nome,email,estabelecimento_id').eq('id',id).maybeSingle();
-  if(!p){toast('Profissional não encontrado.',true);return;}
+  const {data:p}=await sb.from('perfis').select('id,nome,email,role,estabelecimento_id').eq('id',id).maybeSingle();
+  if(!p||!['profissional','admin_estabelecimento'].includes(p.role)){toast('Integrante da equipe não encontrado.',true);return;}
+  if(p.role==='admin_estabelecimento'&&MEU_PAPEL!=='admin_master'){toast('Somente o Admin Master pode editar o administrador da unidade.',true);return;}
+  document.getElementById('ep-role').value=p.role;
+  document.getElementById('ep-titulo').textContent=p.role==='admin_estabelecimento'?'Editar administrador da unidade':'Editar profissional';
+  document.getElementById('ep-nome-label').textContent=p.role==='admin_estabelecimento'?'Nome do administrador':'Nome do profissional';
   document.getElementById('ep-id').value=p.id;
   document.getElementById('ep-nome').value=p.nome||'';
   document.getElementById('ep-email').value=p.email||'';
@@ -1845,7 +1853,7 @@ async function salvarEdicaoProfissional(){
   const {data,error}=await sb.functions.invoke('editar-profissional',{body:{profissional_id:id,nome,email,...(senha?{senha}:{})}});
   btn.disabled=false;btn.textContent='Salvar alterações';
   if(error||(data&&data.error)){ const msg=await functionErrorMessage(error,data?.error||'Falha ao salvar profissional.'); box.innerHTML=`<div style="color:var(--danger)"><strong>Erro:</strong> ${msg}</div>`; return; }
-  toast('Profissional atualizado.');
+  toast(document.getElementById('ep-role').value==='admin_estabelecimento'?'Administrador da unidade atualizado.':'Profissional atualizado.');
   closeModal('modal-editar-profissional');
   if(MEU_PAPEL==='admin_estabelecimento'){
     await renderEquipeLocal();
@@ -2166,6 +2174,7 @@ function abrirNovoAgendamento(){
     const now=new Date(); now.setMinutes(Math.ceil(now.getMinutes()/30)*30,0,0);
     hour.value=now.toTimeString().slice(0,5);
   }
+  agendaAtualizarHoraFim(true);
   document.getElementById('agenda-cliente-nome')?.focus({preventScroll:true});
 }
 function fecharNovoAgendamento(){
@@ -2276,7 +2285,7 @@ async function renderAgenda(){
   const filterInput=document.getElementById('agenda-filtro-data');
   if(dateInput && !dateInput.value)dateInput.value=today;
   if(filterInput && !filterInput.value)filterInput.value=today;
-  let qServ=sb.from('servicos').select('id,nome,valor,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome');
+  let qServ=sb.from('servicos').select('id,nome,valor,cashback_pct,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome');
   if(MEU_PAPEL==='profissional')qServ=qServ.or(`profissional_id.is.null,profissional_id.eq.${MEU_ID}`);
   const [{data:servicos,error:errServ},{data:profs,error:errProf}]=await Promise.all([
     qServ,
@@ -2286,26 +2295,50 @@ async function renderAgenda(){
   AGENDA_SERVICOS_ATIVOS=servicos||[];
   const serviceSel=document.getElementById('agenda-servico');
   const serviceCurrent=serviceSel.value;
-  serviceSel.innerHTML='<option value="">Selecione um serviço ativo</option>'+(servicos||[]).map(s=>`<option value="${s.id}">${agendaEsc(s.nome)} — ${fmtMoney(s.valor)} · ${Number(s.duracao_min||30)} min</option>`).join('');
+  const additionalSel=document.getElementById('agenda-servicos-adicionais');
+  const additionalCurrent=Array.from(additionalSel?.selectedOptions||[]).map(o=>o.value);
+  const serviceOptions=(servicos||[]).map(s=>`<option value="${s.id}">${agendaEsc(s.nome)} — ${fmtMoney(s.valor)} · ${Number(s.duracao_min||30)} min</option>`).join('');
+  serviceSel.innerHTML='<option value="">Selecione um serviço ativo</option>'+serviceOptions;
   if((servicos||[]).some(s=>s.id===serviceCurrent))serviceSel.value=serviceCurrent;
+  if(additionalSel){additionalSel.innerHTML=serviceOptions;Array.from(additionalSel.options).forEach(o=>{o.selected=additionalCurrent.includes(o.value)&&o.value!==serviceSel.value;});}
   const profSel=document.getElementById('agenda-profissional');
   const profCurrent=profSel.value;
   const isProfessional=MEU_PAPEL==='profissional';
   profSel.innerHTML=(isProfessional?'':'<option value="">Qualquer profissional</option>')+(profs||[]).map(p=>`<option value="${p.id}">${agendaEsc(p.nome||'Profissional')}</option>`).join('');
   if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
   else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
-  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } carregarAgendamentosDia(); };
-  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; carregarAgendamentosDia(); };
+  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } if(additionalSel)Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;}); agendaAtualizarHoraFim(true); carregarAgendamentosDia(); };
+  additionalSel.onchange=()=>{Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;});agendaAtualizarHoraFim(true);carregarAgendamentosDia();};
+  document.getElementById('agenda-hora-fim')?.addEventListener('change',()=>carregarAgendamentosDia());
+  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; agendaAtualizarHoraFim(true); carregarAgendamentosDia(); };
+  document.getElementById('agenda-hora')?.addEventListener('change',()=>agendaAtualizarHoraFim(true));
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
   if(!AGENDA_DIA_SELECIONADO)AGENDA_DIA_SELECIONADO=today;
   if(!AGENDA_MES_CURSOR)AGENDA_MES_CURSOR=agendaLocalDate(AGENDA_DIA_SELECIONADO);
   await carregarAgendaCalendario();
   await carregarAgendamentosDia();
 }
-function agendaDuracaoSelecionada(){
+function agendaDuracaoServicoBase(){
   const id=document.getElementById('agenda-servico')?.value;
   const srv=AGENDA_SERVICOS_ATIVOS.find(s=>s.id===id);
-  return Math.max(5,Number(srv?.duracao_min)||30);
+  const adicionais=Array.from(document.getElementById('agenda-servicos-adicionais')?.selectedOptions||[]).map(o=>AGENDA_SERVICOS_ATIVOS.find(s=>s.id===o.value)).filter(Boolean);
+  return Math.max(5,(Number(srv?.duracao_min)||30)+adicionais.reduce((n,s)=>n+(Number(s.duracao_min)||30),0));
+}
+function agendaDuracaoSelecionada(){
+  const inicio=document.getElementById('agenda-hora')?.value, fim=document.getElementById('agenda-hora-fim')?.value;
+  if(inicio&&fim){const [ih,im]=inicio.split(':').map(Number),[fh,fm]=fim.split(':').map(Number);const mins=fh*60+fm-(ih*60+im);if(mins>=5&&mins<=720)return mins;}
+  return agendaDuracaoServicoBase();
+}
+function agendaAtualizarHoraFim(forcar=false){
+  const inicio=document.getElementById('agenda-hora')?.value, fimInput=document.getElementById('agenda-hora-fim');
+  if(!inicio||!fimInput)return;
+  const [h,m]=inicio.split(':').map(Number),total=h*60+m+agendaDuracaoServicoBase();
+  if(forcar||!fimInput.value)fimInput.value=String(Math.floor(total/60)%24).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+}
+function agendaValidarHoraFim(){
+  const ini=document.getElementById('agenda-hora')?.value,fim=document.getElementById('agenda-hora-fim')?.value;if(!ini||!fim)return null;
+  const [ih,im]=ini.split(':').map(Number),[fh,fm]=fim.split(':').map(Number),mins=fh*60+fm-(ih*60+im);
+  return mins>=5&&mins<=720?mins:null;
 }
 function selecionarHorarioAgenda(hora){
   const data=AGENDA_DIA_SELECIONADO||agendaDataHoje();
@@ -2313,6 +2346,7 @@ function selecionarHorarioAgenda(hora){
   const dataInput=document.getElementById('agenda-data');
   const filtro=document.getElementById('agenda-filtro-data');
   if(horaInput)horaInput.value=hora;
+  agendaAtualizarHoraFim(true);
   if(dataInput)dataInput.value=data;
   if(filtro)filtro.value=data;
   document.getElementById('agenda-form-body')?.classList.remove('hidden');
@@ -2383,7 +2417,10 @@ async function carregarAgendamentosDia(){
     sb.from('servicos').select('id,nome').eq('estabelecimento_id',eid),
     sb.from('perfis').select('id,nome').eq('estabelecimento_id',eid).eq('role','profissional')
   ]);
-  const clients=new Map((c.data||[]).map(x=>[x.id,x]));
+  const {data:procedimentos,error:procErr}=items?.length?await sb.from('agendamento_procedimentos').select('agendamento_id,ordem,servicos(nome)').in('agendamento_id',items.map(a=>a.id)).order('ordem'): {data:[],error:null};
+   if(procErr)throw procErr;
+   const procMap=new Map();(procedimentos||[]).forEach(x=>{if(!procMap.has(x.agendamento_id))procMap.set(x.agendamento_id,[]);if(x.servicos?.nome)procMap.get(x.agendamento_id).push(x.servicos.nome);});
+   const clients=new Map((c.data||[]).map(x=>[x.id,x]));
   const services=new Map((s.data||[]).map(x=>[x.id,x]));
   const pros=new Map((p.data||[]).map(x=>[x.id,x]));
   renderHorariosDisponiveis(items||[],date,clients,services,pros);
@@ -2392,14 +2429,16 @@ async function carregarAgendamentosDia(){
   if(pendingBox){
     pendingBox.innerHTML=pendencias.length?pendencias.map(a=>{
       const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{};
+       const nomesProcedimentos=[srv.nome||'Serviço',...(procMap.get(a.id)||[])];
       const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(srv.nome||'Serviço')}</span><div class="subtle">Atendimento realizado, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
+      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(nomesProcedimentos.join(' + '))}</span><div class="subtle">Atendimento realizado, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
     }).join(''):'';
   }
   if(summary)summary.textContent=(items?.length||0)+' agendamento(s) · '+pendencias.length+' lançamento(s) de cashback pendente(s)';
   if(!items?.length){tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">Nenhum agendamento nesta data. Selecione outro dia ou crie um novo agendamento.</td></tr>';return;}
   tbody.innerHTML=items.map(a=>{
     const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{},pro=pros.get(a.profissional_id)||{};
+     const nomesProcedimentos=[srv.nome||'Serviço',...(procMap.get(a.id)||[])];
     const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const terminal=['cancelado','realizado','faltou'].includes(a.status);
@@ -2410,7 +2449,7 @@ async function carregarAgendamentosDia(){
         : `<button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button>`)
       : '';
     const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
-    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
+    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(nomesProcedimentos.join(' + '))}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
   }).join('');
   }catch(error){
     console.error('Falha ao carregar os horários da agenda:',error);
@@ -2426,11 +2465,19 @@ async function salvarAgendamento(){
   const nome=document.getElementById('agenda-cliente-nome').value.trim();
   const telefone=document.getElementById('agenda-cliente-telefone').value.trim();
   const servicoId=document.getElementById('agenda-servico').value;
+  const servicosAdicionais=Array.from(document.getElementById('agenda-servicos-adicionais')?.selectedOptions||[]).map(o=>o.value).filter(id=>id&&id!==servicoId);
   const data=document.getElementById('agenda-data').value;
   const hora=document.getElementById('agenda-hora').value;
-  const profissional=document.getElementById('agenda-profissional').value||null;
+  const horaFim=document.getElementById('agenda-hora-fim').value;
+  const duracaoManual=agendaValidarHoraFim();
+  let profissional=document.getElementById('agenda-profissional').value||null;
+  const servicosSelecionados=[servicoId,...servicosAdicionais].map(id=>AGENDA_SERVICOS_ATIVOS.find(s=>s.id===id)).filter(Boolean);
+  const profissionaisVinculados=[...new Set(servicosSelecionados.map(s=>s.profissional_id).filter(Boolean))];
+  if(profissionaisVinculados.length>1){toast('Os procedimentos selecionados estão vinculados a profissionais diferentes. Separe-os em agendamentos distintos.',true);return;}
+  if(profissionaisVinculados.length===1){if(profissional&&profissional!==profissionaisVinculados[0]){toast('Um dos procedimentos está vinculado a outro profissional.',true);return;}profissional=profissionaisVinculados[0];document.getElementById('agenda-profissional').value=profissional;}
   const observacao=document.getElementById('agenda-observacao').value.trim();
-  if(!nome||!telefone||!servicoId||!data||!hora){toast('Preencha cliente, telefone, serviço, data e horário.',true);return;}
+  if(!nome||!telefone||!servicoId||!data||!hora||!horaFim){toast('Preencha cliente, telefone, procedimento principal, data e horários de início e término.',true);return;}
+  if(!duracaoManual){toast('O término deve ser pelo menos 5 minutos depois do início e no máximo 12 horas depois.',true);return;}
   const start=new Date(`${data}T${hora}:00`);
   if(Number.isNaN(start.getTime())||start<=new Date()){toast('Escolha uma data e horário futuros válidos.',true);return;}
   const btn=document.getElementById('agenda-salvar-btn');btn.disabled=true;btn.textContent='Salvando…';
@@ -2446,15 +2493,24 @@ async function salvarAgendamento(){
       const upd=await sb.from('clientes').update({nome}).eq('id',clienteId);
       if(upd.error)throw upd.error;
     }
-    const {error}=await sb.from('agendamentos').insert({
+    const {data:agendamento,error}=await sb.from('agendamentos').insert({
       estabelecimento_id:eid,cliente_id:clienteId,servico_id:servicoId,
-      profissional_id:profissional,inicio:start.toISOString(),observacao:observacao||null,criado_por:MEU_ID
-    });
+      profissional_id:profissional,inicio:start.toISOString(),duracao_min:duracaoManual,observacao:observacao||null,criado_por:MEU_ID
+    }).select('id').single();
     if(error)throw error;
+    const agendamentoId=agendamento?.id;
+    if(servicosAdicionais.length){
+      const snapshots=servicosAdicionais.map((sid,index)=>{const s=AGENDA_SERVICOS_ATIVOS.find(x=>x.id===sid);return {agendamento_id:agendamentoId,servico_id:sid,ordem:index+1,valor_snapshot:Number(s?.valor)||0,duracao_min_snapshot:Math.max(5,Number(s?.duracao_min)||30),cashback_pct_snapshot:Math.max(0,Number(s?.cashback_pct)||0)};});
+      const extras=await sb.from('agendamento_procedimentos').insert(snapshots);
+      if(extras.error){await sb.from('agendamentos').update({status:'cancelado'}).eq('id',agendamentoId);throw extras.error;}
+    }
     toast('Agendamento criado.');
     document.getElementById('agenda-cliente-nome').value='';
     document.getElementById('agenda-cliente-telefone').value='';
     document.getElementById('agenda-observacao').value='';
+    document.getElementById('agenda-servicos-adicionais').selectedIndex=-1;
+    document.getElementById('agenda-servico').value='';
+    agendaAtualizarHoraFim(true);
     document.getElementById('agenda-filtro-data').value=data;
     AGENDA_DIA_SELECIONADO=data;
     AGENDA_MES_CURSOR=agendaLocalDate(data);

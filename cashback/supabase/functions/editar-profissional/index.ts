@@ -17,7 +17,7 @@ export default {
         .from('perfis').select('id,role,estabelecimento_id').eq('id', uid).maybeSingle()
       if (qe) return Response.json({ error: `Perfil: ${qe.message}` }, { status: 500 })
       if (!quem || !['admin_master', 'admin_estabelecimento'].includes(quem.role)) {
-        return Response.json({ error: 'Apenas administradores podem editar profissionais.' }, { status: 403 })
+        return Response.json({ error: 'Apenas administradores podem editar os dados da equipe.' }, { status: 403 })
       }
 
       const b = await req.json()
@@ -31,8 +31,11 @@ export default {
       const { data: alvo, error: ae } = await ctx.supabaseAdmin
         .from('perfis').select('id,role,estabelecimento_id').eq('id', profissionalId).maybeSingle()
       if (ae) return Response.json({ error: `Profissional: ${ae.message}` }, { status: 500 })
-      if (!alvo || alvo.role !== 'profissional') return Response.json({ error: 'Profissional não encontrado.' }, { status: 404 })
-      if (quem.role === 'admin_estabelecimento' && alvo.estabelecimento_id !== quem.estabelecimento_id) {
+      if (!alvo || !['profissional','admin_estabelecimento'].includes(alvo.role)) return Response.json({ error: 'Integrante da equipe não encontrado.' }, { status: 404 })
+      if (alvo.role === 'admin_estabelecimento' && quem.role !== 'admin_master') {
+        return Response.json({ error: 'Somente o Admin Master pode editar o administrador da unidade.' }, { status: 403 })
+      }
+      if (quem.role === 'admin_estabelecimento' && (alvo.role !== 'profissional' || alvo.estabelecimento_id !== quem.estabelecimento_id)) {
         return Response.json({ error: 'Este profissional não pertence à sua unidade.' }, { status: 403 })
       }
 
@@ -59,8 +62,8 @@ export default {
       }
 
       const { error: aue } = await ctx.supabaseAdmin.from('auditoria_admin').insert({
-        estabelecimento_id: alvo.estabelecimento_id, ator_id: uid, evento: 'atualização', entidade: 'profissionais', entidade_id: profissionalId,
-        detalhes: { profissional_id: profissionalId, campos: Object.keys({ ...(nome !== undefined ? { nome: true } : {}), ...(email ? { email: true } : {}), ...(senha ? { senha: true } : {}) }) }
+        estabelecimento_id: alvo.estabelecimento_id, ator_id: uid, evento: 'atualização', entidade: alvo.role === 'admin_estabelecimento' ? 'administradores_unidade' : 'profissionais', entidade_id: profissionalId,
+        detalhes: { perfil_id: profissionalId, role: alvo.role, campos: Object.keys({ ...(nome !== undefined ? { nome: true } : {}), ...(email ? { email: true } : {}), ...(senha ? { senha: true } : {}) }) }
       })
       if (aue) console.error('Auditoria edição profissional:', aue.message)
 
