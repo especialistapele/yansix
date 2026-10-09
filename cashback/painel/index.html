@@ -2526,10 +2526,19 @@ async function salvarAgendamento(){
 }
 async function alterarStatusAgendamento(id,status){
   if(!['agendado','confirmado','realizado','faltou','cancelado'].includes(status))return;
-  const {data:antes,error:errAntes}=await sb.from('agendamentos').select('id,estabelecimento_id,atendimento_id').eq('id',id).maybeSingle();
+  const {data:antes,error:errAntes}=await sb.from('agendamentos').select('id,estabelecimento_id,atendimento_id,fim').eq('id',id).maybeSingle();
   if(errAntes||!antes){toast('Não foi possível consultar o agendamento.',true);return;}
+  if(status==='realizado' && antes.fim && new Date(antes.fim)>new Date()){
+    toast('Este atendimento ainda não terminou. Só é possível marcá-lo como realizado após o horário de término.',true);
+    await carregarAgendamentosDia();
+    return;
+  }
   const {error}=await sb.from('agendamentos').update({status}).eq('id',id);
-  if(error){toast('Não foi possível alterar o status: '+error.message,true);await carregarAgendamentosDia();return;}
+  if(error){
+    const msg=String(error.message||error);
+    toast(msg.includes('ATENDIMENTO_AINDA_NAO_TERMINOU')?'Este atendimento ainda não terminou. Aguarde o horário de término para marcá-lo como realizado.':'Não foi possível alterar o status: '+msg,true);
+    await carregarAgendamentosDia();return;
+  }
   if(status==='realizado'&&!antes.atendimento_id){
     const {data:cfg,error:cfgErr}=await sb.from('configuracoes').select('agenda_cashback_modo').eq('estabelecimento_id',antes.estabelecimento_id).maybeSingle();
     if(!cfgErr&&cfg?.agenda_cashback_modo==='automatico'){
