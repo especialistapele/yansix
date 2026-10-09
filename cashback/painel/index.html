@@ -2149,12 +2149,24 @@ async function irParaHojeAgenda(){
 async function selecionarDiaAgenda(value){
   if(!value)return;
   AGENDA_DIA_SELECIONADO=value;
-  AGENDA_MES_CURSOR=agendaLocalDate(value);
+  const nextMonth=agendaLocalDate(value);
+  const monthChanged=!AGENDA_MES_CURSOR ||
+    AGENDA_MES_CURSOR.getFullYear()!==nextMonth.getFullYear() ||
+    AGENDA_MES_CURSOR.getMonth()!==nextMonth.getMonth();
+  AGENDA_MES_CURSOR=nextMonth;
   const filtro=document.getElementById('agenda-filtro-data');
   if(filtro)filtro.value=value;
   const data=document.getElementById('agenda-data');
   if(data)data.value=value;
-  await carregarAgendaCalendario();
+  // No mesmo mês, não refaz a consulta do calendário inteiro: atualiza só a seleção.
+  if(monthChanged){
+    await carregarAgendaCalendario();
+  }else{
+    document.querySelectorAll('#agenda-calendario .agenda-day').forEach(btn=>btn.classList.remove('is-selected'));
+    const selectedBtn=Array.from(document.querySelectorAll('#agenda-calendario .agenda-day'))
+      .find(btn=>btn.getAttribute('aria-label')?.startsWith(value+','));
+    selectedBtn?.classList.add('is-selected');
+  }
   await carregarAgendamentosDia();
 }
 async function carregarAgendaCalendario(){
@@ -2304,11 +2316,16 @@ async function carregarAgendamentosDia(){
   const summary=document.getElementById('agenda-dia-resumo');
   if(title)title.textContent='Agendamentos de '+agendaLocalDate(date).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   const tbody=document.getElementById('agenda-tbody');
+  const slots=document.getElementById('agenda-horarios-grid');
   if(!tbody)return;
-  if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';return;}
+  if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Selecione um estabelecimento para consultar os horários.</div>';return;}
+  if(summary)summary.textContent='Carregando agendamentos e horários disponíveis…';
+  if(tbody)tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;">Carregando o dia selecionado…</td></tr>';
+  if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Carregando horários disponíveis…</div>';
+  try{
   const from=agendaDataLocalISO(date),to=agendaDataLocalISO(date,true);
   const {data:items,error}=await sb.from('agendamentos').select('*').eq('estabelecimento_id',eid).gte('inicio',from).lt('inicio',to).order('inicio');
-  if(error){tbody.innerHTML='<tr><td colspan="7">Erro ao carregar agenda. Confirme se a migração 029 foi aplicada no Supabase.</td></tr>';const slots=document.getElementById('agenda-horarios-grid');if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Não foi possível verificar os horários ocupados.</div>';return;}
+  if(error)throw error;
   renderHorariosDisponiveis(items||[],date);
   const [c,s,p]=await Promise.all([
     sb.from('clientes').select('id,nome,telefone').eq('estabelecimento_id',eid),
@@ -2343,6 +2360,13 @@ async function carregarAgendamentosDia(){
     const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
     return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
   }).join('');
+  }catch(error){
+    console.error('Falha ao carregar os horários da agenda:',error);
+    if(summary)summary.textContent='Não foi possível carregar os dados deste dia.';
+    if(tbody)tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;">Erro ao carregar este dia. Tente novamente; se persistir, verifique a conexão e as permissões da agenda.</td></tr>';
+    if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Não foi possível carregar os horários. Tente selecionar a data novamente.</div>';
+    toast('Não foi possível carregar os horários da agenda.',true);
+  }
 }
 async function salvarAgendamento(){
   const eid=agendaUnitId();
