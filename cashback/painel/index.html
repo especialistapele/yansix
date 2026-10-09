@@ -505,7 +505,7 @@
                 <div class="field"><label>Horário de término *</label><input id="agenda-hora-fim" type="time" /></div>
               </div>
               <div class="field"><label>Observação</label><textarea id="agenda-observacao" rows="2" placeholder="Informações úteis para o atendimento"></textarea></div>
-              <button class="btn btn-primary" id="agenda-salvar-btn" onclick="salvarAgendamento()">＋ Criar agendamento</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-primary" id="agenda-salvar-btn" onclick="salvarAgendamento()">＋ Criar agendamento</button><button class="btn btn-secondary hidden" id="agenda-cancelar-edicao-btn" onclick="cancelarEdicaoAgendamento()">Cancelar edição</button></div>
               <p class="subtle" style="margin-bottom:0;">O término é sugerido pela soma das durações e pode ser ajustado. O valor total e o cashback serão calculados por procedimento; conflitos consideram o intervalo completo.</p>
             </div>
           </div>
@@ -2148,6 +2148,7 @@ function agendaStatusLabel(status){
 function agendaStatusOptions(status){
   return ['agendado','confirmado','realizado','faltou','cancelado'].map(st=>`<option value="${st}" ${st===status?'selected':''}>${agendaStatusLabel(st)}</option>`).join('');
 }
+let AGENDA_EDITANDO_ID = null;
 let AGENDA_MES_CURSOR = null;
 let AGENDA_DIA_SELECIONADO = null;
 let AGENDA_ITENS_MES = [];
@@ -2161,6 +2162,51 @@ function agendaLocalDate(value){
 }
 function agendaMesLabel(d){
   return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+}
+function cancelarEdicaoAgendamento(){
+  AGENDA_EDITANDO_ID=null;
+  const btn=document.getElementById('agenda-salvar-btn');
+  if(btn)btn.textContent='＋ Criar agendamento';
+  document.getElementById('agenda-cancelar-edicao-btn')?.classList.add('hidden');
+  ['agenda-cliente-nome','agenda-cliente-telefone','agenda-observacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const service=document.getElementById('agenda-servico');if(service)service.value='';
+  const extra=document.getElementById('agenda-servicos-adicionais');if(extra)extra.selectedIndex=-1;
+  const prof=document.getElementById('agenda-profissional');if(prof)prof.value='';
+  agendaAtualizarHoraFim(true);
+}
+async function editarAgendamento(id){
+  const eid=agendaUnitId();
+  if(!eid){toast('Selecione uma unidade antes de editar.',true);return;}
+  const {data:a,error}=await sb.from('agendamentos').select('*').eq('id',id).eq('estabelecimento_id',eid).maybeSingle();
+  if(error||!a){toast('Não foi possível carregar este agendamento para edição.',true);return;}
+  if(!['agendado','confirmado'].includes(a.status)||a.atendimento_id){toast('Só é possível editar agendamentos ainda não realizados, faltados ou cancelados.',true);return;}
+  const [{data:cliente,error:cliErr},{data:extras,error:extraErr}]=await Promise.all([
+    sb.from('clientes').select('id,nome,telefone').eq('id',a.cliente_id).maybeSingle(),
+    sb.from('agendamento_procedimentos').select('servico_id,ordem').eq('agendamento_id',id).order('ordem')
+  ]);
+  if(cliErr||extraErr||!cliente){toast('Não foi possível carregar os dados do cliente/procedimentos.',true);return;}
+  document.getElementById('agenda-form-body')?.classList.remove('hidden');
+  document.getElementById('agenda-cliente-nome').value=cliente.nome||'';
+  document.getElementById('agenda-cliente-telefone').value=cliente.telefone||'';
+  document.getElementById('agenda-servico').value=a.servico_id||'';
+  const extraSel=document.getElementById('agenda-servicos-adicionais');
+  if(extraSel){const ids=new Set((extras||[]).map(x=>x.servico_id));Array.from(extraSel.options).forEach(o=>o.selected=ids.has(o.value));}
+  document.getElementById('agenda-profissional').value=a.profissional_id||'';
+  const data=a.inicio?new Date(a.inicio):new Date();
+  const dateStr=agendaFormatLocalDate(data);
+  document.getElementById('agenda-data').value=dateStr;
+  document.getElementById('agenda-hora').value=data.toTimeString().slice(0,5);
+  const fim=a.fim?new Date(a.fim):new Date(data.getTime()+Math.max(5,Number(a.duracao_min)||30)*60000);
+  document.getElementById('agenda-hora-fim').value=fim.toTimeString().slice(0,5);
+  document.getElementById('agenda-observacao').value=a.observacao||'';
+  AGENDA_EDITANDO_ID=id;
+  const btn=document.getElementById('agenda-salvar-btn');if(btn)btn.textContent='✓ Salvar alterações';
+  document.getElementById('agenda-cancelar-edicao-btn')?.classList.remove('hidden');
+  AGENDA_DIA_SELECIONADO=dateStr;AGENDA_MES_CURSOR=agendaLocalDate(dateStr);
+  const filtro=document.getElementById('agenda-filtro-data');if(filtro)filtro.value=dateStr;
+  await carregarAgendaCalendario();await carregarAgendamentosDia();
+  document.getElementById('agenda-form-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Agendamento carregado para edição.');
 }
 function abrirNovoAgendamento(){
   const panel=document.getElementById('agenda-form-panel');
