@@ -2482,12 +2482,12 @@ async function salvarAgendamento(){
       const upd=await sb.from('clientes').update({nome}).eq('id',clienteId);
       if(upd.error)throw upd.error;
     }
-    const {error}=await sb.from('agendamentos').insert({
+    const {data:agendamento,error}=await sb.from('agendamentos').insert({
       estabelecimento_id:eid,cliente_id:clienteId,servico_id:servicoId,
       profissional_id:profissional,inicio:start.toISOString(),duracao_min:duracaoManual,observacao:observacao||null,criado_por:MEU_ID
     }).select('id').single();
     if(error)throw error;
-    const agendamentoId=data?.id;
+    const agendamentoId=agendamento?.id;
     if(servicosAdicionais.length){
       const snapshots=servicosAdicionais.map(sid=>{const s=AGENDA_SERVICOS_ATIVOS.find(x=>x.id===sid);return {agendamento_id:agendamentoId,servico_id:sid,valor_snapshot:Number(s?.valor)||0,duracao_min_snapshot:Math.max(5,Number(s?.duracao_min)||30),cashback_pct_snapshot:Math.max(0,Number(s?.cashback_pct)||0)};});
       const extras=await sb.from('agendamento_procedimentos').insert(snapshots);
