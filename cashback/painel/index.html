@@ -2417,7 +2417,10 @@ async function carregarAgendamentosDia(){
     sb.from('servicos').select('id,nome').eq('estabelecimento_id',eid),
     sb.from('perfis').select('id,nome').eq('estabelecimento_id',eid).eq('role','profissional')
   ]);
-  const clients=new Map((c.data||[]).map(x=>[x.id,x]));
+  const {data:procedimentos,error:procErr}=items?.length?await sb.from('agendamento_procedimentos').select('agendamento_id,ordem,servicos(nome)').in('agendamento_id',items.map(a=>a.id)).order('ordem'): {data:[],error:null};
+   if(procErr)throw procErr;
+   const procMap=new Map();(procedimentos||[]).forEach(x=>{if(!procMap.has(x.agendamento_id))procMap.set(x.agendamento_id,[]);if(x.servicos?.nome)procMap.get(x.agendamento_id).push(x.servicos.nome);});
+   const clients=new Map((c.data||[]).map(x=>[x.id,x]));
   const services=new Map((s.data||[]).map(x=>[x.id,x]));
   const pros=new Map((p.data||[]).map(x=>[x.id,x]));
   renderHorariosDisponiveis(items||[],date,clients,services,pros);
@@ -2426,14 +2429,16 @@ async function carregarAgendamentosDia(){
   if(pendingBox){
     pendingBox.innerHTML=pendencias.length?pendencias.map(a=>{
       const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{};
+       const nomesProcedimentos=[srv.nome||'Serviço',...(procMap.get(a.id)||[])];
       const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(srv.nome||'Serviço')}</span><div class="subtle">Atendimento realizado, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
+      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(nomesProcedimentos.join(' + '))}</span><div class="subtle">Atendimento realizado, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
     }).join(''):'';
   }
   if(summary)summary.textContent=(items?.length||0)+' agendamento(s) · '+pendencias.length+' lançamento(s) de cashback pendente(s)';
   if(!items?.length){tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">Nenhum agendamento nesta data. Selecione outro dia ou crie um novo agendamento.</td></tr>';return;}
   tbody.innerHTML=items.map(a=>{
     const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{},pro=pros.get(a.profissional_id)||{};
+     const nomesProcedimentos=[srv.nome||'Serviço',...(procMap.get(a.id)||[])];
     const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const terminal=['cancelado','realizado','faltou'].includes(a.status);
@@ -2444,7 +2449,7 @@ async function carregarAgendamentosDia(){
         : `<button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button>`)
       : '';
     const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
-    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
+    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(nomesProcedimentos.join(' + '))}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
   }).join('');
   }catch(error){
     console.error('Falha ao carregar os horários da agenda:',error);
