@@ -180,7 +180,7 @@ CREATE TRIGGER trg_validar_agendamento
 
 -- Auditoria específica da agenda, mantendo cliente e profissional vinculados ao evento.
 CREATE OR REPLACE FUNCTION public.registrar_auditoria_agendamento()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE eid uuid; ent uuid; pid uuid; cid uuid; det jsonb;
 BEGIN
   IF TG_OP='DELETE' THEN
