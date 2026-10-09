@@ -703,6 +703,13 @@
             </label>
             <p class="subtle" style="margin-top:0;">O percentual de cashback é definido por serviço (tela Serviços). Aqui você define só a validade do saldo.</p>
             <div class="field"><label>Saldo expira em (dias)</label><input type="number" id="cfg-cashback-dias" placeholder="90" /></div>
+            <div class="field" id="cfg-agenda-cashback-modo-box"><label>Cashback ao concluir pela Agenda</label>
+              <select id="cfg-agenda-cashback-modo">
+                <option value="manual">Manual — revisar e clicar em “Computar cashback”</option>
+                <option value="automatico">Automático — creditar ao concluir o atendimento</option>
+              </select>
+              <p class="subtle" style="margin:6px 0 0;">O modo manual é o padrão. O automático usa as regras de pontos e cashback já cadastradas para o serviço.</p>
+            </div>
             <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar</button>
           </div>
         </div>
@@ -1387,6 +1394,10 @@ async function carregarConfiguracoes(){
   document.getElementById('cfg-valor-por-ponto').value = data.valor_por_ponto ?? 1;
   document.getElementById('cfg-cashback-ativo').checked = !!data.cashback_ativo;
   document.getElementById('cfg-cashback-dias').value = data.cashback_expiracao_dias ?? 90;
+  const agendaModo=document.getElementById('cfg-agenda-cashback-modo');
+  if(agendaModo)agendaModo.value=data.agenda_cashback_modo==='automatico'?'automatico':'manual';
+  const agendaModoBox=document.getElementById('cfg-agenda-cashback-modo-box');
+  if(agendaModoBox)agendaModoBox.style.display=MEU_PAPEL==='profissional'?'none':'';
   document.getElementById('cfg-mkt-inatividade-ativo').checked = !!data.inatividade_ativo;
   document.getElementById('cfg-mkt-inatividade-dias').value = data.inatividade_dias ?? 45;
   document.getElementById('cfg-mkt-lembrete-ativo').checked = !!data.lembrete_pontos_ativo;
@@ -1434,6 +1445,7 @@ async function salvarConfiguracoes(){
     valor_por_ponto: parseFloat(document.getElementById('cfg-valor-por-ponto').value) || 1,
     cashback_ativo: document.getElementById('cfg-cashback-ativo').checked,
     cashback_expiracao_dias: parseInt(document.getElementById('cfg-cashback-dias').value) || 90,
+    agenda_cashback_modo: MEU_PAPEL==='profissional' ? (CONFIGURACOES?.agenda_cashback_modo||'manual') : (document.getElementById('cfg-agenda-cashback-modo')?.value==='automatico'?'automatico':'manual'),
     inatividade_ativo: document.getElementById('cfg-mkt-inatividade-ativo').checked,
     inatividade_dias: parseInt(document.getElementById('cfg-mkt-inatividade-dias').value) || 45,
     lembrete_pontos_ativo: document.getElementById('cfg-mkt-lembrete-ativo').checked,
@@ -2091,7 +2103,13 @@ async function carregarAgendamentosDia(){
     const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const terminal=['cancelado','concluido','faltou'].includes(a.status);
     const actions=terminal?'—':`<select aria-label="Alterar status" onchange="alterarStatusAgendamento('${a.id}',this.value)">${agendaStatusOptions(a.status)}</select>`;
-    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actions}</td></tr>`;
+    const cashbackAction=a.status==='concluido'
+      ? (a.atendimento_id
+        ? '<span class="subtle">Cashback computado</span>'
+        : `<button class="btn btn-primary" style="padding:7px 10px;font-size:12px;white-space:nowrap;" onclick="computarCashbackAgendamento('${a.id}')">Computar cashback</button>`)
+      : '';
+    const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
+    return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
   }).join('');
 }
 async function salvarAgendamento(){
@@ -2141,10 +2159,33 @@ async function salvarAgendamento(){
 }
 async function alterarStatusAgendamento(id,status){
   if(!['agendado','confirmado','concluido','faltou','cancelado'].includes(status))return;
+  const {data:antes,error:errAntes}=await sb.from('agendamentos').select('id,estabelecimento_id,atendimento_id').eq('id',id).maybeSingle();
+  if(errAntes||!antes){toast('Não foi possível consultar o agendamento.',true);return;}
   const {error}=await sb.from('agendamentos').update({status}).eq('id',id);
   if(error){toast('Não foi possível alterar o status: '+error.message,true);await carregarAgendamentosDia();return;}
-  toast('Status do agendamento atualizado.');
+  if(status==='concluido'&&!antes.atendimento_id){
+    const {data:cfg,error:cfgErr}=await sb.from('configuracoes').select('agenda_cashback_modo').eq('estabelecimento_id',antes.estabelecimento_id).maybeSingle();
+    if(!cfgErr&&cfg?.agenda_cashback_modo==='automatico'){
+      await computarCashbackAgendamento(id,{automatico:true,silencioso:true});
+    }else toast('Atendimento concluído. O cashback está no modo manual.');
+  }else toast('Status do agendamento atualizado.');
   await carregarAgendamentosDia();
+}
+async function computarCashbackAgendamento(id,opts={}){
+  const {data,error}=await sb.rpc('processar_cashback_agendamento',{p_agendamento_id:id,p_usar_cashback:false});
+  if(error||data?.error){
+    const msg=error?.message||data?.error||'operação inválida';
+    if(!opts.silencioso)toast('Não foi possível computar o cashback: '+msg,true);
+    else toast('Atendimento concluído, mas o cashback automático falhou. Corrija o motivo e use “Computar cashback” para tentar novamente. '+msg,true);
+    await carregarAgendamentosDia();
+    return false;
+  }
+  const d=data?.resultado||data;
+  let msg=data?.ja_processado?'Este agendamento já tinha sido computado.':`Atendimento computado: ${Number(d?.pontos||0)} pontos`;
+  if(Number(d?.cashback)>0)msg+=` + ${fmtMoney(d.cashback)} de cashback`;
+  toast(msg+'.');
+  await carregarAgendamentosDia();
+  return true;
 }
 
 // ---------- REGISTRAR PONTUAÇÃO ----------
