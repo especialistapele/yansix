@@ -2135,7 +2135,7 @@ function agendaDataLocalISO(data, proximoDia=false){
   return d.toISOString();
 }
 function agendaStatusLabel(status){
-  return ({agendado:'Agendado',confirmado:'Confirmado',realizado:'Concluído',cancelado:'Cancelado',faltou:'Faltou'})[status]||status;
+  return ({agendado:'Agendado',confirmado:'Confirmado',realizado:'Realizado',cancelado:'Cancelado',faltou:'Faltou'})[status]||status;
 }
 function agendaStatusOptions(status){
   return ['agendado','confirmado','realizado','faltou','cancelado'].map(st=>`<option value="${st}" ${st===status?'selected':''}>${agendaStatusLabel(st)}</option>`).join('');
