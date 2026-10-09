@@ -172,12 +172,27 @@ $$;
 
 DROP TRIGGER IF EXISTS trg_validar_agendamento ON public.agendamentos;
 CREATE TRIGGER trg_validar_agendamento
-  BEFORE INSERT OR UPDATE OF estabelecimento_id, cliente_id, servico_id, profissional_id, inicio, status
+  BEFORE INSERT OR UPDATE
   ON public.agendamentos
   FOR EACH ROW EXECUTE FUNCTION public.validar_agendamento();
 
--- Mantém a trilha de auditoria existente para alterações da agenda.
+-- Auditoria específica da agenda, mantendo cliente e profissional vinculados ao evento.
+CREATE OR REPLACE FUNCTION public.registrar_auditoria_agendamento()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $
+DECLARE eid uuid; ent uuid; pid uuid; cid uuid; det jsonb;
+BEGIN
+  IF TG_OP='DELETE' THEN
+    eid:=OLD.estabelecimento_id; ent:=OLD.id; pid:=OLD.profissional_id; cid:=OLD.cliente_id;
+  ELSE
+    eid:=NEW.estabelecimento_id; ent:=NEW.id; pid:=NEW.profissional_id; cid:=NEW.cliente_id;
+  END IF;
+  det:=jsonb_build_object('operation',lower(TG_OP),'profissional_id',pid,'cliente_id',cid,'agenda',true);
+  INSERT INTO public.auditoria_admin(estabelecimento_id,ator_id,profissional_id,cliente_id,evento,entidade,entidade_id,detalhes)
+  VALUES(eid,auth.uid(),pid,cid,lower(TG_OP),'agendamentos',ent,det);
+  RETURN COALESCE(NEW,OLD);
+END;
+$;
 DROP TRIGGER IF EXISTS trg_auditoria_agendamentos ON public.agendamentos;
 CREATE TRIGGER trg_auditoria_agendamentos
   AFTER INSERT OR UPDATE OR DELETE ON public.agendamentos
-  FOR EACH ROW EXECUTE FUNCTION public.registrar_auditoria();
+  FOR EACH ROW EXECUTE FUNCTION public.registrar_auditoria_agendamento();
