@@ -2135,6 +2135,7 @@ async function salvarAgendamento(){
     const msg=String(e?.message||e);
     if(msg.includes('CONFLITO_HORARIO_AGENDAMENTO'))toast('Esse horário conflita com outro agendamento. Escolha outro horário.',true);
     else if(msg.includes('SERVICO_VINCULADO_A_OUTRO_PROFISSIONAL'))toast('Esse serviço está vinculado a outro profissional.',true);
+    else if(msg.includes('CLIENTE_PROFISSIONAL_NAO_AUTORIZADO'))toast('Este cliente só pode ser atendido pelos profissionais autorizados no cadastro.',true);
     else toast('Não foi possível salvar o agendamento: '+msg,true);
   }finally{btn.disabled=false;btn.textContent='＋ Criar agendamento';}
 }
