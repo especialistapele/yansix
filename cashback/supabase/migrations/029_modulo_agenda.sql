@@ -220,3 +220,102 @@ DROP TRIGGER IF EXISTS trg_auditoria_agendamentos ON public.agendamentos;
 CREATE TRIGGER trg_auditoria_agendamentos
   AFTER INSERT OR UPDATE OR DELETE ON public.agendamentos
   FOR EACH ROW EXECUTE FUNCTION public.registrar_auditoria_agendamento();
+
+
+-- Integração idempotente do cashback com o encerramento de agendamentos.
+ALTER TABLE public.configuracoes
+  ADD COLUMN IF NOT EXISTS agenda_cashback_modo text NOT NULL DEFAULT 'manual';
+ALTER TABLE public.configuracoes
+  DROP CONSTRAINT IF EXISTS configuracoes_agenda_cashback_modo_check;
+ALTER TABLE public.configuracoes
+  ADD CONSTRAINT configuracoes_agenda_cashback_modo_check
+  CHECK (agenda_cashback_modo IN ('manual','automatico'));
+
+ALTER TABLE public.agendamentos
+  ADD COLUMN IF NOT EXISTS atendimento_id uuid REFERENCES public.atendimentos(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS cashback_processado_at timestamptz,
+  ADD COLUMN IF NOT EXISTS cashback_resultado jsonb;
+
+CREATE UNIQUE INDEX IF NOT EXISTS agendamentos_atendimento_id_unique
+  ON public.agendamentos(atendimento_id) WHERE atendimento_id IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION public.processar_cashback_agendamento(
+  p_agendamento_id uuid,
+  p_usar_cashback boolean DEFAULT false
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  ag public.agendamentos%ROWTYPE;
+  cfg_modo text;
+  resultado jsonb;
+  role_atual text;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'AUTENTICACAO_OBRIGATORIA';
+  END IF;
+
+  role_atual := public.minha_role();
+  SELECT * INTO ag FROM public.agendamentos WHERE id=p_agendamento_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'AGENDAMENTO_NAO_ENCONTRADO'; END IF;
+
+  IF role_atual <> 'admin_master'
+     AND ag.estabelecimento_id IS DISTINCT FROM public.meu_estabelecimento_id() THEN
+    RAISE EXCEPTION 'ACESSO_UNIDADE_NEGADO';
+  END IF;
+  IF role_atual NOT IN ('admin_master','admin_estabelecimento','profissional') THEN
+    RAISE EXCEPTION 'PERMISSAO_NEGADA';
+  END IF;
+  IF role_atual='profissional' AND ag.profissional_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'AGENDAMENTO_DE_OUTRO_PROFISSIONAL';
+  END IF;
+  IF ag.status <> 'concluido' THEN
+    RAISE EXCEPTION 'AGENDAMENTO_PRECISA_ESTAR_CONCLUIDO';
+  END IF;
+
+  IF ag.atendimento_id IS NOT NULL THEN
+    RETURN jsonb_build_object(
+      'ja_processado', true,
+      'atendimento_id', ag.atendimento_id,
+      'resultado', coalesce(ag.cashback_resultado,'{}'::jsonb)
+    );
+  END IF;
+
+  SELECT agenda_cashback_modo INTO cfg_modo
+  FROM public.configuracoes WHERE estabelecimento_id=ag.estabelecimento_id;
+  IF cfg_modo IS NULL THEN cfg_modo := 'manual'; END IF;
+
+  IF ag.profissional_id IS NULL THEN
+    RAISE EXCEPTION 'SELECIONE_PROFISSIONAL_ANTES_DE_COMPUTAR';
+  END IF;
+
+  resultado := public.registrar_atendimento_pontuacao(
+    ag.estabelecimento_id,
+    ag.cliente_id,
+    ag.servico_id,
+    ag.profissional_id,
+    coalesce(p_usar_cashback,false),
+    'Computado pela Agenda ' || ag.id::text
+  );
+
+  UPDATE public.agendamentos
+  SET atendimento_id=(resultado->>'atendimento_id')::uuid,
+      cashback_processado_at=now(),
+      cashback_resultado=resultado,
+      updated_at=now()
+  WHERE id=ag.id;
+
+  RETURN jsonb_build_object(
+    'ja_processado', false,
+    'modo_configurado', cfg_modo,
+    'atendimento_id', resultado->>'atendimento_id',
+    'resultado', resultado
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.processar_cashback_agendamento(uuid,boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.processar_cashback_agendamento(uuid,boolean) TO authenticated, service_role;
