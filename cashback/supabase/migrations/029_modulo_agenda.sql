@@ -266,7 +266,7 @@ BEGIN
      AND ag.estabelecimento_id IS DISTINCT FROM public.meu_estabelecimento_id() THEN
     RAISE EXCEPTION 'ACESSO_UNIDADE_NEGADO';
   END IF;
-  IF role_atual NOT IN ('admin_master','admin_estabelecimento','profissional') THEN
+  IF role_atual IS NULL OR role_atual NOT IN ('admin_master','admin_estabelecimento','profissional') THEN
     RAISE EXCEPTION 'PERMISSAO_NEGADA';
   END IF;
   IF role_atual='profissional' AND ag.profissional_id IS DISTINCT FROM auth.uid() THEN
