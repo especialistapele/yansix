@@ -108,6 +108,8 @@ AS $$
 DECLARE
   srv public.servicos%ROWTYPE;
   cli_est uuid;
+  cli_regra text;
+  cli_principal uuid;
   prof_est uuid;
   prof_role text;
 BEGIN
@@ -123,7 +125,8 @@ BEGIN
     RAISE EXCEPTION 'SERVICO_UNIDADE_INVALIDO_OU_INATIVO';
   END IF;
 
-  SELECT estabelecimento_id INTO cli_est
+  SELECT estabelecimento_id, atendimento_regra, profissional_principal_id
+    INTO cli_est, cli_regra, cli_principal
   FROM public.clientes WHERE id = NEW.cliente_id;
   IF cli_est IS NULL OR cli_est <> NEW.estabelecimento_id THEN
     RAISE EXCEPTION 'CLIENTE_UNIDADE_INVALIDA';
@@ -132,8 +135,21 @@ BEGIN
   IF NEW.profissional_id IS NULL AND srv.profissional_id IS NOT NULL THEN
     NEW.profissional_id := srv.profissional_id;
   END IF;
+  IF NEW.profissional_id IS NULL AND cli_principal IS NOT NULL THEN
+    NEW.profissional_id := cli_principal;
+  END IF;
   IF srv.profissional_id IS NOT NULL AND NEW.profissional_id IS DISTINCT FROM srv.profissional_id THEN
     RAISE EXCEPTION 'SERVICO_VINCULADO_A_OUTRO_PROFISSIONAL';
+  END IF;
+  IF cli_regra = 'selecionados' AND (
+    NEW.profissional_id IS NULL OR NOT EXISTS (
+      SELECT 1 FROM public.cliente_profissionais cp
+      WHERE cp.cliente_id = NEW.cliente_id
+        AND cp.estabelecimento_id = NEW.estabelecimento_id
+        AND cp.profissional_id = NEW.profissional_id
+    )
+  ) THEN
+    RAISE EXCEPTION 'CLIENTE_PROFISSIONAL_NAO_AUTORIZADO';
   END IF;
 
   IF NEW.profissional_id IS NOT NULL THEN
