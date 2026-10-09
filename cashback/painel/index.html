@@ -236,6 +236,17 @@
   .agenda-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;color:var(--muted);font-size:12px;}
   .agenda-legend span{display:flex;align-items:center;gap:6px;}
   .agenda-calendar-empty{grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);}
+  .agenda-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;}
+  .agenda-slot{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:10px 12px;border:1px solid #B7D9C1;border-radius:9px;background:#F0FAF3;color:#245C36;cursor:pointer;min-height:60px;}
+  .agenda-slot strong{font-size:14px;}
+  .agenda-slot span{font-size:11px;}
+  .agenda-slot:hover{border-color:#4C9B67;background:#E4F6E9;}
+  .agenda-slot.is-busy{background:#F7F3F2;border-color:#E5DAD7;color:#887B78;cursor:not-allowed;opacity:.85;}
+  .agenda-slot.is-past{background:#F4F4F4;border-color:#E4E4E4;color:#A0A0A0;cursor:not-allowed;}
+  .agenda-slots-legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:0 0 12px;}
+  .agenda-slots-legend span{display:flex;align-items:center;gap:6px;}
+  .agenda-slot-swatch{width:10px;height:10px;border-radius:3px;display:inline-block;background:#F0FAF3;border:1px solid #B7D9C1;}
+  .agenda-slot-swatch.busy{background:#F7F3F2;border-color:#E5DAD7;}
   .agenda-cashback-pending{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;border:1px solid #E8C98B;background:#FFF8E9;border-radius:10px;margin-bottom:12px;}
   .agenda-cashback-pending strong{display:block;color:#6F4A0C;margin-bottom:3px;}
   .agenda-cashback-pending .btn{width:auto;white-space:nowrap;}
@@ -440,6 +451,13 @@
                 <div class="agenda-calendar-empty">Carregando calendário…</div>
               </div>
               <div class="agenda-legend"><span><i class="agenda-dot agenda-dot-booked"></i> Com agendamentos</span><span><i class="agenda-dot agenda-dot-done"></i> Concluídos</span><span><i class="agenda-dot agenda-dot-pending"></i> Pendentes</span></div>
+            </div>
+          </div>
+          <div class="panel" style="margin-bottom:16px;" id="agenda-horarios-panel">
+            <div class="panel-head"><div><h3>Horários do dia</h3><p class="subtle" id="agenda-horarios-subtitulo" style="margin:5px 0 0;">Selecione um horário livre para iniciar um agendamento.</p></div></div>
+            <div class="panel-body">
+              <div class="agenda-slots-legend"><span><i class="agenda-slot-swatch"></i> Livre</span><span><i class="agenda-slot-swatch busy"></i> Ocupado</span><span>Intervalos de 30 minutos · expediente padrão exibido das 08h às 20h</span></div>
+              <div id="agenda-horarios-grid" class="agenda-slots"><div class="agenda-calendar-empty">Selecione uma data para consultar os horários.</div></div>
             </div>
           </div>
           <div class="panel" style="margin-bottom:16px;">
@@ -2084,6 +2102,7 @@ function agendaStatusOptions(status){
 let AGENDA_MES_CURSOR = null;
 let AGENDA_DIA_SELECIONADO = null;
 let AGENDA_ITENS_MES = [];
+let AGENDA_SERVICOS_ATIVOS = [];
 function agendaFormatLocalDate(d){
   return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 }
@@ -2211,6 +2230,7 @@ async function renderAgenda(){
     sb.from('perfis').select('id,nome').eq('estabelecimento_id',eid).eq('role','profissional').order('nome')
   ]);
   if(errServ||errProf){toast('Não foi possível carregar os serviços/profissionais da agenda.',true);return;}
+  AGENDA_SERVICOS_ATIVOS=servicos||[];
   const serviceSel=document.getElementById('agenda-servico');
   const serviceCurrent=serviceSel.value;
   serviceSel.innerHTML='<option value="">Selecione um serviço ativo</option>'+(servicos||[]).map(s=>`<option value="${s.id}">${agendaEsc(s.nome)} — ${fmtMoney(s.valor)} · ${Number(s.duracao_min||30)} min</option>`).join('');
@@ -2221,13 +2241,61 @@ async function renderAgenda(){
   profSel.innerHTML=(isProfessional?'':'<option value="">Qualquer profissional</option>')+(profs||[]).map(p=>`<option value="${p.id}">${agendaEsc(p.nome||'Profissional')}</option>`).join('');
   if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
   else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
-  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } };
-  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; };
+  serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } carregarAgendamentosDia(); };
+  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; carregarAgendamentosDia(); };
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
   if(!AGENDA_DIA_SELECIONADO)AGENDA_DIA_SELECIONADO=today;
   if(!AGENDA_MES_CURSOR)AGENDA_MES_CURSOR=agendaLocalDate(AGENDA_DIA_SELECIONADO);
   await carregarAgendaCalendario();
   await carregarAgendamentosDia();
+}
+function agendaDuracaoSelecionada(){
+  const id=document.getElementById('agenda-servico')?.value;
+  const srv=AGENDA_SERVICOS_ATIVOS.find(s=>s.id===id);
+  return Math.max(5,Number(srv?.duracao_min)||30);
+}
+function selecionarHorarioAgenda(hora){
+  const data=AGENDA_DIA_SELECIONADO||agendaDataHoje();
+  const horaInput=document.getElementById('agenda-hora');
+  const dataInput=document.getElementById('agenda-data');
+  const filtro=document.getElementById('agenda-filtro-data');
+  if(horaInput)horaInput.value=hora;
+  if(dataInput)dataInput.value=data;
+  if(filtro)filtro.value=data;
+  document.getElementById('agenda-form-body')?.classList.remove('hidden');
+  document.getElementById('agenda-form-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('agenda-cliente-nome')?.focus({preventScroll:true});
+}
+function renderHorariosDisponiveis(items,date){
+  const grid=document.getElementById('agenda-horarios-grid');
+  const subtitle=document.getElementById('agenda-horarios-subtitulo');
+  if(!grid)return;
+  const duracao=agendaDuracaoSelecionada();
+  const prof=document.getElementById('agenda-profissional')?.value||null;
+  if(subtitle)subtitle.textContent='Disponibilidade em '+agendaLocalDate(date).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})+' · duração considerada: '+duracao+' min'+(document.getElementById('agenda-servico')?.value?' (serviço selecionado)':' (estimativa até selecionar o serviço)');
+  const inicioExpediente=8*60, fimExpediente=20*60, passo=30;
+  const now=new Date();
+  let html='';
+  for(let minute=inicioExpediente;minute<fimExpediente;minute+=passo){
+    const hh=String(Math.floor(minute/60)).padStart(2,'0'),mm=String(minute%60).padStart(2,'0');
+    const hora=hh+':'+mm;
+    const start=new Date(date+'T'+hora+':00');
+    const end=new Date(start.getTime()+duracao*60000);
+    const endMinutes=end.getHours()*60+end.getMinutes();
+    const outside=end.toDateString()!==start.toDateString()||endMinutes>fimExpediente;
+    const past=start<=now;
+    const conflict=(items||[]).find(a=>{
+      if(a.status==='cancelado')return false;
+      if(prof && a.profissional_id && a.profissional_id!==prof)return false;
+      const aStart=new Date(a.inicio),aEnd=new Date(a.fim);
+      return start<aEnd && end>aStart;
+    });
+    const busy=outside||!!conflict;
+    const label=outside?'Fora do expediente':conflict?'Ocupado':past?'Horário passado':'Livre para agendar';
+    html+='<button type="button" class="agenda-slot'+(busy?' is-busy':'')+(past?' is-past':'')+'" data-agenda-hora="'+hora+'" '+(busy||past?'disabled':'')+' aria-label="'+hora+' - '+label+'"><strong>'+hora+'</strong><span>'+label+'</span></button>';
+  }
+  grid.innerHTML=html||'<div class="agenda-calendar-empty">Não há horários disponíveis nesta data.</div>';
+  grid.querySelectorAll('button[data-agenda-hora]:not(:disabled)').forEach(btn=>btn.addEventListener('click',()=>selecionarHorarioAgenda(btn.dataset.agendaHora)));
 }
 async function carregarAgendamentosDia(){
   const eid=agendaUnitId(), date=document.getElementById('agenda-filtro-data')?.value||AGENDA_DIA_SELECIONADO||agendaDataHoje();
@@ -2240,7 +2308,8 @@ async function carregarAgendamentosDia(){
   if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';return;}
   const from=agendaDataLocalISO(date),to=agendaDataLocalISO(date,true);
   const {data:items,error}=await sb.from('agendamentos').select('*').eq('estabelecimento_id',eid).gte('inicio',from).lt('inicio',to).order('inicio');
-  if(error){tbody.innerHTML='<tr><td colspan="7">Erro ao carregar agenda. Confirme se a migração 029 foi aplicada no Supabase.</td></tr>';return;}
+  if(error){tbody.innerHTML='<tr><td colspan="7">Erro ao carregar agenda. Confirme se a migração 029 foi aplicada no Supabase.</td></tr>';const slots=document.getElementById('agenda-horarios-grid');if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Não foi possível verificar os horários ocupados.</div>';return;}
+  renderHorariosDisponiveis(items||[],date);
   const [c,s,p]=await Promise.all([
     sb.from('clientes').select('id,nome,telefone').eq('estabelecimento_id',eid),
     sb.from('servicos').select('id,nome').eq('estabelecimento_id',eid),
