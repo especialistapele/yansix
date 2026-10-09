@@ -193,7 +193,7 @@ BEGIN
   VALUES(eid,auth.uid(),pid,cid,lower(TG_OP),'agendamentos',ent,det);
   RETURN COALESCE(NEW,OLD);
 END;
-$;
+$$;
 REVOKE ALL ON FUNCTION public.registrar_auditoria_agendamento() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.registrar_auditoria_agendamento() TO authenticated, service_role;
 DROP TRIGGER IF EXISTS trg_auditoria_agendamentos ON public.agendamentos;
