@@ -168,7 +168,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$;
+$$;
 REVOKE ALL ON FUNCTION public.validar_agendamento() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.validar_agendamento() TO authenticated, service_role;
 
@@ -194,6 +194,8 @@ BEGIN
   RETURN COALESCE(NEW,OLD);
 END;
 $;
+REVOKE ALL ON FUNCTION public.registrar_auditoria_agendamento() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.registrar_auditoria_agendamento() TO authenticated, service_role;
 DROP TRIGGER IF EXISTS trg_auditoria_agendamentos ON public.agendamentos;
 CREATE TRIGGER trg_auditoria_agendamentos
   AFTER INSERT OR UPDATE OR DELETE ON public.agendamentos
