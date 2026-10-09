@@ -1026,7 +1026,7 @@
     document.body.style.overflow="";
   }
 
-  document.querySelectorAll(".sistema-produto-card").forEach(function(card){
+  document.querySelectorAll(".sistema-produto-card[data-sistema]").forEach(function(card){
     card.addEventListener("click",function(){abrir(card.dataset.sistema);});
   });
   document.getElementById("fecharModal").addEventListener("click",fechar);
