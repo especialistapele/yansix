@@ -2488,14 +2488,21 @@ async function carregarAgendamentosDia(){
     const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const terminal=['cancelado','realizado','faltou'].includes(a.status);
-    const editAction=['agendado','confirmado'].includes(a.status)&&!a.atendimento_id?'<button class="agenda-cashback-action" style="margin-top:6px" onclick="editarAgendamento(\''+a.id+'\')">✎ Editar agendamento</button>':'';
+    const podeGerenciar=['agendado','confirmado'].includes(a.status)&&!a.atendimento_id;
+    const editAction=podeGerenciar?'<button class="agenda-cashback-action" style="margin-top:6px" onclick="editarAgendamento(\\''+a.id+'\\')">✎ Editar agendamento</button>':'';
+    const deleteAction=podeGerenciar?'<button class="agenda-cashback-action" style="margin-top:6px;background:#fff0f0;color:#a61b1b;border:1px solid #f0b6b6" onclick="excluirAgendamento(\\''+a.id+'\\')">🗑 Excluir agendamento</button>':'';
     const actions=terminal?'—':`<select aria-label="Alterar status" onchange="alterarStatusAgendamento('${a.id}',this.value)">${agendaStatusOptions(a.status)}</select>`;
     const cashbackAction=a.status==='realizado'
       ? (a.atendimento_id
         ? '<span class="agenda-cashback-done">✓ Cashback computado</span>'
         : `<button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button>`)
       : '';
-    const actionsCell=(actions==='—'?'':actions)+(editAction?((actions==='—'?'':'<br>')+editAction):'')+(cashbackAction?((actions==='—'&&!editAction?'':'<br>')+cashbackAction):((actions==='—'&&!editAction)?'—':''));
+    const actionParts=[];
+    if(actions!=='—')actionParts.push(actions);
+    if(editAction)actionParts.push(editAction);
+    if(deleteAction)actionParts.push(deleteAction);
+    if(cashbackAction)actionParts.push(cashbackAction);
+    const actionsCell=actionParts.length?actionParts.join('<br>'):'—';
     return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(nomesProcedimentos.join(' + '))}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
   }).join('');
   }catch(error){
@@ -2586,6 +2593,22 @@ async function salvarAgendamento(){
     else toast('Não foi possível salvar o agendamento: '+msg,true);
   }finally{btn.disabled=false;btn.textContent='＋ Criar agendamento';}
 }
+async function excluirAgendamento(id){
+  const eid=agendaUnitId();
+  if(!eid){toast('Selecione uma unidade antes de excluir.',true);return;}
+  const {data:a,error:loadErr}=await sb.from('agendamentos').select('id,status,atendimento_id,cliente_id,inicio').eq('id',id).eq('estabelecimento_id',eid).maybeSingle();
+  if(loadErr||!a){toast('Não foi possível localizar este agendamento.',true);return;}
+  if(!['agendado','confirmado'].includes(a.status)||a.atendimento_id){toast('Só é possível excluir agendamentos pendentes, sem atendimento vinculado.',true);return;}
+  const inicio=a.inicio?new Date(a.inicio).toLocaleString('pt-BR'):'horário não informado';
+  if(!confirm('Excluir definitivamente este agendamento de '+inicio+'?\\n\\nEsta ação não pode ser desfeita. Agendamentos realizados ou vinculados a atendimento não podem ser excluídos.'))return;
+  const {error}=await sb.from('agendamentos').delete().eq('id',id).eq('estabelecimento_id',eid).in('status',['agendado','confirmado']).is('atendimento_id',null);
+  if(error){console.error('Falha ao excluir agendamento:',error);toast('Não foi possível excluir. Verifique as permissões e tente novamente.',true);return;}
+  if(AGENDA_EDITANDO_ID===id)cancelarEdicaoAgendamento();
+  toast('Agendamento excluído.');
+  await carregarAgendaCalendario();
+  await carregarAgendamentosDia();
+}
+
 async function alterarStatusAgendamento(id,status){
   if(!['agendado','confirmado','realizado','faltou','cancelado'].includes(status))return;
   const {data:antes,error:errAntes}=await sb.from('agendamentos').select('id,estabelecimento_id,atendimento_id,fim').eq('id',id).maybeSingle();
