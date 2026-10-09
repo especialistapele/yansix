@@ -2488,13 +2488,14 @@ async function carregarAgendamentosDia(){
     const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const end=new Date(a.fim).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const terminal=['cancelado','realizado','faltou'].includes(a.status);
+    const editAction=['agendado','confirmado'].includes(a.status)&&!a.atendimento_id?'<button class="agenda-cashback-action" style="margin-top:6px" onclick="editarAgendamento(\''+a.id+'\')">✎ Editar agendamento</button>':'';
     const actions=terminal?'—':`<select aria-label="Alterar status" onchange="alterarStatusAgendamento('${a.id}',this.value)">${agendaStatusOptions(a.status)}</select>`;
     const cashbackAction=a.status==='realizado'
       ? (a.atendimento_id
         ? '<span class="agenda-cashback-done">✓ Cashback computado</span>'
         : `<button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button>`)
       : '';
-    const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
+    const actionsCell=(actions==='—'?'':actions)+(editAction?((actions==='—'?'':'<br>')+editAction):'')+(cashbackAction?((actions==='—'&&!editAction?'':'<br>')+cashbackAction):((actions==='—'&&!editAction)?'—':''));
     return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(nomesProcedimentos.join(' + '))}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
   }).join('');
   }catch(error){
@@ -2539,18 +2540,33 @@ async function salvarAgendamento(){
       const upd=await sb.from('clientes').update({nome}).eq('id',clienteId);
       if(upd.error)throw upd.error;
     }
-    const {data:agendamento,error}=await sb.from('agendamentos').insert({
-      estabelecimento_id:eid,cliente_id:clienteId,servico_id:servicoId,
-      profissional_id:profissional,inicio:start.toISOString(),duracao_min:duracaoManual,observacao:observacao||null,criado_por:MEU_ID
-    }).select('id').single();
-    if(error)throw error;
-    const agendamentoId=agendamento?.id;
+    let agendamentoId=AGENDA_EDITANDO_ID;
+    const estavaEditando=Boolean(agendamentoId);
+    if(estavaEditando){
+      const {error:updateErr}=await sb.from('agendamentos').update({
+        cliente_id:clienteId,servico_id:servicoId,profissional_id:profissional,
+        inicio:start.toISOString(),duracao_min:duracaoManual,observacao:observacao||null
+      }).eq('id',agendamentoId).eq('estabelecimento_id',eid);
+      if(updateErr)throw updateErr;
+      const {error:deleteErr}=await sb.from('agendamento_procedimentos').delete().eq('agendamento_id',agendamentoId);
+      if(deleteErr)throw deleteErr;
+    }else{
+      const {data:agendamento,error}=await sb.from('agendamentos').insert({
+        estabelecimento_id:eid,cliente_id:clienteId,servico_id:servicoId,
+        profissional_id:profissional,inicio:start.toISOString(),duracao_min:duracaoManual,observacao:observacao||null,criado_por:MEU_ID
+      }).select('id').single();
+      if(error)throw error;
+      agendamentoId=agendamento?.id;
+    }
     if(servicosAdicionais.length){
       const snapshots=servicosAdicionais.map((sid,index)=>{const s=AGENDA_SERVICOS_ATIVOS.find(x=>x.id===sid);return {agendamento_id:agendamentoId,servico_id:sid,ordem:index+1,valor_snapshot:Number(s?.valor)||0,duracao_min_snapshot:Math.max(5,Number(s?.duracao_min)||30),cashback_pct_snapshot:Math.max(0,Number(s?.cashback_pct)||0)};});
       const extras=await sb.from('agendamento_procedimentos').insert(snapshots);
-      if(extras.error){await sb.from('agendamentos').update({status:'cancelado'}).eq('id',agendamentoId);throw extras.error;}
+      if(extras.error)throw extras.error;
     }
-    toast('Agendamento criado.');
+    AGENDA_EDITANDO_ID=null;
+    document.getElementById('agenda-cancelar-edicao-btn')?.classList.add('hidden');
+    const saveBtn=document.getElementById('agenda-salvar-btn');if(saveBtn)saveBtn.textContent='＋ Criar agendamento';
+    toast(estavaEditando?'Agendamento atualizado.':'Agendamento criado.');
     document.getElementById('agenda-cliente-nome').value='';
     document.getElementById('agenda-cliente-telefone').value='';
     document.getElementById('agenda-observacao').value='';
