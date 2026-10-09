@@ -2106,7 +2106,7 @@ async function carregarAgendamentosDia(){
     const cashbackAction=a.status==='concluido'
       ? (a.atendimento_id
         ? '<span class="subtle">Cashback computado</span>'
-        : `<button class="btn btn-primary" style="padding:7px 10px;font-size:12px;white-space:nowrap;" onclick="computarCashbackAgendamento('${a.id}')">Computar cashback</button>`)
+        : `<button class="btn btn-primary" style="padding:7px 10px;font-size:12px;white-space:nowrap;" onclick="computarCashbackAgendamento('${a.id}')">Computar pontos + cashback</button>`)
       : '';
     const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
     return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
