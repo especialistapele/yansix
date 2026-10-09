@@ -2346,10 +2346,10 @@ async function carregarAgendamentosDia(){
   const tbody=document.getElementById('agenda-tbody');
   const slots=document.getElementById('agenda-horarios-grid');
   if(!tbody)return;
-  if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Selecione um estabelecimento para consultar os horários.</div>';return;}
+  if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';if(slots)slots.innerHTML='<tr><td colspan="5" class="agenda-slots-empty">Selecione um estabelecimento para consultar os horários.</td></tr>';return;}
   if(summary)summary.textContent='Carregando agendamentos e horários disponíveis…';
   if(tbody)tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;">Carregando o dia selecionado…</td></tr>';
-  if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Carregando horários disponíveis…</div>';
+  if(slots)slots.innerHTML='<tr><td colspan="5" class="agenda-slots-empty">Carregando horários disponíveis…</td></tr>';
   try{
   const from=agendaDataLocalISO(date),to=agendaDataLocalISO(date,true);
   const {data:items,error}=await sb.from('agendamentos').select('*').eq('estabelecimento_id',eid).gte('inicio',from).lt('inicio',to).order('inicio');
@@ -2392,7 +2392,7 @@ async function carregarAgendamentosDia(){
     console.error('Falha ao carregar os horários da agenda:',error);
     if(summary)summary.textContent='Não foi possível carregar os dados deste dia.';
     if(tbody)tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;">Erro ao carregar este dia. Tente novamente; se persistir, verifique a conexão e as permissões da agenda.</td></tr>';
-    if(slots)slots.innerHTML='<div class="agenda-calendar-empty">Não foi possível carregar os horários. Tente selecionar a data novamente.</div>';
+    if(slots)slots.innerHTML='<tr><td colspan="5" class="agenda-slots-empty">Não foi possível carregar os horários. Tente selecionar a data novamente.</td></tr>';
     toast('Não foi possível carregar os horários da agenda.',true);
   }
 }
