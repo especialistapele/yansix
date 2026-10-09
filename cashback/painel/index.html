@@ -2061,6 +2061,11 @@ async function toggleServico(id, ativoAtual){
 function agendaEsc(v){
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// Resolve a unidade ativa da Agenda: Admin Master usa a unidade escolhida no seletor;
+// os demais perfis ficam restritos à unidade vinculada ao próprio perfil.
+function agendaUnitId(){
+  return MEU_PAPEL==='admin_master' ? (AGENDA_ESTAB_ID || null) : (ESTAB_ID || null);
+}
 function agendaDataHoje(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
