@@ -216,6 +216,35 @@
 
   .tag-points{background:var(--wine);color:#fff;font-family:'Fraunces',serif;font-weight:600;padding:3px 12px;border-radius:100px;font-size:13px;}
   .subtle{color:var(--muted);font-size:13px;}
+
+  .agenda-calendar-panel{overflow:hidden;}
+  .agenda-calendar-head{gap:16px;flex-wrap:wrap;}
+  .agenda-calendar-toolbar{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 auto 18px;}
+  .agenda-calendar-month{font-family:'Fraunces',serif;font-size:25px;font-weight:600;color:var(--wine);min-width:210px;text-align:center;}
+  .agenda-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;}
+  .agenda-weekday{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:8px 2px;letter-spacing:.04em;}
+  .agenda-day{border:1px solid var(--line);background:#fff;border-radius:11px;min-height:82px;padding:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;cursor:pointer;color:var(--ink);transition:border-color .15s,background .15s;min-width:0;}
+  .agenda-day:hover{border-color:var(--gold);background:#F7FAFF;}
+  .agenda-day.is-outside{background:#FAF8F6;color:#B7AAB0;}
+  .agenda-day.is-today .agenda-day-number{background:var(--wine);color:#fff;border-radius:50%;width:27px;height:27px;display:grid;place-items:center;}
+  .agenda-day.is-selected{border:2px solid var(--gold);background:#F1F6FF;padding:7px;}
+  .agenda-day-number{font-size:13px;font-weight:700;width:27px;height:27px;display:grid;place-items:center;}
+  .agenda-day-meta{font-size:11px;line-height:1.3;color:var(--muted);}
+  .agenda-day-dots{display:flex;gap:4px;flex-wrap:wrap;}
+  .agenda-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8AA6E8;flex:0 0 auto;}
+  .agenda-dot-booked{background:#2F6FED;}.agenda-dot-done{background:#3F7A5C;}.agenda-dot-pending{background:#D49A36;}
+  .agenda-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;color:var(--muted);font-size:12px;}
+  .agenda-legend span{display:flex;align-items:center;gap:6px;}
+  .agenda-calendar-empty{grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);}
+  .agenda-cashback-pending{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;border:1px solid #E8C98B;background:#FFF8E9;border-radius:10px;margin-bottom:12px;}
+  .agenda-cashback-pending strong{display:block;color:#6F4A0C;margin-bottom:3px;}
+  .agenda-cashback-pending .btn{width:auto;white-space:nowrap;}
+  .agenda-cashback-done{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:var(--success-bg);color:var(--success);font-weight:600;font-size:12px;padding:6px 9px;}
+  .agenda-cashback-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 12px;border:0;border-radius:8px;background:var(--wine);color:#fff;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .agenda-cashback-action:hover{background:var(--wine-2);}
+  .agenda-cashback-action:disabled{opacity:.6;cursor:wait;}
+  @media(max-width:700px){.agenda-calendar-month{font-size:20px;min-width:145px;}.agenda-calendar-grid{gap:3px;}.agenda-day{min-height:61px;padding:4px;border-radius:7px;gap:3px;}.agenda-day.is-selected{padding:3px;}.agenda-day-number{width:23px;height:23px;font-size:12px;}.agenda-day-meta{font-size:9px;}.agenda-calendar-toolbar{gap:6px;flex-wrap:wrap;}.agenda-legend{gap:9px;font-size:11px;}.agenda-cashback-pending{align-items:flex-start;flex-direction:column;}.agenda-cashback-pending .btn{width:100%;}.agenda-calendar-head .btn{width:auto!important;}}
+
   .hidden{display:none !important;}
   .loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -395,9 +424,38 @@
           </div>
         </div>
         <div id="agenda-conteudo" class="hidden">
-          <div class="panel" style="margin-bottom:16px;">
-            <div class="panel-head"><h3>Novo agendamento</h3></div>
+          <div class="panel agenda-calendar-panel">
+            <div class="panel-head agenda-calendar-head">
+              <div><h3>Calendário de agendamentos</h3><p class="subtle" style="margin:5px 0 0;">Selecione um dia para ver os horários e os atendimentos.</p></div>
+              <button class="btn btn-gold" style="width:auto;white-space:nowrap;" onclick="abrirNovoAgendamento()">＋ Novo agendamento</button>
+            </div>
             <div class="panel-body">
+              <div class="agenda-calendar-toolbar">
+                <button class="btn btn-secondary" style="width:auto;" onclick="moverAgendaMes(-1)" aria-label="Mês anterior">‹</button>
+                <div class="agenda-calendar-month" id="agenda-mes-titulo">Calendário</div>
+                <button class="btn btn-secondary" style="width:auto;" onclick="moverAgendaMes(1)" aria-label="Próximo mês">›</button>
+                <button class="btn btn-secondary agenda-hoje-btn" style="width:auto;" onclick="irParaHojeAgenda()">Hoje</button>
+              </div>
+              <div class="agenda-calendar-grid" id="agenda-calendario">
+                <div class="agenda-calendar-empty">Carregando calendário…</div>
+              </div>
+              <div class="agenda-legend"><span><i class="agenda-dot agenda-dot-booked"></i> Com agendamentos</span><span><i class="agenda-dot agenda-dot-done"></i> Concluídos</span><span><i class="agenda-dot agenda-dot-pending"></i> Pendentes</span></div>
+            </div>
+          </div>
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-head"><div><h3 id="agenda-dia-titulo">Agendamentos do dia</h3><p class="subtle" id="agenda-dia-resumo" style="margin:5px 0 0;">Selecione uma data no calendário.</p></div><div class="field" style="margin:0;max-width:190px;"><label>Ir para data</label><input id="agenda-filtro-data" type="date" onchange="selecionarDiaAgenda(this.value)" /></div></div>
+            <div class="panel-body">
+              <div id="agenda-cashback-pendencias"></div>
+              <div style="overflow-x:auto;">
+                <table><thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+                  <tbody id="agenda-tbody"><tr><td colspan="7">Selecione uma unidade e uma data.</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="panel" id="agenda-form-panel" style="margin-bottom:16px;">
+            <div class="panel-head"><div><h3>Novo agendamento</h3><p class="subtle" style="margin:5px 0 0;">O horário selecionado no calendário será preenchido automaticamente.</p></div><button class="btn btn-secondary" style="width:auto;" onclick="fecharNovoAgendamento()">Recolher</button></div>
+            <div class="panel-body" id="agenda-form-body">
               <div class="grid-2">
                 <div class="field"><label>Nome do cliente *</label><input id="agenda-cliente-nome" autocomplete="name" /></div>
                 <div class="field"><label>Telefone do cliente *</label><input id="agenda-cliente-telefone" autocomplete="tel" /></div>
@@ -411,15 +469,6 @@
               <p class="subtle" style="margin-bottom:0;">A duração e o valor são puxados do serviço cadastrado. O sistema bloqueia conflitos de horário.</p>
             </div>
           </div>
-          <div class="topbar" style="margin-bottom:12px;">
-            <div><h3 style="margin:0;">Agendamentos do dia</h3></div>
-            <div class="field" style="margin:0;max-width:220px;"><label>Data para consultar</label><input id="agenda-filtro-data" type="date" onchange="carregarAgendamentosDia()" /></div>
-          </div>
-          <div class="panel"><div class="panel-body">
-            <table><thead><tr><th>Horário</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
-              <tbody id="agenda-tbody"><tr><td colspan="7">Selecione uma unidade e uma data.</td></tr></tbody>
-            </table>
-          </div></div>
         </div>
       </section>
 
@@ -2027,8 +2076,100 @@ function agendaStatusLabel(status){
 function agendaStatusOptions(status){
   return ['agendado','confirmado','concluido','faltou','cancelado'].map(st=>`<option value="${st}" ${st===status?'selected':''}>${agendaStatusLabel(st)}</option>`).join('');
 }
-function agendaUnitId(){
-  return MEU_PAPEL==='admin_master' ? (document.getElementById('agenda-estabelecimento')?.value||'') : ESTAB_ID;
+let AGENDA_MES_CURSOR = null;
+let AGENDA_DIA_SELECIONADO = null;
+let AGENDA_ITENS_MES = [];
+function agendaFormatLocalDate(d){
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+}
+function agendaLocalDate(value){
+  const parts=String(value||agendaDataHoje()).split('-').map(Number);
+  return new Date(parts[0],parts[1]-1,parts[2]);
+}
+function agendaMesLabel(d){
+  return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+}
+function abrirNovoAgendamento(){
+  const panel=document.getElementById('agenda-form-panel');
+  panel?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('agenda-form-body')?.classList.remove('hidden');
+  const date=AGENDA_DIA_SELECIONADO||agendaDataHoje();
+  const dateInput=document.getElementById('agenda-data');
+  if(dateInput)dateInput.value=date;
+  const hour=document.getElementById('agenda-hora');
+  if(hour&&!hour.value){
+    const now=new Date(); now.setMinutes(Math.ceil(now.getMinutes()/30)*30,0,0);
+    hour.value=now.toTimeString().slice(0,5);
+  }
+  document.getElementById('agenda-cliente-nome')?.focus({preventScroll:true});
+}
+function fecharNovoAgendamento(){
+  document.getElementById('agenda-form-body')?.classList.add('hidden');
+}
+async function moverAgendaMes(delta){
+  const base=AGENDA_MES_CURSOR||agendaLocalDate(AGENDA_DIA_SELECIONADO||agendaDataHoje());
+  AGENDA_MES_CURSOR=new Date(base.getFullYear(),base.getMonth()+delta,1);
+  await carregarAgendaCalendario();
+}
+async function irParaHojeAgenda(){
+  const hoje=agendaDataHoje();
+  AGENDA_DIA_SELECIONADO=hoje;
+  AGENDA_MES_CURSOR=agendaLocalDate(hoje);
+  const filtro=document.getElementById('agenda-filtro-data');
+  if(filtro)filtro.value=hoje;
+  const data=document.getElementById('agenda-data');
+  if(data)data.value=hoje;
+  await carregarAgendaCalendario();
+  await carregarAgendamentosDia();
+}
+async function selecionarDiaAgenda(value){
+  if(!value)return;
+  AGENDA_DIA_SELECIONADO=value;
+  AGENDA_MES_CURSOR=agendaLocalDate(value);
+  const filtro=document.getElementById('agenda-filtro-data');
+  if(filtro)filtro.value=value;
+  const data=document.getElementById('agenda-data');
+  if(data)data.value=value;
+  await carregarAgendaCalendario();
+  await carregarAgendamentosDia();
+}
+async function carregarAgendaCalendario(){
+  const grid=document.getElementById('agenda-calendario');
+  const title=document.getElementById('agenda-mes-titulo');
+  if(!grid||!title)return;
+  const selected=AGENDA_DIA_SELECIONADO||document.getElementById('agenda-filtro-data')?.value||agendaDataHoje();
+  if(!AGENDA_MES_CURSOR)AGENDA_MES_CURSOR=agendaLocalDate(selected);
+  const year=AGENDA_MES_CURSOR.getFullYear(),month=AGENDA_MES_CURSOR.getMonth();
+  title.textContent=agendaMesLabel(AGENDA_MES_CURSOR);
+  const first=new Date(year,month,1);
+  const offset=(first.getDay()+6)%7;
+  const start=new Date(year,month,1-offset);
+  const end=new Date(start);end.setDate(start.getDate()+42);
+  const eid=agendaUnitId();
+  if(!eid){grid.innerHTML='<div class="agenda-calendar-empty">Selecione um estabelecimento para visualizar os agendamentos.</div>';return;}
+  grid.innerHTML='<div class="agenda-calendar-empty">Carregando agendamentos…</div>';
+  const {data,error}=await sb.from('agendamentos').select('id,inicio,status,atendimento_id').eq('estabelecimento_id',eid).gte('inicio',new Date(year,month,1).toISOString()).lt('inicio',new Date(year,month+1,1).toISOString()).order('inicio');
+  if(error){grid.innerHTML='<div class="agenda-calendar-empty">Não foi possível carregar o calendário. Verifique o acesso à agenda.</div>';return;}
+  AGENDA_ITENS_MES=data||[];
+  const counts={};
+  AGENDA_ITENS_MES.forEach(a=>{
+    const key=agendaFormatLocalDate(new Date(a.inicio));
+    if(!counts[key])counts[key]={total:0,done:0,pending:0};
+    counts[key].total++;
+    if(a.status==='concluido')counts[key].done++;
+    if(!['concluido','cancelado','faltou'].includes(a.status))counts[key].pending++;
+  });
+  const today=agendaDataHoje();
+  const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>'<div class="agenda-weekday">'+d+'</div>').join('');
+  let days='';
+  for(let i=0;i<42;i++){
+    const day=new Date(start);day.setDate(start.getDate()+i);
+    const key=agendaFormatLocalDate(day),c=counts[key]||{total:0,done:0,pending:0};
+    const classes=['agenda-day',day.getMonth()!==month?'is-outside':'',key===today?'is-today':'',key===selected?'is-selected':''].filter(Boolean).join(' ');
+    const dots=c.total?'<span class="agenda-day-dots">'+(c.done?'<i class="agenda-dot agenda-dot-done" title="Concluídos"></i>':'')+(c.pending?'<i class="agenda-dot agenda-dot-pending" title="Pendentes"></i>':'')+'</span>':'';
+    days+=`<button type="button" class="${classes}" onclick="selecionarDiaAgenda('${key}')" aria-label="${key}, ${c.total} agendamentos"><span class="agenda-day-number">${day.getDate()}</span>${c.total?'<span class="agenda-day-meta">'+c.total+' '+(c.total===1?'agendamento':'agendamentos')+'</span>':''}${dots}</button>`;
+  }
+  grid.innerHTML=weekdays+days;
 }
 async function renderAgenda(){
   const masterBox=document.getElementById('agenda-master-context');
@@ -2078,10 +2219,17 @@ async function renderAgenda(){
   serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } };
   profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; };
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
+  if(!AGENDA_DIA_SELECIONADO)AGENDA_DIA_SELECIONADO=today;
+  if(!AGENDA_MES_CURSOR)AGENDA_MES_CURSOR=agendaLocalDate(AGENDA_DIA_SELECIONADO);
+  await carregarAgendaCalendario();
   await carregarAgendamentosDia();
 }
 async function carregarAgendamentosDia(){
-  const eid=agendaUnitId(), date=document.getElementById('agenda-filtro-data')?.value||agendaDataHoje();
+  const eid=agendaUnitId(), date=document.getElementById('agenda-filtro-data')?.value||AGENDA_DIA_SELECIONADO||agendaDataHoje();
+  AGENDA_DIA_SELECIONADO=date;
+  const title=document.getElementById('agenda-dia-titulo');
+  const summary=document.getElementById('agenda-dia-resumo');
+  if(title)title.textContent='Agendamentos de '+agendaLocalDate(date).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   const tbody=document.getElementById('agenda-tbody');
   if(!tbody)return;
   if(!eid){tbody.innerHTML='<tr><td colspan="7">Selecione um estabelecimento.</td></tr>';return;}
@@ -2096,7 +2244,17 @@ async function carregarAgendamentosDia(){
   const clients=new Map((c.data||[]).map(x=>[x.id,x]));
   const services=new Map((s.data||[]).map(x=>[x.id,x]));
   const pros=new Map((p.data||[]).map(x=>[x.id,x]));
-  if(!items?.length){tbody.innerHTML='<tr><td colspan="7">Nenhum agendamento nesta data.</td></tr>';return;}
+  const pendencias=(items||[]).filter(a=>a.status==='concluido'&&!a.atendimento_id);
+  const pendingBox=document.getElementById('agenda-cashback-pendencias');
+  if(pendingBox){
+    pendingBox.innerHTML=pendencias.length?pendencias.map(a=>{
+      const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{};
+      const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="agenda-cashback-pending"><div><strong>Cashback aguardando processamento</strong><span>${time} · ${agendaEsc(cli.nome||'Cliente')} · ${agendaEsc(srv.nome||'Serviço')}</span><div class="subtle">Atendimento concluído, ainda sem lançamento de pontos e cashback.</div></div><button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button></div>`;
+    }).join(''):'';
+  }
+  if(summary)summary.textContent=(items?.length||0)+' agendamento(s) · '+pendencias.length+' lançamento(s) de cashback pendente(s)';
+  if(!items?.length){tbody.innerHTML='<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">Nenhum agendamento nesta data. Selecione outro dia ou crie um novo agendamento.</td></tr>';return;}
   tbody.innerHTML=items.map(a=>{
     const cli=clients.get(a.cliente_id)||{},srv=services.get(a.servico_id)||{},pro=pros.get(a.profissional_id)||{};
     const time=new Date(a.inicio).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -2105,8 +2263,8 @@ async function carregarAgendamentosDia(){
     const actions=terminal?'—':`<select aria-label="Alterar status" onchange="alterarStatusAgendamento('${a.id}',this.value)">${agendaStatusOptions(a.status)}</select>`;
     const cashbackAction=a.status==='concluido'
       ? (a.atendimento_id
-        ? '<span class="subtle">Cashback computado</span>'
-        : `<button class="btn btn-primary" style="padding:7px 10px;font-size:12px;white-space:nowrap;" onclick="computarCashbackAgendamento('${a.id}')">Computar pontos + cashback</button>`)
+        ? '<span class="agenda-cashback-done">✓ Cashback computado</span>'
+        : `<button class="agenda-cashback-action" onclick="computarCashbackAgendamento('${a.id}')">＋ Computar pontos + cashback</button>`)
       : '';
     const actionsCell=`${actions==='—'?'':actions}${cashbackAction ? (actions==='—'?'': '<br>')+cashbackAction : (actions==='—'?'—':'')}`;
     return `<tr><td><strong>${time}–${end}</strong><br><span class="subtle">${Number(a.duracao_min)} min</span></td><td>${agendaEsc(cli.nome||'Cliente')}<br><span class="subtle">${agendaEsc(cli.telefone||'')}</span></td><td>${agendaEsc(srv.nome||'Serviço')}<br><span class="subtle">${fmtMoney(a.valor)}</span></td><td>${agendaEsc(pro.nome||'Qualquer profissional')}</td><td>${fmtMoney(a.valor)}</td><td>${agendaStatusLabel(a.status)}</td><td>${actionsCell}</td></tr>`;
@@ -2148,6 +2306,9 @@ async function salvarAgendamento(){
     document.getElementById('agenda-cliente-telefone').value='';
     document.getElementById('agenda-observacao').value='';
     document.getElementById('agenda-filtro-data').value=data;
+    AGENDA_DIA_SELECIONADO=data;
+    AGENDA_MES_CURSOR=agendaLocalDate(data);
+    await carregarAgendaCalendario();
     await carregarAgendamentosDia();
   }catch(e){
     const msg=String(e?.message||e);
@@ -2169,6 +2330,7 @@ async function alterarStatusAgendamento(id,status){
       await computarCashbackAgendamento(id,{automatico:true,silencioso:true});
     }else toast('Atendimento concluído. O cashback está no modo manual.');
   }else toast('Status do agendamento atualizado.');
+  await carregarAgendaCalendario();
   await carregarAgendamentosDia();
 }
 async function computarCashbackAgendamento(id,opts={}){
@@ -2184,6 +2346,7 @@ async function computarCashbackAgendamento(id,opts={}){
   let msg=data?.ja_processado?'Este agendamento já tinha sido computado.':`Atendimento computado: ${Number(d?.pontos||0)} pontos`;
   if(Number(d?.cashback)>0)msg+=` + ${fmtMoney(d.cashback)} de cashback`;
   toast(msg+'.');
+  await carregarAgendaCalendario();
   await carregarAgendamentosDia();
   return true;
 }
