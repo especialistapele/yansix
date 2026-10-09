@@ -2046,8 +2046,10 @@ async function renderAgenda(){
   const filterInput=document.getElementById('agenda-filtro-data');
   if(dateInput && !dateInput.value)dateInput.value=today;
   if(filterInput && !filterInput.value)filterInput.value=today;
+  let qServ=sb.from('servicos').select('id,nome,valor,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome');
+  if(MEU_PAPEL==='profissional')qServ=qServ.or(`profissional_id.is.null,profissional_id.eq.${MEU_ID}`);
   const [{data:servicos,error:errServ},{data:profs,error:errProf}]=await Promise.all([
-    sb.from('servicos').select('id,nome,valor,duracao_min,profissional_id,ativo').eq('estabelecimento_id',eid).eq('ativo',true).order('nome'),
+    qServ,
     sb.from('perfis').select('id,nome').eq('estabelecimento_id',eid).eq('role','profissional').order('nome')
   ]);
   if(errServ||errProf){toast('Não foi possível carregar os serviços/profissionais da agenda.',true);return;}
@@ -2062,6 +2064,7 @@ async function renderAgenda(){
   if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
   else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
   serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } };
+  profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; };
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
   await carregarAgendamentosDia();
 }
