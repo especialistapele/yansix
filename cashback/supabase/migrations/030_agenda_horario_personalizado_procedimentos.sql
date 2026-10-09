@@ -108,7 +108,7 @@ BEGIN
   cfg record;
   aid uuid;
   pont_id uuid;
-  pontos integer;
+  pontos_calc integer;
   cb numeric:=0;
   cb_item numeric:=0;
   uso numeric:=0;
@@ -128,10 +128,10 @@ BEGIN
   resultado := public.registrar_atendimento_pontuacao(ag.estabelecimento_id,ag.cliente_id,ag.servico_id,ag.profissional_id,coalesce(p_usar_cashback,false),'Computado pela Agenda '||ag.id::text);
   aid := (resultado->>'atendimento_id')::uuid;
   pont_id := (resultado->>'pontuacao_id')::uuid;
-  pontos := floor(ag.valor/greatest(coalesce(cfg.valor_por_ponto,1),0.01));
-  IF cfg.pontuacao_maxima_servico IS NOT NULL THEN pontos:=least(pontos,cfg.pontuacao_maxima_servico); END IF;
+  pontos_calc := floor(ag.valor/greatest(coalesce(cfg.valor_por_ponto,1),0.01));
+  IF cfg.pontuacao_maxima_servico IS NOT NULL THEN pontos_calc:=least(pontos_calc,cfg.pontuacao_maxima_servico); END IF;
   UPDATE public.atendimentos SET valor=ag.valor WHERE id=aid;
-  UPDATE public.pontuacoes SET valor=ag.valor,pontos=pontos WHERE id=pont_id;
+  UPDATE public.pontuacoes SET valor=ag.valor,pontos=pontos_calc WHERE id=pont_id;
   cb:=coalesce((resultado->>'cashback')::numeric,0);
   FOR proc IN SELECT valor_snapshot,cashback_pct_snapshot FROM public.agendamento_procedimentos WHERE agendamento_id=ag.id ORDER BY ordem,id LOOP
     n_proc:=n_proc+1;
@@ -142,7 +142,7 @@ BEGIN
       cb:=cb+cb_item;
     END IF;
   END LOOP;
-  resultado:=resultado||jsonb_build_object('pontos',pontos,'cashback',cb,'procedimentos',n_proc);$new$;
+  resultado:=resultado||jsonb_build_object('pontos',pontos_calc,'cashback',cb,'procedimentos',n_proc);$new$;
  IF position(old_decl in f)=0 OR position(old_call in f)=0 THEN RAISE EXCEPTION 'Bloco original de processamento do cashback não encontrado.'; END IF;
  f:=replace(f,old_decl,new_decl);
  f:=replace(f,old_call,new_call);
