@@ -168,7 +168,9 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$;
+$;
+REVOKE ALL ON FUNCTION public.validar_agendamento() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.validar_agendamento() TO authenticated, service_role;
 
 DROP TRIGGER IF EXISTS trg_validar_agendamento ON public.agendamentos;
 CREATE TRIGGER trg_validar_agendamento
