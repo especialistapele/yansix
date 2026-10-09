@@ -2174,6 +2174,7 @@ function abrirNovoAgendamento(){
     const now=new Date(); now.setMinutes(Math.ceil(now.getMinutes()/30)*30,0,0);
     hour.value=now.toTimeString().slice(0,5);
   }
+  agendaAtualizarHoraFim(true);
   document.getElementById('agenda-cliente-nome')?.focus({preventScroll:true});
 }
 function fecharNovoAgendamento(){
@@ -2307,7 +2308,8 @@ async function renderAgenda(){
   if(isProfessional){profSel.value=MEU_ID;profSel.disabled=true;}
   else {profSel.disabled=false;if((profs||[]).some(p=>p.id===profCurrent))profSel.value=profCurrent;}
   serviceSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id){ profSel.value=srv.profissional_id; } if(additionalSel)Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;}); agendaAtualizarHoraFim(true); carregarAgendamentosDia(); };
-  additionalSel.onchange=()=>{if(additionalSel.value===serviceSel.value)Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;});agendaAtualizarHoraFim(true);carregarAgendamentosDia();};
+  additionalSel.onchange=()=>{Array.from(additionalSel.options).forEach(o=>{if(o.value===serviceSel.value)o.selected=false;});agendaAtualizarHoraFim(true);carregarAgendamentosDia();};
+  document.getElementById('agenda-hora-fim')?.addEventListener('change',()=>carregarAgendamentosDia());
   profSel.onchange=()=>{ const srv=(servicos||[]).find(x=>x.id===serviceSel.value); if(srv?.profissional_id && profSel.value!==srv.profissional_id)serviceSel.value=''; agendaAtualizarHoraFim(true); carregarAgendamentosDia(); };
   document.getElementById('agenda-hora')?.addEventListener('change',()=>agendaAtualizarHoraFim(true));
   if(MEU_PAPEL==='admin_master')document.getElementById('agenda-salvar-btn').disabled=false;
@@ -2489,9 +2491,9 @@ async function salvarAgendamento(){
     if(error)throw error;
     const agendamentoId=agendamento?.id;
     if(servicosAdicionais.length){
-      const snapshots=servicosAdicionais.map(sid=>{const s=AGENDA_SERVICOS_ATIVOS.find(x=>x.id===sid);return {agendamento_id:agendamentoId,servico_id:sid,valor_snapshot:Number(s?.valor)||0,duracao_min_snapshot:Math.max(5,Number(s?.duracao_min)||30),cashback_pct_snapshot:Math.max(0,Number(s?.cashback_pct)||0)};});
+      const snapshots=servicosAdicionais.map((sid,index)=>{const s=AGENDA_SERVICOS_ATIVOS.find(x=>x.id===sid);return {agendamento_id:agendamentoId,servico_id:sid,ordem:index+1,valor_snapshot:Number(s?.valor)||0,duracao_min_snapshot:Math.max(5,Number(s?.duracao_min)||30),cashback_pct_snapshot:Math.max(0,Number(s?.cashback_pct)||0)};});
       const extras=await sb.from('agendamento_procedimentos').insert(snapshots);
-      if(extras.error){await sb.from('agendamentos').delete().eq('id',agendamentoId);throw extras.error;}
+      if(extras.error){await sb.from('agendamentos').update({status:'cancelado'}).eq('id',agendamentoId);throw extras.error;}
     }
     toast('Agendamento criado.');
     document.getElementById('agenda-cliente-nome').value='';
