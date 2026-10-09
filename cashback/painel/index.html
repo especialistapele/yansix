@@ -236,7 +236,19 @@
   .agenda-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;color:var(--muted);font-size:12px;}
   .agenda-legend span{display:flex;align-items:center;gap:6px;}
   .agenda-calendar-empty{grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);}
-  .agenda-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;}
+  .agenda-slots-table{min-width:720px;}
+  .agenda-slots-table th{padding:10px 14px;background:#FAF8F6;}
+  .agenda-slots-table td{padding:11px 14px;}
+  .agenda-slots-table .agenda-slot-row{cursor:default;}
+  .agenda-slots-table .agenda-slot-row.is-free-row{cursor:pointer;}
+  .agenda-slots-table .agenda-slot-row.is-free-row:hover td{background:#F0FAF3;}
+  .agenda-slots-table .agenda-slot-row.is-busy-row td{background:#FCF8F7;}
+  .agenda-slots-table .agenda-slot-row.is-unavailable-row td{color:#9A9290;background:#FAFAFA;}
+  .agenda-slot-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;white-space:nowrap;}
+  .agenda-slot-status.is-free{background:#E7F2EC;color:#28613F;}
+  .agenda-slot-status.is-busy{background:#FBE9EA;color:#9D303B;}
+  .agenda-slot-status.is-unavailable{background:#F0F0F0;color:#777;}
+  .agenda-slots-empty{padding:24px;text-align:center;color:var(--muted);}
   .agenda-slot{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:10px 12px;border:1px solid #B7D9C1;border-radius:9px;background:#F0FAF3;color:#245C36;cursor:pointer;min-height:60px;}
   .agenda-slot strong{font-size:14px;}
   .agenda-slot span{font-size:11px;}
@@ -456,8 +468,13 @@
           <div class="panel" style="margin-bottom:16px;" id="agenda-horarios-panel">
             <div class="panel-head"><div><h3>Horários do dia</h3><p class="subtle" id="agenda-horarios-subtitulo" style="margin:5px 0 0;">Selecione um horário livre para iniciar um agendamento.</p></div></div>
             <div class="panel-body">
-              <div class="agenda-slots-legend"><span><i class="agenda-slot-swatch"></i> Livre</span><span><i class="agenda-slot-swatch busy"></i> Ocupado</span><span>Intervalos de 30 minutos · expediente padrão exibido das 08h às 20h</span></div>
-              <div id="agenda-horarios-grid" class="agenda-slots"><div class="agenda-calendar-empty">Selecione uma data para consultar os horários.</div></div>
+              <div class="agenda-slots-legend"><span><i class="agenda-slot-swatch"></i> Livre</span><span><i class="agenda-slot-swatch busy"></i> Ocupado</span><span>Intervalos de 30 minutos · expediente padrão das 08h às 20h</span></div>
+              <div style="overflow-x:auto;">
+                <table class="agenda-slots-table">
+                  <thead><tr><th>Horário</th><th>Situação</th><th>Paciente</th><th>Profissional</th><th>Procedimento</th></tr></thead>
+                  <tbody id="agenda-horarios-grid"><tr><td colspan="5" class="agenda-slots-empty">Selecione uma data para consultar os horários.</td></tr></tbody>
+                </table>
+              </div>
             </div>
           </div>
           <div class="panel" style="margin-bottom:16px;">
@@ -2278,7 +2295,7 @@ function selecionarHorarioAgenda(hora){
   document.getElementById('agenda-form-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
   document.getElementById('agenda-cliente-nome')?.focus({preventScroll:true});
 }
-function renderHorariosDisponiveis(items,date){
+function renderHorariosDisponiveis(items,date,clients=new Map(),services=new Map(),pros=new Map()){
   const grid=document.getElementById('agenda-horarios-grid');
   const subtitle=document.getElementById('agenda-horarios-subtitulo');
   if(!grid)return;
@@ -2303,11 +2320,22 @@ function renderHorariosDisponiveis(items,date){
       return start<aEnd && end>aStart;
     });
     const busy=outside||!!conflict;
-    const label=outside?'Fora do expediente':conflict?'Ocupado':past?'Horário passado':'Livre para agendar';
-    html+='<button type="button" class="agenda-slot'+(busy?' is-busy':'')+(past?' is-past':'')+'" data-agenda-hora="'+hora+'" '+(busy||past?'disabled':'')+' aria-label="'+hora+' - '+label+'"><strong>'+hora+'</strong><span>'+label+'</span></button>';
+    const cli=conflict?(clients.get(conflict.cliente_id)||{}):{};
+    const srv=conflict?(services.get(conflict.servico_id)||{}):{};
+    const profissional=conflict?(pros.get(conflict.profissional_id)||{}):{};
+    const label=outside?'Fora do expediente':conflict?'Ocupado':past?'Horário passado':'Livre';
+    const patientName=conflict?agendaEsc(cli.nome||'Paciente não identificado'):'—';
+    const professionalName=conflict?agendaEsc(profissional.nome||'A definir'):'—';
+    const procedureName=conflict?agendaEsc(srv.nome||'Procedimento não identificado'):'—';
+    const rowClass=conflict?'is-busy-row':(outside||past?'is-unavailable-row':'is-free-row');
+    const selectAction=!busy&&!past?' data-agenda-hora="'+hora+'" tabindex="0" role="button" aria-label="Selecionar horário livre '+hora+'"':'';
+    html+='<tr class="agenda-slot-row '+rowClass+'"'+selectAction+'><td><strong>'+hora+'</strong></td><td><span class="agenda-slot-status '+(conflict?'is-busy':(!busy&&!past?'is-free':'is-unavailable'))+'">'+label+'</span></td><td>'+patientName+'</td><td>'+professionalName+'</td><td>'+procedureName+'</td></tr>';
   }
-  grid.innerHTML=html||'<div class="agenda-calendar-empty">Não há horários disponíveis nesta data.</div>';
-  grid.querySelectorAll('button[data-agenda-hora]:not(:disabled)').forEach(btn=>btn.addEventListener('click',()=>selecionarHorarioAgenda(btn.dataset.agendaHora)));
+  grid.innerHTML=html||'<tr><td colspan="5" class="agenda-slots-empty">Não há horários nesta data.</td></tr>';
+  grid.querySelectorAll('tr[data-agenda-hora]').forEach(row=>{
+    row.addEventListener('click',()=>selecionarHorarioAgenda(row.dataset.agendaHora));
+    row.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selecionarHorarioAgenda(row.dataset.agendaHora);}});
+  });
 }
 async function carregarAgendamentosDia(){
   const eid=agendaUnitId(), date=document.getElementById('agenda-filtro-data')?.value||AGENDA_DIA_SELECIONADO||agendaDataHoje();
@@ -2326,7 +2354,6 @@ async function carregarAgendamentosDia(){
   const from=agendaDataLocalISO(date),to=agendaDataLocalISO(date,true);
   const {data:items,error}=await sb.from('agendamentos').select('*').eq('estabelecimento_id',eid).gte('inicio',from).lt('inicio',to).order('inicio');
   if(error)throw error;
-  renderHorariosDisponiveis(items||[],date);
   const [c,s,p]=await Promise.all([
     sb.from('clientes').select('id,nome,telefone').eq('estabelecimento_id',eid),
     sb.from('servicos').select('id,nome').eq('estabelecimento_id',eid),
@@ -2335,6 +2362,7 @@ async function carregarAgendamentosDia(){
   const clients=new Map((c.data||[]).map(x=>[x.id,x]));
   const services=new Map((s.data||[]).map(x=>[x.id,x]));
   const pros=new Map((p.data||[]).map(x=>[x.id,x]));
+  renderHorariosDisponiveis(items||[],date,clients,services,pros);
   const pendencias=(items||[]).filter(a=>a.status==='concluido'&&!a.atendimento_id);
   const pendingBox=document.getElementById('agenda-cashback-pendencias');
   if(pendingBox){
