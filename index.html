@@ -3317,7 +3317,15 @@ footer ul li a:hover{
     start();
   }, {passive:true});
 
-  window.addEventListener('resize', function(){ updateVisible(); start(); });
+  let resizeFrame = null;
+  window.addEventListener('resize', function(){
+    if(resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(function(){
+      resizeFrame = null;
+      updateVisible();
+      start();
+    });
+  }, {passive:true});
   updateVisible();
   start();
 })();
