@@ -1004,25 +1004,43 @@ section.cases{
 
 .cases-carousel-dots{
   display:flex;
-  gap:7px;
+  gap:4px;
   align-items:center;
   margin:0 4px;
 }
 
 .cases-carousel-dot{
-  width:7px;
-  height:7px;
+  /* Área de toque de 24 × 24 px; o indicador visual fica no pseudo-elemento. */
+  width:24px;
+  height:24px;
+  flex:0 0 24px;
+  display:grid;
+  place-items:center;
   border:0;
   padding:0;
   border-radius:999px;
-  background:rgba(91,61,245,.22);
+  background:transparent;
   cursor:pointer;
+}
+
+.cases-carousel-dot::before{
+  content:"";
+  display:block;
+  width:7px;
+  height:7px;
+  border-radius:999px;
+  background:rgba(91,61,245,.32);
   transition:width .25s ease, background .25s ease;
 }
 
-.cases-carousel-dot.is-active{
-  width:24px;
+.cases-carousel-dot.is-active::before{
+  width:16px;
   background:var(--purple);
+}
+
+.cases-carousel-dot:focus-visible{
+  outline:2px solid var(--purple);
+  outline-offset:1px;
 }
 
 .cases-carousel-hint{
