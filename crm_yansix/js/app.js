@@ -1,4 +1,5 @@
 let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],propostas:[],historico:[],configuracoes:[],comissoes:[],produtos:[],faturas:[],pesquisas:[]};
+let clientSnapshotInitialized=false;
 let SESSION=null;
 let SESSION_LAST_ACTIVITY=Date.now();
 let SESSION_WARNING_SHOWN=false;
@@ -257,14 +258,26 @@ function testEmailIntegration(){const to=INTEGRATION_SETTINGS.email||CONFIG.USER
 function testWhatsAppIntegration(){const n=String(INTEGRATION_SETTINGS.whatsappBusiness||"").replace(/\D/g,"");if(!n){toast("Cadastre o número do WhatsApp Business primeiro.","error");return}window.open(`https://wa.me/${n.length<=11?"55":""}${n}?text=${encodeURIComponent("Teste de integração — YANSIX CRM")}`,"_blank","noopener")}
 async function copyWebhookInfo(){const url=CONFIG.SHEETS_API_URL||"URL do Web App do Google Apps Script";try{await navigator.clipboard.writeText(url);toast("URL do Web App copiada.")}catch{toast(url,"error")}}
 
+function isWebsiteLead(client){
+  const source=String(client?.origem||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+  return /site|website|web|formulario|formulario online|landing page|pagina de captura|webhook/.test(source);
+}
+
 async function syncAll({silent=false}={}){
   if(!CONFIG.MOCK&&!SESSION)return;
   try{
     const data=await API.getAll();
+    // Compara com o snapshot anterior para não alertar leads antigos no primeiro carregamento.
+    const previousClients=Array.isArray(STATE.clientes)?STATE.clientes:[];
+    const previousIds=new Set(previousClients.map(c=>String(c.id)));
+    const hasBaseline=clientSnapshotInitialized;
+    const newWebsiteLeads=hasBaseline?(data.clientes||[]).filter(c=>c?.id&&!previousIds.has(String(c.id))&&isWebsiteLead(c)):[];
+    clientSnapshotInitialized=true;
     applyPipelineConfig(data.configuracoes||[]);
     applyAutomationConfig(data.configuracoes||[]);
     applyIntegrationConfig(data.configuracoes||[]);
     STATE=data;
+    for(const lead of newWebsiteLeads.slice(0,5))toast("Chegou um Lead pelo site!","lead");
     filterVisibleState();
     await runAutomations();
     if(hasPermission("comissoes"))await ensureCommissionRecords();
