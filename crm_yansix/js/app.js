@@ -1,4 +1,5 @@
 let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],propostas:[],historico:[],configuracoes:[],comissoes:[],produtos:[],faturas:[],pesquisas:[]};
+let clientSnapshotInitialized=false;
 let SESSION=null;
 let SESSION_LAST_ACTIVITY=Date.now();
 let SESSION_WARNING_SHOWN=false;
@@ -269,8 +270,9 @@ async function syncAll({silent=false}={}){
     // Compara com o snapshot anterior para não alertar leads antigos no primeiro carregamento.
     const previousClients=Array.isArray(STATE.clientes)?STATE.clientes:[];
     const previousIds=new Set(previousClients.map(c=>String(c.id)));
-    const hasBaseline=previousClients.length>0;
+    const hasBaseline=clientSnapshotInitialized;
     const newWebsiteLeads=hasBaseline?(data.clientes||[]).filter(c=>c?.id&&!previousIds.has(String(c.id))&&isWebsiteLead(c)):[];
+    clientSnapshotInitialized=true;
     applyPipelineConfig(data.configuracoes||[]);
     applyAutomationConfig(data.configuracoes||[]);
     applyIntegrationConfig(data.configuracoes||[]);
