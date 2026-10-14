@@ -1,5 +1,24 @@
 let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],propostas:[],historico:[],configuracoes:[],comissoes:[],produtos:[],faturas:[],pesquisas:[]};
 let clientSnapshotInitialized=false;
+const WEBSITE_LEAD_PENDING_KEY="yansix_crm_pending_website_leads_v1";
+const WEBSITE_LEAD_ACK_KEY="yansix_crm_acknowledged_website_leads_v1";
+function readStoredIdSet(key){try{return new Set((JSON.parse(localStorage.getItem(key))||[]).map(String))}catch{return new Set()}}
+let pendingWebsiteLeadIds=readStoredIdSet(WEBSITE_LEAD_PENDING_KEY);
+let acknowledgedWebsiteLeadIds=readStoredIdSet(WEBSITE_LEAD_ACK_KEY);
+function persistWebsiteLeadAlerts(){localStorage.setItem(WEBSITE_LEAD_PENDING_KEY,JSON.stringify([...pendingWebsiteLeadIds]));localStorage.setItem(WEBSITE_LEAD_ACK_KEY,JSON.stringify([...acknowledgedWebsiteLeadIds]))}
+function websiteLeadCreatedAt(client){const value=client?.created_at||client?.createdAt||client?.criadoEm||client?.dataHora||client?.created_on;const timestamp=value?Date.parse(value):NaN;return Number.isFinite(timestamp)?timestamp:0}
+function renderWebsiteLeadAlerts(){
+  const region=document.getElementById("toast-region");if(!region)return;
+  region.querySelectorAll(".website-lead-alert").forEach(el=>el.remove());
+  const pending=[...pendingWebsiteLeadIds].map(id=>clientById(id)).filter(c=>c&&isWebsiteLead(c));
+  pending.slice(0,5).forEach(lead=>{
+    const alert=document.createElement("button");alert.type="button";alert.className="toast lead website-lead-alert";
+    alert.textContent="Chegou um Lead pelo site!";
+    alert.setAttribute("aria-label","Chegou um Lead pelo site! Abrir ficha de "+(lead.nome||"novo lead"));
+    alert.addEventListener("click",()=>openDetail(lead.id));region.appendChild(alert);
+  });
+}
+function acknowledgeWebsiteLead(id){const key=String(id||"");if(!key)return;pendingWebsiteLeadIds.delete(key);acknowledgedWebsiteLeadIds.add(key);persistWebsiteLeadAlerts();renderWebsiteLeadAlerts()}
 let SESSION=null;
 let SESSION_LAST_ACTIVITY=Date.now();
 let SESSION_WARNING_SHOWN=false;
@@ -267,17 +286,23 @@ async function syncAll({silent=false}={}){
   if(!CONFIG.MOCK&&!SESSION)return;
   try{
     const data=await API.getAll();
-    // Compara com o snapshot anterior para não alertar leads antigos no primeiro carregamento.
+    // Mantém alertas pendentes entre recargas e identifica leads recentes mesmo quando o CRM é aberto depois do envio.
     const previousClients=Array.isArray(STATE.clientes)?STATE.clientes:[];
     const previousIds=new Set(previousClients.map(c=>String(c.id)));
     const hasBaseline=clientSnapshotInitialized;
-    const newWebsiteLeads=hasBaseline?(data.clientes||[]).filter(c=>c?.id&&!previousIds.has(String(c.id))&&isWebsiteLead(c)):[];
+    const recentCutoff=Date.now()-24*60*60*1000;
+    const currentWebsiteLeads=(data.clientes||[]).filter(c=>c?.id&&isWebsiteLead(c));
+    const newWebsiteLeads=currentWebsiteLeads.filter(c=>!acknowledgedWebsiteLeadIds.has(String(c.id))&&(pendingWebsiteLeadIds.has(String(c.id))||(hasBaseline&&!previousIds.has(String(c.id)))||(!hasBaseline&&websiteLeadCreatedAt(c)>=recentCutoff)));
+    for(const lead of newWebsiteLeads)pendingWebsiteLeadIds.add(String(lead.id));
+    const currentIds=new Set((data.clientes||[]).map(c=>String(c.id)));
+    pendingWebsiteLeadIds=new Set([...pendingWebsiteLeadIds].filter(id=>currentIds.has(id)&&!acknowledgedWebsiteLeadIds.has(id)));
+    persistWebsiteLeadAlerts();
     clientSnapshotInitialized=true;
     applyPipelineConfig(data.configuracoes||[]);
     applyAutomationConfig(data.configuracoes||[]);
     applyIntegrationConfig(data.configuracoes||[]);
     STATE=data;
-    for(const lead of newWebsiteLeads.slice(0,5))toast("Chegou um Lead pelo site!","lead");
+    renderWebsiteLeadAlerts();
     filterVisibleState();
     await runAutomations();
     if(hasPermission("comissoes"))await ensureCommissionRecords();
@@ -582,7 +607,9 @@ function diffFields(old,next){const labels=Object.fromEntries(CONFIG.CLIENT_FIEL
 function auditChange(clienteId,entidade,registroId,acao,alteracao){return API.audit({clienteId,entidade,registroId,acao,alteracao})}
 
 function openDetail(id){
-  const c=clientById(id);if(!c)return;const deals=dealByClient(id),tasks=tasksByClient(id),ints=STATE.interacoes.filter(x=>String(x.clienteId)===String(id)).sort((a,b)=>String(b.data).localeCompare(String(a.data))),history=STATE.historico.filter(x=>String(x.clienteId)===String(id)).sort((a,b)=>String(b.dataHora).localeCompare(String(a.dataHora)));
+  const c=clientById(id);if(!c)return;
+  if(isWebsiteLead(c))acknowledgeWebsiteLead(id);
+  const deals=dealByClient(id),tasks=tasksByClient(id),ints=STATE.interacoes.filter(x=>String(x.clienteId)===String(id)).sort((a,b)=>String(b.data).localeCompare(String(a.data))),history=STATE.historico.filter(x=>String(x.clienteId)===String(id)).sort((a,b)=>String(b.dataHora).localeCompare(String(a.dataHora)));
   document.getElementById("detail-heading").innerHTML=`<p class="eyebrow">Ficha do cliente</p><h3>${esc(c.nome)}</h3>`;
   const fieldMap={pessoais:["nome","cpfCnpj","contato","whatsapp","email","dataNascimento"],comerciais:["empresa","cargo","segmento","porte","origem","responsavel","segundoResponsavel","status","potencial"],endereco:["cep","rua","numero","complemento","bairro","cidade","estado"],digital:["instagram","facebook","linkedin","site"],interno:["tags","preferencias","observacoes"]};
   const sections=CONFIG.CLIENT_SECTIONS.map(s=>`<div class="detail-section"><h4>${esc(s.label)}</h4>${(fieldMap[s.id]||[]).map(fid=>{const f=CONFIG.CLIENT_FIELDS.find(x=>x.id===fid);let v=c[fid];if(fid==="responsavel")v=ownerName(c.responsavelId||c.responsavel);if(fid==="segundoResponsavel")v=c.segundoResponsavel?ownerName(c.segundoResponsavel):"Nenhum";if(fid==="dataNascimento")v=dateBR(v);if(f.type==="url"&&v)v=`<a class="detail-link" href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a>`;else v=esc(v||"—");return`<div class="detail-row"><span>${esc(f.label)}</span><strong>${v}</strong></div>`}).join("")}</div>`).join("");
