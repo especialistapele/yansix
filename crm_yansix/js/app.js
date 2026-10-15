@@ -507,9 +507,43 @@ function renderKanban(){
   document.querySelectorAll(".kanban-column").forEach(col=>{col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drag-over")});col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));col.addEventListener("drop",async e=>{e.preventDefault();col.classList.remove("drag-over");const id=e.dataTransfer.getData("text/plain"),n=STATE.negociacoes.find(x=>String(x.id)===String(id));if(!n||n.etapa===col.dataset.stage)return;const old=n.etapa;const patch={etapa:col.dataset.stage};if(col.dataset.stage==="fechado"&&old!=="fechado")patch.dataFechamento=new Date().toISOString().slice(0,10);if(col.dataset.stage==="perdido"){const motivo=prompt("Motivo da perda:","");if(motivo===null)return;patch.motivoPerda=motivo.trim()}try{await API.update(CONFIG.SHEETS.NEGOCIACOES,id,patch);await auditChange(n.clienteId,"NEGOCIACOES",id,"Mudança de etapa",`Etapa: ${stageLabel(old)} → ${stageLabel(col.dataset.stage)}`+(patch.motivoPerda?` · Motivo: ${patch.motivoPerda}`:""));await syncAll({silent:true});toast(`Negociação movida para ${stageLabel(col.dataset.stage)}.`)}catch(err){toast(err.message,"error")}})});
 }
 function stageLabel(id){return CONFIG.PIPELINE_STAGES.find(x=>x.id===id)?.label||id}
+function googleCalendarDateTime(date,hour,minute=0){
+  const [year,month,day]=String(date||"").split("-").map(Number);
+  if(!year||!month||!day)return "";
+  const d=new Date(year,month-1,day,Number(hour)||0,Number(minute)||0,0);
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+}
+function openTaskInGoogleCalendar(id){
+  const task=STATE.tarefas.find(t=>String(t.id)===String(id));
+  if(!task)return;
+  if(INTEGRATION_SETTINGS.googleCalendarEnabled===false){toast("Ative a integração Google Calendar nas configurações antes de criar eventos.","error");return;}
+  if(!task.data){toast("Esta tarefa não tem data definida.","error");return;}
+  const client=clientById(task.clienteId);
+  const title=task.titulo||"Compromisso YANSIX CRM";
+  const details=[client?.nome?`Cliente: ${client.nome}`:"",task.tipo||task.canal?`Tipo: ${task.tipo||task.canal}`:"","Criado a partir do YANSIX CRM."].filter(Boolean).join("\n");
+  let dates;
+  if(task.hora){
+    const [hour,minute]=String(task.hora).split(":").map(Number);
+    const start=googleCalendarDateTime(task.data,hour,minute);
+    const startDate=new Date(Number(task.data.slice(0,4)),Number(task.data.slice(5,7))-1,Number(task.data.slice(8,10)),hour||0,minute||0);
+    startDate.setMinutes(startDate.getMinutes()+30);
+    const pad=n=>String(n).padStart(2,"0");
+    const end=`${startDate.getFullYear()}${pad(startDate.getMonth()+1)}${pad(startDate.getDate())}T${pad(startDate.getHours())}${pad(startDate.getMinutes())}00`;
+    dates=`${start}/${end}`;
+  }else{
+    const [y,m,d]=task.data.split("-").map(Number);
+    const next=new Date(y,m-1,d+1);
+    const pad=n=>String(n).padStart(2,"0");
+    dates=`${y}${pad(m)}${pad(d)}/${next.getFullYear()}${pad(next.getMonth()+1)}${pad(next.getDate())}`;
+  }
+  const url="https://calendar.google.com/calendar/render?action=TEMPLATE&"+new URLSearchParams({text:title,dates,details}).toString();
+  window.open(url,"_blank","noopener,noreferrer");
+}
 function renderTasks(){
   const filter=val("task-filter");const list=STATE.tarefas.filter(t=>!filter||t.status===filter).sort((a,b)=>`${a.data}${a.hora||""}`.localeCompare(`${b.data}${b.hora||""}`));
-  document.getElementById("tasks-list").innerHTML=list.length?list.map(t=>{const c=clientById(t.clienteId),done=t.status==="concluida";return`<div class="task-item ${done?"done":""}"><div class="task-main"><strong>${esc(t.titulo)}</strong><span>${esc(c?.nome||"Sem cliente")} · ${esc(t.tipo||t.canal||"")}</span></div><div class="task-date">${dateBR(t.data)}${t.hora?" · "+esc(t.hora):""}</div><button class="task-check" data-task="${esc(t.id)}" title="Editar">✎</button><button class="task-check" data-task-toggle="${esc(t.id)}" title="${done?"Reabrir":"Concluir"}">${done?"✓":"○"}</button></div>`}).join(""):`<div class="empty">Nenhuma tarefa neste filtro.</div>`;
+  document.getElementById("tasks-list").innerHTML=list.length?list.map(t=>{const c=clientById(t.clienteId),done=t.status==="concluida";return`<div class="task-item ${done?"done":""}"><div class="task-main"><strong>${esc(t.titulo)}</strong><span>${esc(c?.nome||"Sem cliente")} · ${esc(t.tipo||t.canal||"")}</span></div><div class="task-date">${dateBR(t.data)}${t.hora?" · "+esc(t.hora):""}</div><button class="task-check" data-google-calendar-task="${esc(t.id)}" title="Preparar evento no Google Calendar" aria-label="Preparar evento no Google Calendar">📅</button><button class="task-check" data-task="${esc(t.id)}" title="Editar">✎</button><button class="task-check" data-task-toggle="${esc(t.id)}" title="${done?"Reabrir":"Concluir"}">${done?"✓":"○"}</button></div>`}).join(""):`<div class="empty">Nenhuma tarefa neste filtro.</div>`;
+  document.querySelectorAll("[data-google-calendar-task]").forEach(b=>b.onclick=()=>openTaskInGoogleCalendar(b.dataset.googleCalendarTask));
   document.querySelectorAll("[data-task]").forEach(b=>b.onclick=()=>openTaskModal(b.dataset.task,true));
   document.querySelectorAll("[data-task-toggle]").forEach(b=>{b.onclick=async()=>{const t=STATE.tarefas.find(x=>String(x.id)===String(b.dataset.taskToggle));if(!t)return;try{const next=t.status==="concluida"?"pendente":"concluida";await API.update(CONFIG.SHEETS.TAREFAS,t.id,{status:next});await auditChange(t.clienteId,"TAREFAS",t.id,"Edição",`Status: ${t.status} → ${next}`);await syncAll({silent:true});toast("Tarefa atualizada.")}catch(e){toast(e.message,"error")}}});
 }
