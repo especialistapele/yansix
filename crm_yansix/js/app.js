@@ -345,7 +345,25 @@ function isWebsiteLead(client){
   return /site|website|web|formulario|landing page|pagina de captura|webhook|diagnostico|contato site/.test(source);
 }
 
-async function syncAll({silent=false}={}){
+// Evita que sincronizações simultâneas sobrescrevam um snapshot mais novo e apaguem alertas recém-detectados.
+let syncAllInFlight=null;
+let syncAllQueuedOptions=null;
+async function syncAll(options={}){
+  if(syncAllInFlight){syncAllQueuedOptions=options;return syncAllInFlight;}
+  syncAllInFlight=(async()=>{
+    try{return await syncAllInternal(options);}
+    finally{
+      syncAllInFlight=null;
+      if(syncAllQueuedOptions){
+        const queuedOptions=syncAllQueuedOptions;
+        syncAllQueuedOptions=null;
+        void syncAll(queuedOptions);
+      }
+    }
+  })();
+  return syncAllInFlight;
+}
+async function syncAllInternal({silent=false}={}){
   if(!CONFIG.MOCK&&!SESSION)return;
   try{
     const data=await API.getAll();
