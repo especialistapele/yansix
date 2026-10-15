@@ -172,3 +172,31 @@ html,body{max-width:100%;overflow-x:hidden}
 .meeting-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .meeting-actions .btn{font-size:10px;padding:8px}
 @media(max-width:700px){.meeting-form-grid{grid-template-columns:1fr}.meeting-item{display:block}.meeting-actions{justify-content:flex-start;margin-top:14px}.meeting-form{padding:0 14px 18px}.meetings-list{padding:0 14px 14px}}
+
+
+/* Estados visuais sem atributos style inline, compatíveis com a CSP estrita. */
+.status-dot-ok,.storage-percent-ok{color:var(--success)}
+.status-dot-atencao,.storage-percent-atencao{color:#C79A1E}
+.status-dot-critico,.storage-percent-critico{color:#E08A2B}
+.status-dot-acao_necessaria,.storage-percent-acao_necessaria{color:var(--danger)}
+.commission-goal-bar-fill.progress-0{width:0%}
+.commission-goal-bar-fill.progress-5{width:5%}
+.commission-goal-bar-fill.progress-10{width:10%}
+.commission-goal-bar-fill.progress-15{width:15%}
+.commission-goal-bar-fill.progress-20{width:20%}
+.commission-goal-bar-fill.progress-25{width:25%}
+.commission-goal-bar-fill.progress-30{width:30%}
+.commission-goal-bar-fill.progress-35{width:35%}
+.commission-goal-bar-fill.progress-40{width:40%}
+.commission-goal-bar-fill.progress-45{width:45%}
+.commission-goal-bar-fill.progress-50{width:50%}
+.commission-goal-bar-fill.progress-55{width:55%}
+.commission-goal-bar-fill.progress-60{width:60%}
+.commission-goal-bar-fill.progress-65{width:65%}
+.commission-goal-bar-fill.progress-70{width:70%}
+.commission-goal-bar-fill.progress-75{width:75%}
+.commission-goal-bar-fill.progress-80{width:80%}
+.commission-goal-bar-fill.progress-85{width:85%}
+.commission-goal-bar-fill.progress-90{width:90%}
+.commission-goal-bar-fill.progress-95{width:95%}
+.commission-goal-bar-fill.progress-100{width:100%}
