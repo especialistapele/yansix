@@ -139,6 +139,14 @@ form-action 'self'">
       </a>
 
       <a
+        href="#reunioes"
+        class="nav-link"
+        data-view="reunioes">
+        <span class="nav-icon">◷</span>
+        <span>Reuniões</span>
+      </a>
+
+      <a
         href="#propostas"
         class="nav-link"
         data-view="propostas">
@@ -1112,6 +1120,70 @@ form-action 'self'">
       <!-- ===================================================
            PROPOSTAS
       ==================================================== -->
+      <section
+        id="view-reunioes"
+        class="view">
+
+        <div class="page-head">
+          <div>
+            <h1>Reuniões</h1>
+            <p>Agende reuniões, organize participantes e prepare a videochamada.</p>
+          </div>
+        </div>
+
+        <div class="panel meeting-form-panel">
+          <div class="panel-head"><h2 id="meeting-form-heading">Agendar reunião</h2></div>
+          <form id="meeting-form" class="meeting-form">
+            <input type="hidden" id="meeting-id">
+            <label>Nome da reunião
+              <input id="meeting-title" type="text" maxlength="160" required placeholder="Ex.: Apresentação da proposta">
+            </label>
+            <div class="meeting-form-grid">
+              <label>Data
+                <input id="meeting-date" type="date" required>
+              </label>
+              <label>Horário
+                <input id="meeting-time" type="time" required>
+              </label>
+              <label>Duração
+                <select id="meeting-duration">
+                  <option value="15">15 minutos</option>
+                  <option value="30" selected>30 minutos</option>
+                  <option value="45">45 minutos</option>
+                  <option value="60">1 hora</option>
+                  <option value="90">1h30</option>
+                  <option value="120">2 horas</option>
+                </select>
+              </label>
+            </div>
+            <label>Participantes (um por linha: Nome | e-mail)
+              <textarea id="meeting-participants" rows="3" maxlength="4000" placeholder="Maria Silva | maria@empresa.com&#10;João Souza | joao@empresa.com"></textarea>
+            </label>
+            <label>Pauta e observações
+              <textarea id="meeting-notes" rows="3" maxlength="5000" placeholder="Objetivo da reunião, tópicos para discutir..."></textarea>
+            </label>
+            <label>Link da videochamada (opcional)
+              <input id="meeting-video-link" type="url" maxlength="2048" placeholder="https://meet.google.com/...">
+            </label>
+            <p class="meeting-hint">Para criar uma sala do Google Meet, abra o evento no Google Calendar e escolha adicionar videoconferência. Depois, cole o link acima para compartilhá-lo aqui.</p>
+            <div class="meeting-form-actions">
+              <button class="btn btn-primary" id="meeting-save" type="submit">Salvar reunião</button>
+              <button class="btn btn-ghost hidden" id="meeting-cancel-edit" type="button">Cancelar edição</button>
+              <button class="btn btn-ghost" id="meeting-google-calendar" type="button">Preparar no Google Calendar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel meeting-list-panel">
+          <div class="panel-head">
+            <h2>Reuniões agendadas</h2>
+            <button class="btn btn-ghost" id="meeting-refresh" type="button">Atualizar lista</button>
+          </div>
+          <div id="meetings-list" class="meetings-list"></div>
+        </div>
+      </section>
+
+
       <section
         id="view-propostas"
         class="view">
