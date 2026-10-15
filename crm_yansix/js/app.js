@@ -354,7 +354,13 @@ async function syncAll({silent=false}={}){
     const hasBaseline=clientSnapshotInitialized;
     const recentCutoff=Date.now()-24*60*60*1000;
     const currentWebsiteLeads=(data.clientes||[]).filter(c=>c?.id&&isWebsiteLead(c));
-    const newWebsiteLeads=currentWebsiteLeads.filter(c=>!acknowledgedWebsiteLeadIds.has(String(c.id))&&(pendingWebsiteLeadIds.has(String(c.id))||(hasBaseline&&!previousIds.has(String(c.id)))||(!hasBaseline&&websiteLeadCreatedAt(c)>=recentCutoff)));
+    // Não depende exclusivamente do snapshot anterior: se outro sync carregar o lead primeiro,
+    // ele ainda deve entrar na fila de alertas enquanto for recente e não tiver sido aberto.
+    const newWebsiteLeads=currentWebsiteLeads.filter(c=>!acknowledgedWebsiteLeadIds.has(String(c.id))&&(
+      pendingWebsiteLeadIds.has(String(c.id))||
+      websiteLeadCreatedAt(c)>=recentCutoff||
+      (hasBaseline&&!previousIds.has(String(c.id)))
+    ));
     const freshWebsiteLeads=newWebsiteLeads.filter(lead=>!pendingWebsiteLeadIds.has(String(lead.id)));
     for(const lead of newWebsiteLeads)pendingWebsiteLeadIds.add(String(lead.id));
     freshWebsiteLeads.forEach(notifyWebsiteLead);
