@@ -172,3 +172,8 @@ html,body{max-width:100%;overflow-x:hidden}
 .meeting-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .meeting-actions .btn{font-size:10px;padding:8px}
 @media(max-width:700px){.meeting-form-grid{grid-template-columns:1fr}.meeting-item{display:block}.meeting-actions{justify-content:flex-start;margin-top:14px}.meeting-form{padding:0 14px 18px}.meetings-list{padding:0 14px 14px}}
+
+/* Espaçamento da seção de automação sem estilo inline (compatível com CSP). */
+.page-head-compact {
+  margin-top: 8px;
+}
