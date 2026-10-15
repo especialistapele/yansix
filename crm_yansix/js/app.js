@@ -391,6 +391,7 @@ async function syncAllInternal({silent=false}={}){
     applyAutomationConfig(data.configuracoes||[]);
     applyIntegrationConfig(data.configuracoes||[]);
     STATE=data;
+    // Renderiza somente depois de atualizar STATE, pois clientById consulta o snapshot atual.
     renderWebsiteLeadAlerts();
     filterVisibleState();
     await runAutomations();
