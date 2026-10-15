@@ -200,3 +200,5 @@ html,body{max-width:100%;overflow-x:hidden}
 .commission-goal-bar-fill.progress-90{width:90%}
 .commission-goal-bar-fill.progress-95{width:95%}
 .commission-goal-bar-fill.progress-100{width:100%}
+
+.page-head-compact{margin-top:8px}
