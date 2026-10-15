@@ -279,7 +279,8 @@ async function copyWebhookInfo(){const url=CONFIG.SHEETS_API_URL||"URL do Web Ap
 
 function isWebsiteLead(client){
   const source=String(client?.origem||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
-  return /site|website|web|formulario|formulario online|landing page|pagina de captura|webhook/.test(source);
+  // Reconhece também a origem real usada pelo formulário do diagnóstico.
+  return /site|website|web|formulario|landing page|pagina de captura|webhook|diagnostico|contato site/.test(source);
 }
 
 async function syncAll({silent=false}={}){
