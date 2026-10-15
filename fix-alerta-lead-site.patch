@@ -1,0 +1,11 @@
+--- a/crm_yansix/js/app.js	2026-10-15 16:50:27.750851643 +0000
++++ b/crm_yansix/js/app.js
+@@ -278,7 +278,7 @@
+ async function copyWebhookInfo(){const url=CONFIG.SHEETS_API_URL||"URL do Web App do Google Apps Script";try{await navigator.clipboard.writeText(url);toast("URL do Web App copiada.")}catch{toast(url,"error")}}
+ 
+ function isWebsiteLead(client){
+-  const source=String(client?.origem||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
++  const source=String(client?.origem||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+   // Reconhece também a origem real usada pelo formulário do diagnóstico.
+   return /site|website|web|formulario|landing page|pagina de captura|webhook|diagnostico|contato site/.test(source);
+ }
