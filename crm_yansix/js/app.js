@@ -6,6 +6,61 @@ function readStoredIdSet(key){try{return new Set((JSON.parse(localStorage.getIte
 let pendingWebsiteLeadIds=readStoredIdSet(WEBSITE_LEAD_PENDING_KEY);
 let acknowledgedWebsiteLeadIds=readStoredIdSet(WEBSITE_LEAD_ACK_KEY);
 function persistWebsiteLeadAlerts(){localStorage.setItem(WEBSITE_LEAD_PENDING_KEY,JSON.stringify([...pendingWebsiteLeadIds]));localStorage.setItem(WEBSITE_LEAD_ACK_KEY,JSON.stringify([...acknowledgedWebsiteLeadIds]))}
+const WEBSITE_LEAD_ALERTS_ENABLED_KEY="yansix_crm_website_lead_alerts_enabled_v1";
+let leadAudioContext=null;
+function websiteLeadAlertsEnabled(){try{return localStorage.getItem(WEBSITE_LEAD_ALERTS_ENABLED_KEY)==="true"}catch{return false}}
+function updateWebsiteLeadAlertButton(){
+  const button=document.getElementById("lead-alert-settings");if(!button)return;
+  const enabled=websiteLeadAlertsEnabled();
+  button.textContent=enabled?"🔔 Alertas ativados":"🔔 Ativar alertas";
+  button.setAttribute("aria-pressed",String(enabled));
+  button.title=enabled?"Desativar som e notificações de novos leads":"Ativar som e notificações de novos leads";
+}
+async function toggleWebsiteLeadAlerts(){
+  const enabled=!websiteLeadAlertsEnabled();
+  if(enabled){
+    try{
+      const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+      if(AudioContextClass){leadAudioContext=leadAudioContext||new AudioContextClass();if(leadAudioContext.state==="suspended")await leadAudioContext.resume()}
+    }catch{}
+    if("Notification" in window&&Notification.permission==="default"){
+      try{await Notification.requestPermission()}catch{}
+    }
+  }
+  localStorage.setItem(WEBSITE_LEAD_ALERTS_ENABLED_KEY,String(enabled));
+  updateWebsiteLeadAlertButton();
+  if(enabled){
+    if(!("Notification" in window))toast("Som ativado. Este navegador não oferece notificações nativas.","error");
+    else if(Notification.permission==="denied")toast("Som ativado. Para receber avisos do navegador, permita notificações nas configurações do site.","error");
+    else toast("Alertas de novos leads ativados.");
+  }else toast("Alertas de novos leads desativados.");
+}
+function playWebsiteLeadSound(){
+  if(!websiteLeadAlertsEnabled())return;
+  try{
+    const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextClass)return;
+    leadAudioContext=leadAudioContext||new AudioContextClass();
+    if(leadAudioContext.state==="suspended")leadAudioContext.resume().catch(()=>{});
+    const oscillator=leadAudioContext.createOscillator();
+    const gain=leadAudioContext.createGain();
+    oscillator.type="sine";oscillator.frequency.value=880;
+    gain.gain.setValueAtTime(0.0001,leadAudioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12,leadAudioContext.currentTime+0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001,leadAudioContext.currentTime+0.32);
+    oscillator.connect(gain);gain.connect(leadAudioContext.destination);
+    oscillator.start();oscillator.stop(leadAudioContext.currentTime+0.33);
+  }catch{}
+}
+function notifyWebsiteLead(lead){
+  if(!websiteLeadAlertsEnabled())return;
+  playWebsiteLeadSound();
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  try{
+    const notification=new Notification("Novo lead pelo site",{body:"Um novo contato chegou ao CRM. Abra o CRM para visualizar a ficha.",tag:"yansix-lead-"+String(lead?.id||Date.now()),icon:"assets/yansix-logo-192.png"});
+    notification.onclick=()=>{window.focus();notification.close();if(lead?.id)openDetail(lead.id)};
+  }catch{}
+}
 function websiteLeadCreatedAt(client){const value=client?.created_at||client?.createdAt||client?.criadoEm||client?.dataHora||client?.created_on;const timestamp=value?Date.parse(value):NaN;return Number.isFinite(timestamp)?timestamp:0}
 function renderWebsiteLeadAlerts(){
   const region=document.getElementById("toast-region");if(!region)return;
@@ -187,6 +242,8 @@ function globalSearch(q){q=q.trim().toLowerCase();if(!q)return;const c=STATE.cli
 
 function initEvents(){
   document.getElementById("login-form").onsubmit=loginUser;
+  document.getElementById("lead-alert-settings")?.addEventListener("click",toggleWebsiteLeadAlerts);
+  updateWebsiteLeadAlertButton();
   document.getElementById("notification-btn").onclick=e=>{e.stopPropagation();const panel=document.getElementById("notification-panel");const willOpen=panel.classList.contains("hidden");if(willOpen)renderNotifications();panel.classList.toggle("hidden",!willOpen)};
   document.addEventListener("click",e=>{const panel=document.getElementById("notification-panel");if(panel&&!panel.classList.contains("hidden")&&!panel.contains(e.target)&&e.target.id!=="notification-btn")panel.classList.add("hidden")});
   document.getElementById("new-user").onclick=()=>openUserModal();
@@ -298,7 +355,9 @@ async function syncAll({silent=false}={}){
     const recentCutoff=Date.now()-24*60*60*1000;
     const currentWebsiteLeads=(data.clientes||[]).filter(c=>c?.id&&isWebsiteLead(c));
     const newWebsiteLeads=currentWebsiteLeads.filter(c=>!acknowledgedWebsiteLeadIds.has(String(c.id))&&(pendingWebsiteLeadIds.has(String(c.id))||(hasBaseline&&!previousIds.has(String(c.id)))||(!hasBaseline&&websiteLeadCreatedAt(c)>=recentCutoff)));
+    const freshWebsiteLeads=newWebsiteLeads.filter(lead=>!pendingWebsiteLeadIds.has(String(lead.id)));
     for(const lead of newWebsiteLeads)pendingWebsiteLeadIds.add(String(lead.id));
+    freshWebsiteLeads.forEach(notifyWebsiteLead);
     const currentIds=new Set((data.clientes||[]).map(c=>String(c.id)));
     pendingWebsiteLeadIds=new Set([...pendingWebsiteLeadIds].filter(id=>currentIds.has(id)&&!acknowledgedWebsiteLeadIds.has(id)));
     persistWebsiteLeadAlerts();
