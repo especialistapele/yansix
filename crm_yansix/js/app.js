@@ -151,12 +151,12 @@ async function renderCrmStatus(){
     const pct=Math.min(100,Math.round((usadoMb/limites.storageMb)*100));
     const nivel=nivelStorage(pct);
 
-    sistemaEl.innerHTML=`<span style="color:${nivel.color}">●</span> ${nivel.key==="ok"?"Operacional":nivel.label}`;
+    sistemaEl.innerHTML=`<span class="status-dot status-dot-${nivel.key}">●</span> ${nivel.key==="ok"?"Operacional":nivel.label}`;
     verificadoEl.textContent=`Verificado agora`;
-    armazenamentoEl.innerHTML=`<span style="color:${nivel.color}">${pct}%</span> utilizado`;
+    armazenamentoEl.innerHTML=`<span class="storage-percent storage-percent-${nivel.key}">${pct}%</span> utilizado`;
     armazenamentoMetaEl.textContent=nivel.key==="ok"?"Dentro do esperado":nivel.label;
   }catch(err){
-    sistemaEl.innerHTML=`<span style="color:var(--success)">●</span> Operacional`;
+    sistemaEl.innerHTML=`<span class="status-dot status-dot-ok">●</span> Operacional`;
     verificadoEl.textContent="Verificação de armazenamento indisponível";
     armazenamentoEl.textContent="—";
     armazenamentoMetaEl.textContent="Rode sql/status_operacional.sql no Supabase deste CRM";
@@ -1077,7 +1077,7 @@ async function updateCommissionGoal(kind,id,value){
 function goalProgressBar(total,meta){
   if(!meta)return"";
   const pct=Math.min(100,total/meta*100);
-  return `<div class="commission-goal-bar"><div class="commission-goal-bar-fill" style="width:${pct.toFixed(0)}%"></div></div><small>${pct.toFixed(0)}% da meta de ${money(meta)}</small>`;
+  return `<div class="commission-goal-bar"><div class="commission-goal-bar-fill progress-${Math.max(0,Math.min(100,Math.round(pct/5)*5))}"></div></div><small>${pct.toFixed(0)}% da meta de ${money(meta)}</small>`;
 }
 function leadToCloseDays(n){
   const c=clientById(n.clienteId);
