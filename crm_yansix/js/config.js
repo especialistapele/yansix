@@ -20,8 +20,8 @@ const CONFIG={
   ADMIN_USER_FUNCTION_URL:"https://zxeupenncextzrqgthqx.supabase.co/functions/v1/admin-create-user",
   SUPORTE_CHAMADO_URL:"https://admin.yansix.tech/chamado.html",
   RELATIONAL_ACCESS_READY:true,
-  SHEETS:{LOGS:"LOGS",USUARIOS:"USUARIOS",CLIENTES:"CLIENTES",NEGOCIACOES:"NEGOCIACOES",INTERACOES:"INTERACOES",TAREFAS:"TAREFAS",PROPOSTAS:"PROPOSTAS",HISTORICO:"HISTORICO",CONFIGURACOES:"CONFIGURACOES",COMISSOES:"COMISSOES",PRODUTOS:"PRODUTOS",FATURAS:"FATURAS",PESQUISAS:"PESQUISAS"},
-  DB_TABLES:{LOGS:"logs",USUARIOS:"usuarios",CLIENTES:"clientes",NEGOCIACOES:"negociacoes",INTERACOES:"interacoes",TAREFAS:"tarefas",PROPOSTAS:"propostas",HISTORICO:"historico",CONFIGURACOES:"configuracoes",COMISSOES:"comissoes",PRODUTOS:"produtos_servicos",FATURAS:"faturas",PESQUISAS:"pesquisas_satisfacao"},
+  SHEETS:{LOGS:"LOGS",USUARIOS:"USUARIOS",CLIENTES:"CLIENTES",NEGOCIACOES:"NEGOCIACOES",INTERACOES:"INTERACOES",TAREFAS:"TAREFAS",PROPOSTAS:"PROPOSTAS",HISTORICO:"HISTORICO",CONFIGURACOES:"CONFIGURACOES",COMISSOES:"COMISSOES",PRODUTOS:"PRODUTOS",FATURAS:"FATURAS",PESQUISAS:"PESQUISAS",REUNIOES:"REUNIOES"},
+  DB_TABLES:{LOGS:"logs",USUARIOS:"usuarios",CLIENTES:"clientes",NEGOCIACOES:"negociacoes",INTERACOES:"interacoes",TAREFAS:"tarefas",PROPOSTAS:"propostas",HISTORICO:"historico",CONFIGURACOES:"configuracoes",COMISSOES:"comissoes",PRODUTOS:"produtos_servicos",FATURAS:"faturas",PESQUISAS:"pesquisas_satisfacao",REUNIOES:"reunioes"},
   COMMISSION_STATUS:["pendente","a_pagar","pago"],
   COMMISSION_STATUS_LABELS:{pendente:"Pendente",a_pagar:"A pagar",pago:"Pago"},
   LOSS_REASONS:["Preço","Concorrência","Sem retorno do cliente","Timing / orçamento","Não era o público certo","Desistiu da compra","Falta de fit com o serviço","Outro"],
@@ -39,8 +39,8 @@ const CONFIG={
   PROPOSAL_STATUSES_LABEL:{rascunho:"Rascunho",enviada:"Enviada",visualizada:"Visualizada",negociacao:"Negociação",aprovada:"Aprovada",recusada:"Recusada",expirada:"Expirada"},
   USER_ROLES:{
     Administrador:{label:"Administrador",permissions:["*"]},
-    Gestor:{label:"Gestor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","propostas","relatorios","configuracoes","comissoes","produtos","financeiro","satisfacao"]},
-    Vendedor:{label:"Vendedor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","propostas"]}
+    Gestor:{label:"Gestor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","reunioes","propostas","relatorios","configuracoes","comissoes","produtos","financeiro","satisfacao"]},
+    Vendedor:{label:"Vendedor",permissions:["dashboard","clientes","funil","tarefas","interacoes","calendario","reunioes","propostas"]}
   },
   USER_DEFAULTS:{nome:"Administrador",email:"yansix.tech@gmail.com",perfil:"Administrador",gestorId:"",ativo:true},
   PLAN_LIMITS:{administradores:2,gestores:5,vendedores:20,clientes:3000,storageMb:500},

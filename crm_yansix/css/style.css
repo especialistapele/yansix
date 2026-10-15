@@ -150,3 +150,25 @@ html,body{max-width:100%;overflow-x:hidden}
 .toast-region .website-lead-alert{display:block;width:100%;text-align:left;cursor:pointer;color:var(--text);font:inherit;line-height:1.4;background:#fff;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);animation:none}
 .toast-region .website-lead-alert:hover,.toast-region .website-lead-alert:focus-visible{background:#F5F3FF;outline:2px solid var(--primary);outline-offset:2px}
 @media(max-width:600px){.toast-region{right:12px;bottom:12px;left:12px}.toast-region .website-lead-alert{max-width:none}}
+
+/* Módulo de reuniões */
+.meeting-form-panel,.meeting-list-panel{margin-bottom:20px}
+.meeting-form{padding:0 20px 22px;display:grid;gap:14px}
+.meeting-form label{display:grid;gap:6px;color:var(--text);font-size:12px;font-weight:600}
+.meeting-form input,.meeting-form select,.meeting-form textarea{width:100%;min-width:0}
+.meeting-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.meeting-form-actions{display:flex;gap:10px;flex-wrap:wrap}
+.meeting-hint{margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+.meetings-list{padding:0 20px 18px;display:grid;gap:12px}
+.meeting-item{border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;gap:16px;justify-content:space-between;align-items:flex-start}
+.meeting-item-main{min-width:0;flex:1}
+.meeting-item-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.meeting-item-top strong{font-size:14px}
+.meeting-status{font-size:10px;border-radius:20px;padding:4px 8px;background:#F1EEFF;color:var(--primary);font-weight:700}
+.meeting-meta{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.5;overflow-wrap:anywhere}
+.meeting-meta span{color:var(--muted)}
+.meeting-notes{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+.meeting-video-link{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--primary)}
+.meeting-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.meeting-actions .btn{font-size:10px;padding:8px}
+@media(max-width:700px){.meeting-form-grid{grid-template-columns:1fr}.meeting-item{display:block}.meeting-actions{justify-content:flex-start;margin-top:14px}.meeting-form{padding:0 14px 18px}.meetings-list{padding:0 14px 14px}}

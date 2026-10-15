@@ -1,4 +1,4 @@
-let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],propostas:[],historico:[],configuracoes:[],comissoes:[],produtos:[],faturas:[],pesquisas:[]};
+let STATE={usuarios:[],clientes:[],negociacoes:[],interacoes:[],tarefas:[],reunioes:[],propostas:[],historico:[],configuracoes:[],comissoes:[],produtos:[],faturas:[],pesquisas:[]};
 let clientSnapshotInitialized=false;
 const WEBSITE_LEAD_PENDING_KEY="yansix_crm_pending_website_leads_v1";
 const WEBSITE_LEAD_ACK_KEY="yansix_crm_acknowledged_website_leads_v1";
@@ -118,7 +118,7 @@ function showView(view){
   if(view!=="dashboard"&&!hasPermission(view)){toast("Seu perfil não possui acesso a este módulo.","error");view="dashboard"}
   currentView=view;document.querySelectorAll(".nav-link").forEach(x=>x.classList.toggle("active",x.dataset.view===view));
   document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===`view-${view}`));history.replaceState(null,"",`#${view}`);
-  if(view==="dashboard")renderDashboard();if(view==="clientes")renderClients();if(view==="funil")renderKanban();if(view==="tarefas")renderTasks();if(view==="interacoes")renderInteractions();if(view==="calendario")renderAgenda();if(view==="propostas")renderProposals();if(view==="relatorios")renderReports();if(view==="configuracoes"){renderAutomationSettings();renderCrmStatus();}if(view==="integracoes")renderIntegrations();if(view==="usuarios")renderUsers();
+  if(view==="dashboard")renderDashboard();if(view==="clientes")renderClients();if(view==="funil")renderKanban();if(view==="tarefas")renderTasks();if(view==="interacoes")renderInteractions();if(view==="calendario")renderAgenda();if(view==="reunioes")renderMeetings();if(view==="propostas")renderProposals();if(view==="relatorios")renderReports();if(view==="configuracoes"){renderAutomationSettings();renderCrmStatus();}if(view==="integracoes")renderIntegrations();if(view==="usuarios")renderUsers();
   if(view==="comissoes"){renderCommissions();if(hasPermission("comissoes"))ensureCommissionRecords().then(()=>{if(currentView==="comissoes")renderCommissions()});}
   if(view==="produtos")renderProducts();if(view==="financeiro")renderFinance();if(view==="satisfacao")renderSatisfaction();
 }
@@ -195,6 +195,10 @@ function initEvents(){
   document.getElementById("new-client").onclick=()=>openClientModal();
   document.getElementById("new-deal").onclick=()=>openDealModal();
   document.getElementById("new-task").onclick=()=>openTaskModal();
+  document.getElementById("meeting-form").onsubmit=saveMeeting;
+  document.getElementById("meeting-cancel-edit").onclick=resetMeetingForm;
+  document.getElementById("meeting-google-calendar").onclick=openMeetingDraftInGoogleCalendar;
+  document.getElementById("meeting-refresh").onclick=()=>syncAll({silent:false});
   document.getElementById("new-interaction").onclick=()=>openInteractionModal();
   document.getElementById("new-proposal").onclick=()=>openProposalModal();
   document.getElementById("report-period").onchange=renderReports;document.getElementById("report-refresh").onclick=renderReports;
@@ -309,7 +313,7 @@ async function syncAll({silent=false}={}){
     if(hasPermission("comissoes"))await ensureCommissionRecords();
     document.getElementById("notification-count").textContent=String(STATE.tarefas.filter(t=>t.status!=="concluida"&&isOverdue(t.data)).length);
     if(!document.getElementById("notification-panel")?.classList.contains("hidden"))renderNotifications();
-    renderDashboard();if(currentView==="clientes")renderClients();if(currentView==="funil")renderKanban();if(currentView==="tarefas")renderTasks();if(currentView==="interacoes")renderInteractions();if(currentView==="calendario")renderAgenda();if(currentView==="propostas")renderProposals();if(currentView==="relatorios")renderReports();if(currentView==="integracoes")renderIntegrations();if(currentView==="comissoes")renderCommissions();if(currentView==="produtos")renderProducts();if(currentView==="financeiro")renderFinance();if(currentView==="satisfacao")renderSatisfaction()
+    renderDashboard();if(currentView==="clientes")renderClients();if(currentView==="funil")renderKanban();if(currentView==="tarefas")renderTasks();if(currentView==="interacoes")renderInteractions();if(currentView==="calendario")renderAgenda();if(currentView==="reunioes")renderMeetings();if(currentView==="propostas")renderProposals();if(currentView==="relatorios")renderReports();if(currentView==="integracoes")renderIntegrations();if(currentView==="comissoes")renderCommissions();if(currentView==="produtos")renderProducts();if(currentView==="financeiro")renderFinance();if(currentView==="satisfacao")renderSatisfaction()
   }catch(e){if(!CONFIG.MOCK&&/Sessão inválida|Não autenticado|Usuário inválido|Sessão expirada/i.test(String(e.message||""))){await logout("Sua sessão expirou. Faça login novamente.");return;}try{await API.create("LOGS",{tipo:"ERRO",usuario:SESSION?.nome||"Sistema",acao:"Sincronização",detalhes:e.message||String(e),dataHora:new Date().toISOString()})}catch{}if(!silent)toast(e.message||"Falha ao sincronizar.","error")}
 }
 function automationConfigRecord(){return STATE.configuracoes?.find(x=>x.chave==="automationRules")}
@@ -547,6 +551,111 @@ function renderTasks(){
   document.querySelectorAll("[data-task]").forEach(b=>b.onclick=()=>openTaskModal(b.dataset.task,true));
   document.querySelectorAll("[data-task-toggle]").forEach(b=>{b.onclick=async()=>{const t=STATE.tarefas.find(x=>String(x.id)===String(b.dataset.taskToggle));if(!t)return;try{const next=t.status==="concluida"?"pendente":"concluida";await API.update(CONFIG.SHEETS.TAREFAS,t.id,{status:next});await auditChange(t.clienteId,"TAREFAS",t.id,"Edição",`Status: ${t.status} → ${next}`);await syncAll({silent:true});toast("Tarefa atualizada.")}catch(e){toast(e.message,"error")}}});
 }
+
+function meetingDateTime(m){return new Date(m.data_inicio||m.dataInicio||"")}
+function meetingParticipantsText(participants){return (Array.isArray(participants)?participants:[]).map(p=>`${p.nome||""}${p.email?" | "+p.email:""}`).join("\n")}
+function safeMeetingVideoLink(value){
+  try{const u=new URL(String(value||""));return ["https:","http:"].includes(u.protocol)?u.href:""}catch{return ""}
+}
+function parseMeetingParticipants(raw){
+  return String(raw||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(line=>{
+    const parts=line.split("|");const nome=(parts.shift()||"").trim();const email=parts.join("|").trim();
+    if(!nome)throw new Error("Informe o nome de cada participante.");
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error("Verifique o e-mail do participante: "+email);
+    return {nome,email};
+  });
+}
+function resetMeetingForm(){
+  document.getElementById("meeting-form").reset();
+  document.getElementById("meeting-id").value="";
+  document.getElementById("meeting-date").value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+  document.getElementById("meeting-time").value="10:00";
+  document.getElementById("meeting-duration").value="30";
+  document.getElementById("meeting-form-heading").textContent="Agendar reunião";
+  document.getElementById("meeting-save").textContent="Salvar reunião";
+  document.getElementById("meeting-cancel-edit").classList.add("hidden");
+}
+function meetingPayloadFromForm(){
+  const titulo=val("meeting-title").trim(),data=val("meeting-date"),hora=val("meeting-time");
+  if(titulo.length<2)throw new Error("Informe um nome de reunião válido.");
+  if(!data||!hora)throw new Error("Informe data e horário da reunião.");
+  const start=new Date(data+"T"+hora+":00");
+  if(!Number.isFinite(start.getTime()))throw new Error("Data ou horário inválido.");
+  const duracao_minutos=Number(val("meeting-duration")||30);
+  if(!Number.isInteger(duracao_minutos)||duracao_minutos<5||duracao_minutos>480)throw new Error("A duração deve ser entre 5 minutos e 8 horas.");
+  const link=val("meeting-video-link").trim();
+  if(link){let parsed;try{parsed=new URL(link)}catch{}if(!parsed||!["https:","http:"].includes(parsed.protocol))throw new Error("O link da videochamada deve começar com https:// ou http://.");}
+  return {titulo,data_inicio:start.toISOString(),duracao_minutos,pauta:val("meeting-notes").trim(),link_video:link,participantes:parseMeetingParticipants(val("meeting-participants"))};
+}
+function meetingCalendarUrl(m){
+  const start=meetingDateTime(m),end=new Date(start.getTime()+Number(m.duracao_minutos||30)*60000);
+  const stamp=d=>d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}Z$/,"Z");
+  const participants=Array.isArray(m.participantes)?m.participantes:[];
+  const details=[m.pauta||"",m.link_video?"Videochamada: "+m.link_video:"",participants.length?"Participantes:\n"+participants.map(p=>p.nome+(p.email?" <"+p.email+">":"")).join("\n"):""].filter(Boolean).join("\n\n");
+  const params=new URLSearchParams({action:"TEMPLATE",text:m.titulo||"Reunião",dates:stamp(start)+"/"+stamp(end),details});
+  const emails=participants.map(p=>p.email).filter(Boolean);if(emails.length)params.set("add",emails.join(","));
+  return "https://calendar.google.com/calendar/render?"+params.toString();
+}
+function openMeetingDraftInGoogleCalendar(){
+  try{const m=meetingPayloadFromForm();window.open(meetingCalendarUrl(m),"_blank","noopener,noreferrer");}
+  catch(e){toast(e.message||"Confira os dados da reunião.","error")}
+}
+function renderMeetings(){
+  const host=document.getElementById("meetings-list");if(!host)return;
+  const list=[...(STATE.reunioes||[])].sort((a,b)=>meetingDateTime(a)-meetingDateTime(b));
+  if(!list.length){host.innerHTML='<div class="empty">Nenhuma reunião agendada ainda.</div>';return;}
+  host.innerHTML=list.map(m=>{
+    const start=meetingDateTime(m),participants=Array.isArray(m.participantes)?m.participantes:[];
+    const when=Number.isFinite(start.getTime())?start.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}):"Data não definida";
+    const mine=String(m.criado_por||"")===String(SESSION?.id||"");
+    return `<article class="meeting-item">
+      <div class="meeting-item-main"><div class="meeting-item-top"><strong>${esc(m.titulo)}</strong><span class="meeting-status">${esc(m.status==="realizada"?"Realizada":m.status==="cancelada"?"Cancelada":"Agendada")}</span></div>
+      <div class="meeting-meta">${esc(when)} · ${esc(String(m.duracao_minutos||30))} min</div>
+      ${participants.length?`<div class="meeting-meta"><b>Participantes:</b> ${participants.map(p=>esc(p.nome)+(p.email?` <span>${esc(p.email)}</span>`:"")).join(", ")}</div>`:""}
+      ${m.pauta?`<p class="meeting-notes">${esc(m.pauta)}</p>`:""}
+      ${safeMeetingVideoLink(m.link_video)?`<a class="meeting-video-link" href="${esc(safeMeetingVideoLink(m.link_video))}" target="_blank" rel="noopener noreferrer">Entrar na videochamada ↗</a>`:""}
+      </div><div class="meeting-actions">
+      <button type="button" class="btn btn-ghost" data-meeting-calendar="${esc(m.id)}">Google Calendar</button>
+      ${mine?`<button type="button" class="btn btn-ghost" data-meeting-edit="${esc(m.id)}">Editar</button><button type="button" class="btn btn-ghost" data-meeting-delete="${esc(m.id)}">Excluir</button>`:""}
+      </div></article>`;
+  }).join("");
+  host.querySelectorAll("[data-meeting-calendar]").forEach(b=>b.onclick=()=>{const m=(STATE.reunioes||[]).find(x=>String(x.id)===String(b.dataset.meetingCalendar));if(m)window.open(meetingCalendarUrl(m),"_blank","noopener,noreferrer")});
+  host.querySelectorAll("[data-meeting-edit]").forEach(b=>b.onclick=()=>editMeeting(b.dataset.meetingEdit));
+  host.querySelectorAll("[data-meeting-delete]").forEach(b=>b.onclick=()=>deleteMeeting(b.dataset.meetingDelete));
+}
+function editMeeting(id){
+  const m=(STATE.reunioes||[]).find(x=>String(x.id)===String(id));if(!m||String(m.criado_por)!==String(SESSION?.id||""))return;
+  const d=meetingDateTime(m);document.getElementById("meeting-id").value=m.id;document.getElementById("meeting-title").value=m.titulo||"";
+  document.getElementById("meeting-date").value=Number.isFinite(d.getTime())?new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10):"";
+  document.getElementById("meeting-time").value=Number.isFinite(d.getTime())?new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(11,16):"";
+  document.getElementById("meeting-duration").value=String(m.duracao_minutos||30);document.getElementById("meeting-participants").value=meetingParticipantsText(m.participantes);
+  document.getElementById("meeting-notes").value=m.pauta||"";document.getElementById("meeting-video-link").value=m.link_video||"";
+  document.getElementById("meeting-form-heading").textContent="Editar reunião";document.getElementById("meeting-save").textContent="Salvar alterações";
+  document.getElementById("meeting-cancel-edit").classList.remove("hidden");document.getElementById("meeting-form").scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function saveMeeting(e){
+  e.preventDefault();const btn=document.getElementById("meeting-save");
+  await withButtonLoading(btn,async()=>{
+    try{
+      const data=meetingPayloadFromForm(),id=val("meeting-id");
+      if(id){
+        const existing=(STATE.reunioes||[]).find(x=>String(x.id)===String(id));
+        if(!existing||String(existing.criado_por)!==String(SESSION?.id||""))throw new Error("Você só pode editar reuniões criadas por você.");
+        await API.update("REUNIOES",id,{...data,atualizado_em:new Date().toISOString()});
+      }else{
+        await API.create("REUNIOES",{...data,id:crypto.randomUUID(),criado_por:String(SESSION.id),status:"agendada"});
+      }
+      resetMeetingForm();await syncAll({silent:true});toast(id?"Reunião atualizada.":"Reunião salva para os usuários ativos do CRM.");
+    }catch(err){toast(err.message||"Não foi possível salvar a reunião.","error")}
+  });
+}
+async function deleteMeeting(id){
+  const m=(STATE.reunioes||[]).find(x=>String(x.id)===String(id));if(!m||String(m.criado_por)!==String(SESSION?.id||""))return;
+  if(!confirm("Excluir a reunião \""+m.titulo+"\"?"))return;
+  try{await API.remove("REUNIOES",id);await syncAll({silent:true});toast("Reunião excluída.");}
+  catch(e){toast(e.message||"Não foi possível excluir a reunião.","error")}
+}
+
 function renderInteractions(){
   const list=[...STATE.interacoes].sort((a,b)=>`${b.data||""}${b.hora||""}`.localeCompare(`${a.data||""}${a.hora||""}`));
   const today=todayISO(), overdue=STATE.tarefas.filter(t=>t.status!=="concluida"&&isOverdue(t.data)).length, next=list.filter(i=>i.proximoContato&&i.proximoContato>=today).length;
