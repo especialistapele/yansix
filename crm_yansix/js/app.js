@@ -554,6 +554,9 @@ function renderTasks(){
 
 function meetingDateTime(m){return new Date(m.data_inicio||m.dataInicio||"")}
 function meetingParticipantsText(participants){return (Array.isArray(participants)?participants:[]).map(p=>`${p.nome||""}${p.email?" | "+p.email:""}`).join("\n")}
+function safeMeetingVideoLink(value){
+  try{const u=new URL(String(value||""));return ["https:","http:"].includes(u.protocol)?u.href:""}catch{return ""}
+}
 function parseMeetingParticipants(raw){
   return String(raw||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(line=>{
     const parts=line.split("|");const nome=(parts.shift()||"").trim();const email=parts.join("|").trim();
@@ -610,7 +613,7 @@ function renderMeetings(){
       <div class="meeting-meta">${esc(when)} · ${esc(String(m.duracao_minutos||30))} min</div>
       ${participants.length?`<div class="meeting-meta"><b>Participantes:</b> ${participants.map(p=>esc(p.nome)+(p.email?` <span>${esc(p.email)}</span>`:"")).join(", ")}</div>`:""}
       ${m.pauta?`<p class="meeting-notes">${esc(m.pauta)}</p>`:""}
-      ${m.link_video?`<a class="meeting-video-link" href="${esc(m.link_video)}" target="_blank" rel="noopener noreferrer">Entrar na videochamada ↗</a>`:""}
+      ${safeMeetingVideoLink(m.link_video)?`<a class="meeting-video-link" href="${esc(safeMeetingVideoLink(m.link_video))}" target="_blank" rel="noopener noreferrer">Entrar na videochamada ↗</a>`:""}
       </div><div class="meeting-actions">
       <button type="button" class="btn btn-ghost" data-meeting-calendar="${esc(m.id)}">Google Calendar</button>
       ${mine?`<button type="button" class="btn btn-ghost" data-meeting-edit="${esc(m.id)}">Editar</button><button type="button" class="btn btn-ghost" data-meeting-delete="${esc(m.id)}">Excluir</button>`:""}
