@@ -312,3 +312,8 @@ begin
   end loop;
 end $$;
 revoke execute on function public.clinic_crm_has_access(uuid,text[]) from public, anon, authenticated;
+
+-- Garante privilégios explícitos para o cliente autenticado operar o pipeline.
+-- A autorização por clínica continua sendo controlada pelas políticas RLS acima.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on table public.clinic_crm_opportunities to authenticated;
