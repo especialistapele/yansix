@@ -47,7 +47,53 @@
   $('contacts-table').innerHTML=list.length?'<table><thead><tr><th>Nome / contato</th><th>Tipo</th><th>Origem</th><th>Status</th><th>Próximo acompanhamento</th></tr></thead><tbody>'+list.map(c=>'<tr><td><div class="person">'+esc(c.full_name)+'</div><div class="subline">'+esc(c.phone||'')+(c.email?' · '+esc(c.email):'')+'</div></td><td>'+esc(typeLabel(c.contact_type))+'</td><td>'+esc(c.source||'—')+'</td><td><span class="pill '+(c.status==='active'?'green':'')+'">'+esc(statusLabel(c.status))+'</span></td><td>'+esc(fmtDate(c.next_follow_up_at))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty"><strong>Nenhum contato encontrado</strong>Altere a busca ou cadastre um novo contato.</div>';
  }
  function contactName(id){return contacts.find(c=>c.id===id)?.full_name||'Contato'}
- function renderOpportunities(){$('opportunities-table').innerHTML=opportunities.length?'<table><thead><tr><th>Oportunidade</th><th>Contato</th><th>Etapa</th><th>Valor estimado</th></tr></thead><tbody>'+opportunities.map(o=>'<tr><td><div class="person">'+esc(o.title)+'</div><div class="subline">'+esc(o.service_label||'Serviço não informado')+'</div></td><td>'+esc(contactName(o.contact_id))+'</td><td><span class="pill">'+esc(statusLabel(o.stage))+'</span></td><td>'+Number(o.estimated_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</td></tr>').join('')+'</tbody></table>':'<div class="empty"><strong>Nenhuma oportunidade registrada</strong>As oportunidades aparecerão aqui quando forem adicionadas.</div>'}
+ const PIPELINE_STAGES=[{key:'new',label:'Novo contato'},{key:'contacted',label:'Em contato'},{key:'evaluation',label:'Avaliação'},{key:'scheduled',label:'Agendado'},{key:'proposal',label:'Proposta'},{key:'won',label:'Convertida'},{key:'lost',label:'Perdida'}];
+ let pipelineView='kanban', draggedOpportunityId=null;
+ function money(value){return Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+ function renderPipelineSummary(){
+  const open=opportunities.filter(o=>!['won','lost'].includes(o.stage));
+  const total=open.reduce((sum,o)=>sum+Number(o.estimated_value||0),0);
+  $('pipeline-summary').innerHTML=[['Oportunidades abertas',open.length],['Valor em aberto',money(total)],['Convertidas',opportunities.filter(o=>o.stage==='won').length],['Perdidas',opportunities.filter(o=>o.stage==='lost').length]].map(([label,value])=>'<div class="pipeline-metric"><span>'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>').join('');
+ }
+ function setPipelineView(view){
+  pipelineView=view==='table'?'table':'kanban';
+  $('opportunities-board').classList.toggle('hidden',pipelineView!=='kanban');
+  $('opportunities-table').classList.toggle('hidden',pipelineView!=='table');
+  $('kanban-view-button').classList.toggle('secondary',pipelineView!=='kanban');
+  $('table-view-button').classList.toggle('secondary',pipelineView!=='table');
+  $('kanban-view-button').setAttribute('aria-pressed',String(pipelineView==='kanban'));
+  $('table-view-button').setAttribute('aria-pressed',String(pipelineView==='table'));
+ }
+ function renderOpportunities(){
+  renderPipelineSummary();
+  $('opportunities-table').innerHTML=opportunities.length?'<table><thead><tr><th>Oportunidade</th><th>Contato</th><th>Etapa</th><th>Valor estimado</th></tr></thead><tbody>'+opportunities.map(o=>'<tr><td><div class="person">'+esc(o.title)+'</div><div class="subline">'+esc(o.service_label||'Serviço não informado')+'</div></td><td>'+esc(contactName(o.contact_id))+'</td><td><span class="pill">'+esc(statusLabel(o.stage))+'</span></td><td>'+money(o.estimated_value)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty"><strong>Nenhuma oportunidade registrada</strong>As oportunidades aparecerão aqui quando forem adicionadas.</div>';
+  $('opportunities-board').innerHTML=PIPELINE_STAGES.map(stage=>{
+   const items=opportunities.filter(o=>o.stage===stage.key);
+   return '<section class="kanban-column" data-stage="'+stage.key+'"><header class="kanban-column-head"><span class="kanban-column-title">'+esc(stage.label)+'</span><span class="kanban-count">'+items.length+'</span></header><div class="kanban-column-body" data-drop-stage="'+stage.key+'">'+(items.length?items.map(o=>'<article class="kanban-card" draggable="true" data-opportunity-id="'+esc(o.id)+'"><div class="kanban-card-title">'+esc(o.title)+'</div><div class="kanban-card-service">'+esc(o.service_label||'Serviço não informado')+'</div><div class="kanban-card-contact">'+esc(contactName(o.contact_id))+'</div><div class="kanban-card-bottom"><span class="kanban-value">'+esc(money(o.estimated_value))+'</span><span class="kanban-date">'+esc(fmtDate(o.created_at))+'</span></div><label class="subline" for="move-'+esc(o.id)+'">Mover para etapa</label><select class="kanban-move" id="move-'+esc(o.id)+'" data-move-opportunity="'+esc(o.id)+'" aria-label="Mover '+esc(o.title)+' para outra etapa">'+PIPELINE_STAGES.map(s=>'<option value="'+s.key+'" '+(s.key===o.stage?'selected':'')+'>'+esc(s.label)+'</option>').join('')+'</select></article>').join(''):'<div class="kanban-empty">Solte uma oportunidade aqui</div>')+'</div></section>';
+  }).join('');
+  $('opportunities-board').querySelectorAll('[data-opportunity-id]').forEach(card=>{
+   card.addEventListener('dragstart',e=>{draggedOpportunityId=card.dataset.opportunityId;card.classList.add('dragging');if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',draggedOpportunityId)}});
+   card.addEventListener('dragend',()=>{draggedOpportunityId=null;card.classList.remove('dragging');$('opportunities-board').querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'))});
+  });
+  $('opportunities-board').querySelectorAll('[data-drop-stage]').forEach(target=>{
+   target.addEventListener('dragover',e=>{e.preventDefault();target.closest('.kanban-column').classList.add('drop-target');if(e.dataTransfer)e.dataTransfer.dropEffect='move'});
+   target.addEventListener('dragleave',e=>{if(!target.contains(e.relatedTarget))target.closest('.kanban-column').classList.remove('drop-target')});
+   target.addEventListener('drop',e=>{e.preventDefault();target.closest('.kanban-column').classList.remove('drop-target');const id=e.dataTransfer?.getData('text/plain')||draggedOpportunityId;if(id)moveOpportunity(id,target.dataset.dropStage)});
+  });
+  $('opportunities-board').querySelectorAll('[data-move-opportunity]').forEach(select=>select.addEventListener('change',()=>moveOpportunity(select.dataset.moveOpportunity,select.value)));
+  setPipelineView(pipelineView);
+ }
+ async function moveOpportunity(id,nextStage){
+  const opportunity=opportunities.find(o=>o.id===id);if(!opportunity||opportunity.stage===nextStage)return;
+  const previousStage=opportunity.stage;opportunity.stage=nextStage;renderOpportunities();setStatus('pipeline-status','Salvando alteração da etapa…');
+  try{
+   const {error}=await sb.from('clinic_crm_opportunities').update({stage:nextStage}).eq('id',id).eq('clinic_id',clinicId);
+   if(error)throw error;
+   setStatus('pipeline-status','Oportunidade movida para '+(PIPELINE_STAGES.find(s=>s.key===nextStage)?.label||nextStage)+'.','success');
+  }catch(err){
+   opportunity.stage=previousStage;renderOpportunities();setStatus('pipeline-status','Não foi possível mover a oportunidade. Confira as permissões e tente novamente. '+(err.message||''),'error');
+  }
+ }
  function renderAppointments(){$('appointments-table').innerHTML=appointments.length?'<table><thead><tr><th>Data e hora</th><th>Contato</th><th>Serviço</th><th>Status</th></tr></thead><tbody>'+appointments.map(a=>'<tr><td>'+esc(fmtDate(a.starts_at))+'</td><td>'+esc(contactName(a.contact_id))+'</td><td>'+esc(a.service_label||'—')+'</td><td><span class="pill">'+esc(statusLabel(a.status))+'</span></td></tr>').join('')+'</tbody></table>':'<div class="empty"><strong>Nenhum agendamento futuro</strong>Agendamentos registrados pela clínica serão exibidos aqui.</div>'}
  function renderTasks(){$('tasks-table').innerHTML=tasks.length?'<table><thead><tr><th>Tarefa</th><th>Contato</th><th>Prazo</th><th>Prioridade</th><th>Status</th></tr></thead><tbody>'+tasks.map(t=>'<tr><td><div class="person">'+esc(t.title)+'</div></td><td>'+esc(contactName(t.contact_id))+'</td><td>'+esc(fmtDate(t.due_at))+'</td><td>'+esc(t.priority||'normal')+'</td><td><span class="pill">'+esc(statusLabel(t.status))+'</span></td></tr>').join('')+'</tbody></table>':'<div class="empty"><strong>Nenhuma tarefa pendente</strong>As tarefas e retornos da equipe aparecerão aqui.</div>'}
  async function openSession(session){if(!session?.user){showAuth();return}showApp(session.user);try{const ok=await loadClinics(session.user);if(ok){$('clinic-modal-backdrop').classList.add('hidden');await loadData()}}catch(e){setStatus('app-status','Não foi possível carregar a clínica. Verifique o acesso e as permissões. '+(e.message||''),'error')}}
@@ -59,6 +105,7 @@
  document.querySelectorAll('[data-action="new-contact"]').forEach(b=>b.addEventListener('click',openContactModal));$('cancel-contact').addEventListener('click',closeContactModal);$('modal-backdrop').addEventListener('click',e=>{if(e.target===$('modal-backdrop'))closeContactModal()});
  $('contact-form').addEventListener('submit',async e=>{e.preventDefault();if(!clinicId)return;const btn=$('save-contact');btn.disabled=true;setStatus('contact-status','Salvando contato…');try{const {data:userData}=await sb.auth.getUser();const row={clinic_id:clinicId,full_name:$('contact-name').value.trim(),contact_type:$('contact-type').value,phone:$('contact-phone').value.trim()||null,email:$('contact-email').value.trim()||null,source:$('contact-source').value||null,next_follow_up_at:$('contact-followup').value?new Date($('contact-followup').value).toISOString():null,marketing_consent:$('contact-consent').checked,consent_recorded_at:$('contact-consent').checked?new Date().toISOString():null,created_by:userData.user.id};const {error}=await sb.from('clinic_crm_contacts').insert(row);if(error)throw error;closeContactModal();await loadData();setStatus('app-status','Contato salvo com sucesso.','success')}catch(err){setStatus('contact-status','Não foi possível salvar. Confira se seu acesso à clínica está ativo. '+(err.message||''),'error')}finally{btn.disabled=false}});
  $('contact-search').addEventListener('input',renderContacts);$('contact-filter').addEventListener('change',renderContacts);
+ $('kanban-view-button').addEventListener('click',()=>setPipelineView('kanban'));$('table-view-button').addEventListener('click',()=>setPipelineView('table'));
  function navigate(section){const valid=['dashboard','contacts','pipeline','appointments','tasks'].includes(section)?section:'dashboard';document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));$('section-'+valid).classList.add('active');document.querySelectorAll('[data-section]').forEach(b=>b.classList.toggle('active',b.dataset.section===valid));$('page-title').textContent=({dashboard:'Visão geral',contacts:'Contatos e pacientes',pipeline:'Oportunidades',appointments:'Agenda',tasks:'Tarefas e retornos'})[valid];}
  document.querySelectorAll('[data-section]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.section)));
  if(!sb){setStatus('auth-status','A biblioteca de autenticação não carregou. Verifique sua conexão e recarregue.','error')}
