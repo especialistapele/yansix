@@ -90,8 +90,13 @@ create table if not exists public.clinic_crm_settings (
 alter table public.clinic_crm_settings enable row level security;
 drop policy if exists clinic_crm_settings_select on public.clinic_crm_settings;
 drop policy if exists clinic_crm_settings_write on public.clinic_crm_settings;
+drop policy if exists clinic_crm_settings_insert on public.clinic_crm_settings;
+drop policy if exists clinic_crm_settings_update on public.clinic_crm_settings;
+drop policy if exists clinic_crm_settings_delete on public.clinic_crm_settings;
 create policy clinic_crm_settings_select on public.clinic_crm_settings for select to authenticated using (public.clinic_crm_has_access(clinic_id));
-create policy clinic_crm_settings_write on public.clinic_crm_settings for all to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager'])) with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager']) and (updated_by is null or updated_by=auth.uid()));
+create policy clinic_crm_settings_insert on public.clinic_crm_settings for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager']) and (updated_by is null or updated_by=(select auth.uid())));
+create policy clinic_crm_settings_update on public.clinic_crm_settings for update to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager'])) with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager']) and (updated_by is null or updated_by=(select auth.uid())));
+create policy clinic_crm_settings_delete on public.clinic_crm_settings for delete to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin']));
 
 -- Regras por função: leitura limitada à clínica, escrita limitada ao perfil.
 drop policy if exists clinic_crm_contacts_tenant_access on public.clinic_crm_contacts;
@@ -122,8 +127,7 @@ drop policy if exists clinic_crm_appointments_update_professional on public.clin
 drop policy if exists clinic_crm_appointments_delete on public.clinic_crm_appointments;
 create policy clinic_crm_appointments_select on public.clinic_crm_appointments for select to authenticated using (public.clinic_crm_has_access(clinic_id));
 create policy clinic_crm_appointments_insert on public.clinic_crm_appointments for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) and (created_by is null or created_by=auth.uid()));
-create policy clinic_crm_appointments_update_staff on public.clinic_crm_appointments for update to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception'])) with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']));
-create policy clinic_crm_appointments_update_professional on public.clinic_crm_appointments for update to authenticated using (professional_id=auth.uid() and public.clinic_crm_has_access(clinic_id, array['clinician'])) with check (professional_id=auth.uid() and public.clinic_crm_has_access(clinic_id, array['clinician']));
+create policy clinic_crm_appointments_update on public.clinic_crm_appointments for update to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (professional_id=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician']))) with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (professional_id=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])));
 create policy clinic_crm_appointments_delete on public.clinic_crm_appointments for delete to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']));
 
 drop policy if exists clinic_crm_tasks_tenant_access on public.clinic_crm_tasks;
@@ -178,3 +182,15 @@ create index if not exists clinic_crm_finance_contact_idx on public.clinic_crm_f
 create index if not exists clinic_crm_finance_quote_idx on public.clinic_crm_finance_entries(quote_id);
 create index if not exists clinic_crm_finance_created_by_idx on public.clinic_crm_finance_entries(created_by);
 create index if not exists clinic_crm_settings_updated_by_idx on public.clinic_crm_settings(updated_by);
+
+-- Cobertura de chaves estrangeiras compostas e simples.
+create index if not exists clinic_crm_appointments_tenant_contact_idx on public.clinic_crm_appointments(clinic_id,contact_id);
+create index if not exists clinic_crm_appointments_professional_id_idx on public.clinic_crm_appointments(professional_id);
+create index if not exists clinic_crm_finance_tenant_contact_idx on public.clinic_crm_finance_entries(clinic_id,contact_id);
+create index if not exists clinic_crm_finance_tenant_quote_idx on public.clinic_crm_finance_entries(clinic_id,quote_id);
+create index if not exists clinic_crm_interactions_contact_fk_idx on public.clinic_crm_interactions(contact_id);
+create index if not exists clinic_crm_opportunities_tenant_contact_idx on public.clinic_crm_opportunities(clinic_id,contact_id);
+create index if not exists clinic_crm_quotes_tenant_contact_idx on public.clinic_crm_quotes(clinic_id,contact_id);
+create index if not exists clinic_crm_quotes_tenant_opportunity_idx on public.clinic_crm_quotes(clinic_id,opportunity_id);
+create index if not exists clinic_crm_tasks_tenant_contact_idx on public.clinic_crm_tasks(clinic_id,contact_id);
+create index if not exists clinic_crm_tasks_tenant_appointment_idx on public.clinic_crm_tasks(clinic_id,appointment_id);
