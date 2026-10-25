@@ -194,3 +194,5 @@ create index if not exists clinic_crm_quotes_tenant_contact_idx on public.clinic
 create index if not exists clinic_crm_quotes_tenant_opportunity_idx on public.clinic_crm_quotes(clinic_id,opportunity_id);
 create index if not exists clinic_crm_tasks_tenant_contact_idx on public.clinic_crm_tasks(clinic_id,contact_id);
 create index if not exists clinic_crm_tasks_tenant_appointment_idx on public.clinic_crm_tasks(clinic_id,appointment_id);
+
+create unique index if not exists clinic_crm_members_clinic_email_uq on public.clinic_crm_members(clinic_id, lower(email)) where email is not null;
