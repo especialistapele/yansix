@@ -242,3 +242,36 @@ drop policy if exists clinic_crm_quotes_insert on public.clinic_crm_quotes;
 create policy clinic_crm_quotes_insert on public.clinic_crm_quotes for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) and (created_by is null or created_by=(select auth.uid())));
 drop policy if exists clinic_crm_finance_insert on public.clinic_crm_finance_entries;
 create policy clinic_crm_finance_insert on public.clinic_crm_finance_entries for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','finance']) and (created_by is null or created_by=(select auth.uid())));
+
+-- O helper de RLS fica fora do schema exposto pela Data API.
+create schema if not exists private;
+revoke all on schema private from public, anon;
+grant usage on schema private to authenticated;
+create or replace function private.clinic_crm_has_access(p_clinic_id uuid, p_roles text[] default null)
+returns boolean language sql stable security definer
+set search_path = public, auth, pg_temp
+as $$
+  select exists (select 1 from public.clinic_crm_members m
+    where m.clinic_id=p_clinic_id and m.user_id=(select auth.uid()) and m.active is true
+      and (p_roles is null or m.role=any(p_roles)));
+$$;
+revoke all on function private.clinic_crm_has_access(uuid,text[]) from public, anon;
+grant execute on function private.clinic_crm_has_access(uuid,text[]) to authenticated;
+do $$
+declare p record; roles_sql text; policy_sql text; q text; wc text;
+begin
+  for p in select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+    from pg_policies where schemaname='public' and tablename like 'clinic_crm_%'
+      and (coalesce(qual,'') like '%clinic_crm_has_access(%' or coalesce(with_check,'') like '%clinic_crm_has_access(%')
+  loop
+    roles_sql:=array_to_string(p.roles,', ');
+    q:=replace(p.qual,'clinic_crm_has_access(','private.clinic_crm_has_access(');
+    wc:=replace(p.with_check,'clinic_crm_has_access(','private.clinic_crm_has_access(');
+    execute format('drop policy %I on %I.%I',p.policyname,p.schemaname,p.tablename);
+    policy_sql:=format('create policy %I on %I.%I as %s for %s to %s',p.policyname,p.schemaname,p.tablename,lower(p.permissive),p.cmd,roles_sql);
+    if q is not null then policy_sql:=policy_sql||format(' using (%s)',q); end if;
+    if wc is not null then policy_sql:=policy_sql||format(' with check (%s)',wc); end if;
+    execute policy_sql;
+  end loop;
+end $$;
+revoke execute on function public.clinic_crm_has_access(uuid,text[]) from public, anon, authenticated;
