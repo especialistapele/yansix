@@ -275,3 +275,19 @@ begin
   end loop;
 end $$;
 revoke execute on function public.clinic_crm_has_access(uuid,text[]) from public, anon, authenticated;
+
+-- Profissionais só criam/alteram tarefas atribuídas a si e interações sobre contatos atribuídos a si.
+drop policy if exists clinic_crm_tasks_insert on public.clinic_crm_tasks;
+create policy clinic_crm_tasks_insert on public.clinic_crm_tasks for insert to authenticated
+with check ((public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) and (created_by is null or created_by=(select auth.uid()))) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and assigned_to=(select auth.uid()) and (created_by is null or created_by=(select auth.uid()))));
+drop policy if exists clinic_crm_tasks_update on public.clinic_crm_tasks;
+create policy clinic_crm_tasks_update on public.clinic_crm_tasks for update to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (assigned_to=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])))
+with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (assigned_to=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])));
+drop policy if exists clinic_crm_interactions_insert on public.clinic_crm_interactions;
+create policy clinic_crm_interactions_insert on public.clinic_crm_interactions for insert to authenticated
+with check ((public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) and (created_by is null or created_by=(select auth.uid()))) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and (created_by is null or created_by=(select auth.uid())) and exists (select 1 from public.clinic_crm_contacts c where c.id=contact_id and c.clinic_id=clinic_id and c.assigned_to=(select auth.uid()))));
+drop policy if exists clinic_crm_interactions_update on public.clinic_crm_interactions;
+create policy clinic_crm_interactions_update on public.clinic_crm_interactions for update to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and exists (select 1 from public.clinic_crm_contacts c where c.id=contact_id and c.clinic_id=clinic_id and c.assigned_to=(select auth.uid()))))
+with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and exists (select 1 from public.clinic_crm_contacts c where c.id=contact_id and c.clinic_id=clinic_id and c.assigned_to=(select auth.uid()))));
