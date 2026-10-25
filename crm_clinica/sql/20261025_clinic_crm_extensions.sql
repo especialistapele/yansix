@@ -291,3 +291,24 @@ drop policy if exists clinic_crm_interactions_update on public.clinic_crm_intera
 create policy clinic_crm_interactions_update on public.clinic_crm_interactions for update to authenticated
 using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and exists (select 1 from public.clinic_crm_contacts c where c.id=contact_id and c.clinic_id=clinic_id and c.assigned_to=(select auth.uid()))))
 with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and exists (select 1 from public.clinic_crm_contacts c where c.id=contact_id and c.clinic_id=clinic_id and c.assigned_to=(select auth.uid()))));
+
+-- Reaplica o uso do helper privado após todas as políticas acima terem sido definidas.
+do $$
+declare p record; roles_sql text; policy_sql text; q text; wc text;
+begin
+  for p in select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+    from pg_policies where schemaname='public' and tablename like 'clinic_crm_%'
+      and (coalesce(qual,'') like '%clinic_crm_has_access(%' or coalesce(with_check,'') like '%clinic_crm_has_access(%')
+  loop
+    roles_sql:=array_to_string(p.roles,', ');
+    q:=replace(p.qual,'clinic_crm_has_access(','private.clinic_crm_has_access(');
+    wc:=replace(p.with_check,'clinic_crm_has_access(','private.clinic_crm_has_access(');
+    if coalesce(q,'')=coalesce(p.qual,'') and coalesce(wc,'')=coalesce(p.with_check,'') then continue; end if;
+    execute format('drop policy %I on %I.%I',p.policyname,p.schemaname,p.tablename);
+    policy_sql:=format('create policy %I on %I.%I as %s for %s to %s',p.policyname,p.schemaname,p.tablename,lower(p.permissive),p.cmd,roles_sql);
+    if q is not null then policy_sql:=policy_sql||format(' using (%s)',q); end if;
+    if wc is not null then policy_sql:=policy_sql||format(' with check (%s)',wc); end if;
+    execute policy_sql;
+  end loop;
+end $$;
+revoke execute on function public.clinic_crm_has_access(uuid,text[]) from public, anon, authenticated;
