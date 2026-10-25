@@ -196,3 +196,7 @@ create index if not exists clinic_crm_tasks_tenant_contact_idx on public.clinic_
 create index if not exists clinic_crm_tasks_tenant_appointment_idx on public.clinic_crm_tasks(clinic_id,appointment_id);
 
 create unique index if not exists clinic_crm_members_clinic_email_uq on public.clinic_crm_members(clinic_id, lower(email)) where email is not null;
+
+drop policy if exists clinic_crm_members_select on public.clinic_crm_members;
+create policy clinic_crm_members_select on public.clinic_crm_members for select to authenticated
+using (user_id=(select auth.uid()) or public.clinic_crm_has_access(clinic_id));
