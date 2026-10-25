@@ -145,3 +145,36 @@ create policy clinic_crm_interactions_select on public.clinic_crm_interactions f
 create policy clinic_crm_interactions_insert on public.clinic_crm_interactions for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','clinician']) and (created_by is null or created_by=auth.uid()));
 create policy clinic_crm_interactions_update on public.clinic_crm_interactions for update to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','clinician'])) with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','clinician']));
 create policy clinic_crm_interactions_delete on public.clinic_crm_interactions for delete to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager']));
+
+-- Restringe funções administrativas de criação e verificação de acesso a sessões autenticadas.
+revoke execute on function public.clinic_crm_create_clinic(text,text) from public, anon;
+grant execute on function public.clinic_crm_create_clinic(text,text) to authenticated;
+revoke execute on function public.clinic_crm_has_access(uuid,text[]) from public, anon;
+grant execute on function public.clinic_crm_has_access(uuid,text[]) to authenticated;
+
+-- Índices de chaves estrangeiras para reduzir custo de joins e verificações de integridade.
+create index if not exists clinic_crm_clinics_created_by_idx on public.clinic_crm_clinics(created_by);
+create index if not exists clinic_crm_members_user_id_idx on public.clinic_crm_members(user_id);
+create index if not exists clinic_crm_members_clinic_user_idx on public.clinic_crm_members(clinic_id,user_id);
+create index if not exists clinic_crm_contacts_assigned_to_idx on public.clinic_crm_contacts(assigned_to);
+create index if not exists clinic_crm_contacts_created_by_idx on public.clinic_crm_contacts(created_by);
+create index if not exists clinic_crm_opportunities_contact_idx on public.clinic_crm_opportunities(contact_id);
+create index if not exists clinic_crm_opportunities_assigned_to_idx on public.clinic_crm_opportunities(assigned_to);
+create index if not exists clinic_crm_opportunities_created_by_idx on public.clinic_crm_opportunities(created_by);
+create index if not exists clinic_crm_appointments_contact_idx on public.clinic_crm_appointments(contact_id);
+create index if not exists clinic_crm_appointments_professional_idx on public.clinic_crm_appointments(professional_id);
+create index if not exists clinic_crm_appointments_created_by_idx on public.clinic_crm_appointments(created_by);
+create index if not exists clinic_crm_interactions_contact_idx on public.clinic_crm_interactions(contact_id);
+create index if not exists clinic_crm_interactions_created_by_idx on public.clinic_crm_interactions(created_by);
+create index if not exists clinic_crm_tasks_contact_idx on public.clinic_crm_tasks(contact_id);
+create index if not exists clinic_crm_tasks_appointment_idx on public.clinic_crm_tasks(appointment_id);
+create index if not exists clinic_crm_tasks_assigned_to_idx on public.clinic_crm_tasks(assigned_to);
+create index if not exists clinic_crm_tasks_created_by_idx on public.clinic_crm_tasks(created_by);
+create index if not exists clinic_crm_audit_actor_idx on public.clinic_crm_audit_events(actor_user_id);
+create index if not exists clinic_crm_quotes_contact_idx on public.clinic_crm_quotes(contact_id);
+create index if not exists clinic_crm_quotes_opportunity_idx on public.clinic_crm_quotes(opportunity_id);
+create index if not exists clinic_crm_quotes_created_by_idx on public.clinic_crm_quotes(created_by);
+create index if not exists clinic_crm_finance_contact_idx on public.clinic_crm_finance_entries(contact_id);
+create index if not exists clinic_crm_finance_quote_idx on public.clinic_crm_finance_entries(quote_id);
+create index if not exists clinic_crm_finance_created_by_idx on public.clinic_crm_finance_entries(created_by);
+create index if not exists clinic_crm_settings_updated_by_idx on public.clinic_crm_settings(updated_by);
