@@ -222,3 +222,23 @@ create policy clinic_crm_quotes_select on public.clinic_crm_quotes for select to
 using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','finance']));
 
 grant usage, select on sequence public.clinic_crm_quotes_quote_number_seq to authenticated;
+
+-- Usa initplan para auth.uid() em políticas de inserção e melhora avaliação RLS.
+drop policy if exists clinic_crm_audit_insert on public.clinic_crm_audit_events;
+create policy clinic_crm_audit_insert on public.clinic_crm_audit_events for insert to authenticated with check (public.clinic_crm_has_access(clinic_id) and (actor_user_id is null or actor_user_id=(select auth.uid())));
+drop policy if exists clinic_crm_members_delete on public.clinic_crm_members;
+create policy clinic_crm_members_delete on public.clinic_crm_members for delete to authenticated using (public.clinic_crm_has_access(clinic_id, array['owner','admin']) and user_id<>(select auth.uid()));
+drop policy if exists clinic_crm_contacts_insert on public.clinic_crm_contacts;
+create policy clinic_crm_contacts_insert on public.clinic_crm_contacts for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','marketing']) and (created_by is null or created_by=(select auth.uid())));
+drop policy if exists clinic_crm_opportunities_insert on public.clinic_crm_opportunities;
+create policy clinic_crm_opportunities_insert on public.clinic_crm_opportunities for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','marketing']) and (created_by is null or created_by=(select auth.uid())));
+drop policy if exists clinic_crm_appointments_insert on public.clinic_crm_appointments;
+create policy clinic_crm_appointments_insert on public.clinic_crm_appointments for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) and (created_by is null or created_by=(select auth.uid())));
+drop policy if exists clinic_crm_tasks_insert on public.clinic_crm_tasks;
+create policy clinic_crm_tasks_insert on public.clinic_crm_tasks for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','clinician']) and (created_by is null or created_by=(select auth.uid())));
+drop policy if exists clinic_crm_interactions_insert on public.clinic_crm_interactions;
+create policy clinic_crm_interactions_insert on public.clinic_crm_interactions for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','clinician']) and (created_by is null or created_by=(select auth.uid())));
+drop policy if exists clinic_crm_quotes_insert on public.clinic_crm_quotes;
+create policy clinic_crm_quotes_insert on public.clinic_crm_quotes for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) and (created_by is null or created_by=(select auth.uid())));
+drop policy if exists clinic_crm_finance_insert on public.clinic_crm_finance_entries;
+create policy clinic_crm_finance_insert on public.clinic_crm_finance_entries for insert to authenticated with check (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','finance']) and (created_by is null or created_by=(select auth.uid())));
