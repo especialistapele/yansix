@@ -220,3 +220,5 @@ using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','
 drop policy if exists clinic_crm_quotes_select on public.clinic_crm_quotes;
 create policy clinic_crm_quotes_select on public.clinic_crm_quotes for select to authenticated
 using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','finance']));
+
+grant usage, select on sequence public.clinic_crm_quotes_quote_number_seq to authenticated;
