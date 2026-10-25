@@ -7,13 +7,14 @@ Módulo administrativo independente do CRM comercial, conectado ao projeto Supab
 - Dashboard com contatos, oportunidades e agenda.
 - Contatos e pacientes administrativos: criação, edição, pesquisa e exclusão conforme o perfil.
 - Pipeline Kanban e tabela: criação/edição/exclusão de oportunidades, movimentação de etapas e auditoria.
-- Agenda administrativa: criar, editar e excluir agendamentos, validação de horário e detecção de sobreposição.
-- Tarefas e retornos: CRUD, prioridade, conclusão e vínculo a contato.
+- Agenda administrativa: criar, editar e excluir agendamentos, atribuição de profissional, validação de horário, detecção de sobreposição e atalho para Google Calendar.
+- Tarefas e retornos: CRUD, prioridade, conclusão, responsável e vínculo a contato.
 - Interações: registro de ligações, WhatsApp, e-mail, reunião, origem e resultado.
 - Orçamentos: status, validade, desconto, impressão e vínculo a oportunidade.
 - Financeiro básico: receitas/despesas, vencimentos, estado pago/pendente/cancelado e indicadores.
-- Equipe: convite de usuário pelo Supabase Auth, vínculo com clínica, perfil e ativação/desativação.
-- Relatórios operacionais, exportação CSV e configurações por clínica.
+- Equipe: convite de usuário pelo Supabase Auth, vínculo com clínica, edição de perfil, ativação/desativação e diretório de profissionais.
+- Relatórios operacionais, exportação CSV, histórico de auditoria e configurações por clínica.
+- Automações opt-in para criar tarefa de primeiro contato, confirmação de agendamento e follow-up de orçamento.
 - RLS por clínica e políticas de escrita por perfil; trilha de auditoria.
 
 ## Perfis
