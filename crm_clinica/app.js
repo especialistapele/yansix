@@ -102,7 +102,10 @@
  function applyRoleAccess(){
   document.querySelectorAll('[data-roles]').forEach(el=>{const allowed=el.dataset.roles.split(',');el.classList.toggle('hidden',!allowed.includes(currentRole))});
   document.querySelectorAll('[data-section="finance"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','finance'].includes(currentRole)));
-  document.querySelectorAll('[data-action="new-finance"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','finance'].includes(currentRole)));\n  document.querySelectorAll('[data-action="new-appointment"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','reception'].includes(currentRole)));\n  document.querySelectorAll('[data-action="new-quote"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','reception'].includes(currentRole)));\n  document.querySelectorAll('[data-action="new-interaction"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','reception','clinician'].includes(currentRole)));
+  document.querySelectorAll('[data-action="new-finance"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','finance'].includes(currentRole)));
+  document.querySelectorAll('[data-action="new-appointment"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','reception'].includes(currentRole)));
+  document.querySelectorAll('[data-action="new-quote"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','reception'].includes(currentRole)));
+  document.querySelectorAll('[data-action="new-interaction"]').forEach(el=>el.classList.toggle('hidden',!['owner','admin','manager','reception','clinician'].includes(currentRole)));
  }
  async function audit(action,entityType,entityId,details={}){
   if(!clinicId||!currentUserId)return;
