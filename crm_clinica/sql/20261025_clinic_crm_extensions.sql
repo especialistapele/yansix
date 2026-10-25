@@ -200,3 +200,23 @@ create unique index if not exists clinic_crm_members_clinic_email_uq on public.c
 drop policy if exists clinic_crm_members_select on public.clinic_crm_members;
 create policy clinic_crm_members_select on public.clinic_crm_members for select to authenticated
 using (user_id=(select auth.uid()) or public.clinic_crm_has_access(clinic_id));
+
+-- Limita leituras operacionais por perfil, além do isolamento por clínica.
+drop policy if exists clinic_crm_contacts_select on public.clinic_crm_contacts;
+create policy clinic_crm_contacts_select on public.clinic_crm_contacts for select to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','marketing','finance']) or (assigned_to=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])));
+drop policy if exists clinic_crm_opportunities_select on public.clinic_crm_opportunities;
+create policy clinic_crm_opportunities_select on public.clinic_crm_opportunities for select to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','marketing']) or (assigned_to=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])));
+drop policy if exists clinic_crm_appointments_select on public.clinic_crm_appointments;
+create policy clinic_crm_appointments_select on public.clinic_crm_appointments for select to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (professional_id=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])));
+drop policy if exists clinic_crm_tasks_select on public.clinic_crm_tasks;
+create policy clinic_crm_tasks_select on public.clinic_crm_tasks for select to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (assigned_to=(select auth.uid()) and public.clinic_crm_has_access(clinic_id, array['clinician'])));
+drop policy if exists clinic_crm_interactions_select on public.clinic_crm_interactions;
+create policy clinic_crm_interactions_select on public.clinic_crm_interactions for select to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception']) or (public.clinic_crm_has_access(clinic_id, array['clinician']) and exists (select 1 from public.clinic_crm_contacts c where c.id=contact_id and c.clinic_id=clinic_id and c.assigned_to=(select auth.uid()))));
+drop policy if exists clinic_crm_quotes_select on public.clinic_crm_quotes;
+create policy clinic_crm_quotes_select on public.clinic_crm_quotes for select to authenticated
+using (public.clinic_crm_has_access(clinic_id, array['owner','admin','manager','reception','finance']));
