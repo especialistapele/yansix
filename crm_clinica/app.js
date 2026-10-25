@@ -28,14 +28,30 @@
  async function loadData(){
   if(!clinicId)return;
   const results=await Promise.all([
-   sb.from('clinic_crm_contacts').select('id,full_name,contact_type,phone,email,source,status,next_follow_up_at,created_at').eq('clinic_id',clinicId).order('created_at',{ascending:false}).limit(300),
-   sb.from('clinic_crm_opportunities').select('id,title,service_label,stage,estimated_value,created_at,contact_id').eq('clinic_id',clinicId).order('created_at',{ascending:false}).limit(300),
-   sb.from('clinic_crm_appointments').select('id,contact_id,service_label,starts_at,ends_at,status,professional_id').eq('clinic_id',clinicId).gte('starts_at',new Date().toISOString()).order('starts_at').limit(100),
-   sb.from('clinic_crm_tasks').select('id,title,due_at,status,priority,contact_id,appointment_id').eq('clinic_id',clinicId).neq('status','completed').order('due_at',{ascending:true}).limit(200)
+   sb.from('clinic_crm_contacts').select('*').eq('clinic_id',clinicId).order('created_at',{ascending:false}).limit(300),
+   sb.from('clinic_crm_opportunities').select('*').eq('clinic_id',clinicId).order('created_at',{ascending:false}).limit(300),
+   sb.from('clinic_crm_appointments').select('*').eq('clinic_id',clinicId).gte('starts_at',new Date().toISOString()).order('starts_at').limit(150),
+   sb.from('clinic_crm_tasks').select('*').eq('clinic_id',clinicId).order('due_at',{ascending:true}).limit(300),
+   sb.from('clinic_crm_members').select('id,user_id,role,active,display_name,email,created_at').eq('clinic_id',clinicId).order('created_at'),
+   sb.from('clinic_crm_quotes').select('*').eq('clinic_id',clinicId).order('created_at',{ascending:false}).limit(300),
+   sb.from('clinic_crm_finance_entries').select('*').eq('clinic_id',clinicId).order('due_date',{ascending:false}).limit(500),
+   sb.from('clinic_crm_interactions').select('*').eq('clinic_id',clinicId).order('occurred_at',{ascending:false}).limit(300),
+   sb.from('clinic_crm_settings').select('setting_key,setting_value').eq('clinic_id',clinicId),
+   sb.from('clinic_crm_audit_events').select('id,actor_user_id,action,entity_type,entity_id,details,created_at').eq('clinic_id',clinicId).order('created_at',{ascending:false}).limit(200)
   ]);
   const err=results.find(r=>r.error);if(err)throw err.error;
-  [contacts,opportunities,appointments,tasks]=results.map(r=>r.data||[]);
-  renderDashboard();renderContacts();renderOpportunities();renderAppointments();renderTasks();
+  contacts=results[0].data||[];
+  opportunities=results[1].data||[];
+  appointments=results[2].data||[];
+  tasks=results[3].data||[];
+  members=results[4].data||[];
+  quotes=results[5].data||[];
+  financeEntries=results[6].data||[];
+  interactions=results[7].data||[];
+  clinicSettings=Object.fromEntries((results[8].data||[]).map(s=>[s.setting_key,s.setting_value]));
+  auditEvents=results[9].data||[];
+  PIPELINE_STAGES=pipelineStages();
+  renderDashboard();renderContacts();renderOpportunities();renderAppointments();renderTasks();renderInteractions();renderMembers();renderQuotes();renderFinance();renderReports();renderAudit();loadSettingsForm();
  }
  function renderDashboard(){
   $('stat-contacts').textContent=contacts.length;$('stat-new').textContent=contacts.filter(c=>c.status==='new').length;$('stat-opportunities').textContent=opportunities.filter(o=>!['won','lost'].includes(o.stage)).length;$('stat-appointments').textContent=appointments.filter(a=>!['cancelled','no_show'].includes(a.status)).length;
